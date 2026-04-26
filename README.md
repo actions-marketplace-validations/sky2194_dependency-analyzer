@@ -25,7 +25,7 @@
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/dependency-analyzer.git
+git clone https://github.com/sky2194/Dependency-Analyser.git
 cd dependency-analyzer
 
 # Install and run everything
