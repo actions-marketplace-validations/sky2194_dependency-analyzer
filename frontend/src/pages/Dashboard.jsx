@@ -125,15 +125,19 @@ export default function Dashboard() {
   const analyze = async (content, filename) => {
     setLoading(true); setScanning(true); setScanProject(filename); setError(''); setLoadingStep(0)
     const detectedEco = detectEcosystem(filename)
-    const interval = setInterval(() => setLoadingStep(s => Math.min(s + 1, LOADING_STEPS.length - 1)), 1500)
+    const interval = setInterval(() => setLoadingStep(s => Math.min(s + 1, LOADING_STEPS.length - 1)), 2000)
     try {
-      const res = await axios.post(`${API_BASE}/api/analyze`, { content, filename })
+      const res = await axios.post(`${API_BASE}/api/analyze`, { content, filename }, { timeout: 180000 })
       clearInterval(interval)
       setLoading(false); setScanning(false); setScanProject('')
       navigate('/results', { state: { result: res.data } })
-    } catch {
+    } catch (err) {
       clearInterval(interval)
       setLoading(false); setScanning(false); setScanProject('')
+      const status = err?.response?.status
+      if (status === 408) { setError('Scan timed out — try a smaller file'); return }
+      if (status === 413) { setError('File too large — maximum 512KB'); return }
+      if (status === 429) { setError('Too many requests — wait 60s and try again'); return }
       const ecoKey = detectedEco?.label?.toLowerCase() || 'npm'
       const mockResult = MOCKS[ecoKey] || MOCKS.npm
       mockResult._isMock = true
@@ -142,11 +146,11 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '36px 40px' }}>
+    <div style={{ maxWidth: 1400, margin: '0 auto', padding: '36px 40px' }}>
       <div style={{ marginBottom: 24 }}>
         <div style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--accent)', letterSpacing: 2, marginBottom: 6 }}>SOFTWARE COMPOSITION ANALYSIS</div>
         <p style={{ color: 'var(--muted)', fontSize: 13, lineHeight: 1.7 }}>
-          Scan for <Tooltip termKey="cve">CVEs</Tooltip> across all <Tooltip termKey="direct">direct</Tooltip> + <Tooltip termKey="transitive">transitive dependencies</Tooltip>. Uses <Tooltip termKey="nvd">NVD</Tooltip> + <Tooltip termKey="osv">OSV</Tooltip>. Supports <Tooltip termKey="npm">npm</Tooltip>, <Tooltip termKey="pypi">PyPI</Tooltip>, <Tooltip termKey="maven">Maven</Tooltip>.
+          Scan for CVEs across all direct + transitive dependencies. Uses NVD + OSV. Supports npm, PyPI, Maven.
         </p>
       </div>
 
@@ -177,3 +181,5 @@ export default function Dashboard() {
     </div>
   )
 }
+
+
