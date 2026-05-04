@@ -96,7 +96,7 @@ export default function FileUpload({ onAnalyze, loading, onEcosystemChange }) {
       )}
       <button onClick={() => onAnalyze(content, eco.file)} disabled={!content.trim() || loading || content.length > 512000}
         style={{ marginTop: 14, padding: '11px 28px', background: content.trim() ? 'var(--accent)' : 'var(--border)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, cursor: content.trim() ? 'pointer' : 'not-allowed' }}>
-        {loading ? '⏳ Scanning...' : '🔍 Analyze Dependencies'}
+        {loading ? '⏳ Scanning...' : '🔍 Scan & Detect Vulnerabilities'}
       </button>
     </div>
   )

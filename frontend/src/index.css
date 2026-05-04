@@ -3,8 +3,8 @@
   --text: #e8eaf0; --muted: #6b7280; --accent: #e05c2a; --accent2: #f59e0b;
   --ok: #22c55e; --info: #3b82f6; --critical: #ef4444; --high: #f97316;
   --medium: #eab308; --low: #3b82f6;
-  --font-display: 'Syne', sans-serif; --font-body: 'Lato', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace; --radius: 8px;
+  --font-display: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace; --radius: 8px;
 }
 [data-theme="light"] {
   --bg: #f8f9fa; --surface: #ffffff; --surface2: #f1f3f5; --border: #dee2e6;
@@ -238,3 +238,5 @@ button { font-family: var(--font-body); }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════ */
+
+@keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }

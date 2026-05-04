@@ -157,32 +157,34 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Loading overlay — replaces right panel during scan */}
-      {loading ? (
-        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '32px', marginBottom: 20 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, marginBottom: 20, color: 'var(--accent)' }}>⏳ Analyzing dependencies...</div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {LOADING_STEPS.map((step, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 14 }}>
-                <div style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${i < loadingStep ? 'var(--ok)' : i === loadingStep ? 'var(--accent)' : 'var(--border)'}`, background: i < loadingStep ? 'var(--ok)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, flexShrink: 0, transition: 'all 0.3s', color: i < loadingStep ? '#fff' : 'var(--accent)' }}>
-                  {i < loadingStep ? '✓' : i === loadingStep ? '●' : ''}
+      {/* Fullscreen loading overlay */}
+      {loading && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,17,23,0.95)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '40px 48px', maxWidth: 520, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 32 }}>
+              <div style={{ fontSize: 40, marginBottom: 16, display: 'inline-block', animation: 'spin 2s linear infinite' }}>⚙️</div>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Scanning Dependencies</h2>
+              <p style={{ color: 'var(--muted)', fontSize: 13 }}>Checking against NVD + OSV databases...</p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {LOADING_STEPS.map((step, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13 }}>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${i < loadingStep ? 'var(--ok)' : i === loadingStep ? 'var(--accent)' : 'var(--border)'}`, background: i < loadingStep ? 'var(--ok)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, flexShrink: 0, transition: 'all 0.3s', color: i < loadingStep ? '#fff' : 'var(--accent)' }}>
+                    {i < loadingStep ? '✓' : i === loadingStep ? '●' : ''}
+                  </div>
+                  <span style={{ color: i < loadingStep ? 'var(--ok)' : i === loadingStep ? 'var(--text)' : 'var(--muted)', transition: 'color 0.3s' }}>{step}</span>
                 </div>
-                <span style={{ color: i < loadingStep ? 'var(--ok)' : i === loadingStep ? 'var(--text)' : 'var(--muted)', transition: 'color 0.3s' }}>{step}</span>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
-      ) : (
-        <>
-          {error && <div style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 14px', color: '#ef4444', fontSize: 12, marginBottom: 16 }}>⚠️ {error}</div>}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24, alignItems: 'start' }}>
-            <FileUpload onAnalyze={analyze} loading={loading} onEcosystemChange={setEco} />
-            <RightPanel eco={eco} />
-          </div>
-        </>
       )}
+
+      {error && <div style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 14px', color: '#ef4444', fontSize: 12, marginBottom: 16 }}>⚠️ {error}</div>}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24, alignItems: 'start' }}>
+        <FileUpload onAnalyze={analyze} loading={loading} onEcosystemChange={setEco} />
+        <RightPanel eco={eco} />
+      </div>
     </div>
   )
 }
-
-
