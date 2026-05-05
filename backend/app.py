@@ -32,7 +32,15 @@ from export.csv_export import generate_csv
 
 app = Flask(__name__)
 
-ALLOWED_ORIGINS = os.environ.get('ALLOWED_ORIGINS', 'https://dependency-analyzer-eight.vercel.app,http://localhost:3000').split(',')
+def parse_allowed_origins():
+    origins = os.environ.get(
+        'ALLOWED_ORIGINS',
+        'https://dependency-analyzer-sky2194s-projects.vercel.app,https://dependency-analyzer-eight.vercel.app,http://localhost:3000,http://localhost:5173'
+    )
+    return [origin.strip().rstrip('/') for origin in origins.split(',') if origin.strip()]
+
+ALLOWED_ORIGINS = parse_allowed_origins()
+ALLOW_VERCEL_PREVIEWS = os.environ.get('ALLOW_VERCEL_PREVIEWS', 'true').lower() == 'true'
 CORS(app, origins=ALLOWED_ORIGINS, allow_headers=['Content-Type'], methods=['GET', 'POST', 'OPTIONS'])
 
 MAX_CONTENT_SIZE = 512 * 1024
@@ -44,6 +52,14 @@ _rate_store = defaultdict(list)
 
 def get_client_id():
     return request.headers.get('X-Forwarded-For', request.remote_addr)
+
+def is_origin_allowed(origin):
+    if not origin:
+        return False
+    origin = origin.rstrip('/')
+    if '*' in ALLOWED_ORIGINS or origin in ALLOWED_ORIGINS:
+        return True
+    return ALLOW_VERCEL_PREVIEWS and origin.startswith('https://') and origin.endswith('.vercel.app')
 
 def rate_limited(f):
     @wraps(f)
@@ -64,6 +80,14 @@ def detect_ecosystem(filename):
     if filename.endswith('.txt') or 'requirements' in filename: return 'pypi'
     if filename.endswith('.xml') or 'pom' in filename: return 'maven'
     return 'npm'
+
+def filename_for_ecosystem(ecosystem):
+    return {
+        'npm': 'package.json',
+        'npm-lock': 'package-lock.json',
+        'pypi': 'requirements.txt',
+        'maven': 'pom.xml',
+    }.get(ecosystem, 'package.json')
 
 def validate_content(content, filename):
     if not content or not content.strip():
@@ -120,30 +144,32 @@ def group_vulns_by_package(vulnerabilities):
 def _count_packages(deps):
     return len(deps) + sum(_count_packages(d.get('dependencies', [])) for d in deps)
 
+def add_ui_aliases(vulnerabilities):
+    for v in vulnerabilities:
+        v.setdefault('package_name', v.get('package'))
+        v.setdefault('installed_version', v.get('version'))
+        v.setdefault('recommended_fix', v.get('fix_version') or v.get('fix'))
+    return vulnerabilities
+
 PARSERS   = {'npm': parse_npm, 'pypi': parse_pypi, 'maven': parse_maven, 'npm-lock': parse_lockfile}
 RESOLVERS = {'npm': resolve_npm, 'pypi': resolve_pypi, 'maven': resolve_maven, 'npm-lock': resolve_lockfile}
 
 @app.after_request
 def add_cors_headers(response):
     origin = request.headers.get('Origin', '')
-    if origin in ALLOWED_ORIGINS or '*' in ALLOWED_ORIGINS:
-        response.headers['Access-Control-Allow-Origin'] = origin
+    if is_origin_allowed(origin):
+        response.headers['Access-Control-Allow-Origin'] = origin.rstrip('/')
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+        response.headers['Vary'] = 'Origin'
     return response
 
-@app.route('/api/analyze', methods=['POST'])
-@rate_limited
-def analyze():
+def run_analysis(body):
     if request.content_length and request.content_length > MAX_CONTENT_SIZE * 2:
         return jsonify({'error': 'Request too large (max 512KB)'}), 413
 
-    body = request.get_json(silent=True)
-    if not body:
-        return jsonify({'error': 'Invalid JSON body'}), 400
-
     content  = body.get('content', '')
-    filename = body.get('filename', 'package.json')
+    filename = body.get('filename') or filename_for_ecosystem(body.get('ecosystem', 'npm'))
 
     error, status = validate_content(content, filename)
     if error:
@@ -178,7 +204,7 @@ def analyze():
         log.error(f"Scan error: {e}")
         return jsonify({'error': 'Scan failed'}), 500
 
-    vulnerabilities = deduplicate_vulns(vulnerabilities)
+    vulnerabilities = add_ui_aliases(deduplicate_vulns(vulnerabilities))
     vulnerabilities.sort(key=lambda v: {'CRITICAL': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3}.get(v.get('severity', 'LOW'), 3))
 
     graph = {'name': project_name, 'version': parsed.get('project_version', '1.0.0'),
@@ -191,12 +217,29 @@ def analyze():
         'project_name': project_name,
         'total_packages': _count_packages(graph_deps),
         'graph': graph,
+        'dependency_tree': graph,
         'mediation': mediation,
         'vulnerabilities': vulnerabilities,
         'warnings': warnings,
         'scan_timestamp': int(time.time()),
         'grouped_vulnerabilities': group_vulns_by_package(vulnerabilities),
     })
+
+@app.route('/api/analyze', methods=['POST'])
+@rate_limited
+def analyze():
+    body = request.get_json(silent=True)
+    if not body:
+        return jsonify({'error': 'Invalid JSON body'}), 400
+    return run_analysis(body)
+
+@app.route('/api/scan', methods=['POST'])
+@rate_limited
+def scan():
+    body = request.get_json(silent=True)
+    if not body:
+        return jsonify({'error': 'Invalid JSON body'}), 400
+    return run_analysis(body)
 
 @app.route('/api/cve/<cve_id>', methods=['GET'])
 def get_cve(cve_id):

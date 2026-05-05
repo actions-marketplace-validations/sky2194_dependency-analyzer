@@ -49,12 +49,43 @@ def _build_tree(name, version, dep_type, depth, max_depth, visited):
 
 def resolve(direct_deps, max_depth=2):
     graph_deps = []
+    version_map = {}
     with ThreadPoolExecutor(max_workers=3) as ex:
         futures = {ex.submit(_build_tree, d['name'], d['version'], 'direct', 1, max_depth, {f"{d['name']}@{d['version']}"}): d for d in direct_deps}
         for future in as_completed(futures):
             try:
-                graph_deps.append(future.result())
+                node = future.result()
+                graph_deps.append(node)
+                _collect(node['name'], node['version'], 1, 'root', version_map)
+                _collect_tree(node.get('dependencies', []), version_map, 2, node['name'])
             except Exception:
                 d = futures[future]
                 graph_deps.append({'name': d['name'], 'version': d['version'], 'type': 'direct', 'dependencies': [], 'vulnerabilities': []})
-    return graph_deps, []
+    return graph_deps, _resolve_conflicts(version_map)
+
+def _collect(name, version, depth, requester, version_map):
+    version_map.setdefault(name, []).append({'version': version, 'depth': depth, 'requester': requester})
+
+def _collect_tree(deps, version_map, depth, parent):
+    for dep in deps:
+        _collect(dep['name'], dep['version'], depth, parent, version_map)
+        if dep.get('dependencies'):
+            _collect_tree(dep['dependencies'], version_map, depth + 1, dep['name'])
+
+def _resolve_conflicts(version_map):
+    conflicts = []
+    for pkg, entries in version_map.items():
+        versions = list({e['version'] for e in entries})
+        if len(versions) < 2:
+            continue
+        winner = min(entries, key=lambda x: (x['depth'], entries.index(x)))
+        loser = next((e for e in entries if e['version'] != winner['version']), None)
+        conflicts.append({
+            'package': pkg,
+            'requestedBy': [{'requester': e['requester'], 'version': e['version'], 'depth': e['depth'], 'safe': True} for e in entries],
+            'selected': winner['version'],
+            'loser': loser['version'] if loser else None,
+            'reason': f"npm nearest-depth rule: {winner['requester']} requires {pkg}@{winner['version']} at depth {winner['depth']}.",
+            'risk': None
+        })
+    return conflicts
