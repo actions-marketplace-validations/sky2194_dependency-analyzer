@@ -58,12 +58,12 @@ export default function Landing() {
         <div className="lp-nav-links">
           <a href="#features" className="lp-nav-link">Features</a>
           <a href="#how-it-works" className="lp-nav-link">How it works</a>
-          {/* <a href="#integrations" className="lp-nav-link">Integrations</a>
-          <a href="#pricing" className="lp-nav-link"></a> */}
-          <button onClick={sample} className="lp-nav-link"></button>
+          <a href="#integrations" className="lp-nav-link">Integrations</a>
+          <a href="#pricing" className="lp-nav-link">Pricing</a>
+          <button onClick={sample} className="lp-nav-link">Analytics</button>
         </div>
         <div className="lp-nav-cta">
-          {/* <button className="lp-btn-ghost">Sign in</button> */}
+          <button className="lp-btn-ghost">Sign in</button>
           <button onClick={() => navigate('/scan')} className="lp-btn-primary">
             {shield}
             Start scanning →
@@ -221,7 +221,7 @@ export default function Landing() {
 
       <div className="lp-section-divider" />
 
-      {/* <section className="lp-integrations-bg reveal" id="integrations">
+      <section className="lp-integrations-bg reveal" id="integrations">
         <div className="lp-integrations-inner">
           <div className="lp-two-col">
             <div>
@@ -243,9 +243,9 @@ export default function Landing() {
             </div>
           </div>
         </div>
-      </section> */}
+      </section>
 
-      {/* <section className="lp-section reveal">
+      <section className="lp-section reveal">
         <div style={{ textAlign: 'center' }}><div className="lp-section-label">Trusted by teams</div><h2 className="lp-section-title">Security-conscious teams depend on it</h2></div>
         <div className="lp-testimonials">
           {[
@@ -259,14 +259,14 @@ export default function Landing() {
       <div className="lp-section-divider" />
 
       <section className="lp-section reveal" id="pricing">
-        <div style={{ textAlign: 'center' }}><div className="lp-section-label"></div><h2 className="lp-section-title">Simple, transparent pricing</h2><p className="lp-section-sub" style={{ margin: '0 auto' }}>Start free. Scale when you need to.</p></div>
+        <div style={{ textAlign: 'center' }}><div className="lp-section-label">Pricing</div><h2 className="lp-section-title">Simple, transparent pricing</h2><p className="lp-section-sub" style={{ margin: '0 auto' }}>Start free. Scale when you need to.</p></div>
         <div className="lp-pricing-grid">
           {['Free|$0|For individual developers and open-source projects.|Get started free','Pro|$29|For teams that ship to production and need CI-gate security.|Start Pro trial','Enterprise|Custom|For large teams with advanced compliance and audit requirements.|Contact sales'].map((item, i) => {
             const [tier, price, desc, cta] = item.split('|')
             return <div className={`lp-price-card ${i === 1 ? 'featured' : ''} reveal reveal-delay-${i + 1}`} key={tier}>{i === 1 && <div className="lp-price-badge">Most popular</div>}<div><div className="lp-price-tier">{tier}</div><div className="lp-price-val">{price}{price !== 'Custom' && <span>/mo</span>}</div><div className="lp-price-desc">{desc}</div></div><div className="lp-price-features">{['Unlimited scans','All ecosystems','NVD + OSV databases','CI/CD integration'].map(f => <div className="lp-price-feat" key={f}><div>{check}</div>{f}</div>)}</div><button onClick={() => i < 2 && navigate('/scan')} className={`lp-price-btn ${i === 1 ? 'primary' : ''}`}>{cta}</button></div>
           })}
         </div>
-      </section> */}
+      </section>
 
       <div className="lp-cta-band reveal">
         <div><div className="lp-cta-title">Stop guessing.<br />Start securing.</div><div className="lp-cta-sub">Scan your first project in under 30 seconds — no account required.</div></div>
@@ -276,9 +276,9 @@ export default function Landing() {
       <footer>
         <div className="lp-footer">
           <div><div className="lp-nav-logo" style={{ marginBottom: 14 }}><div className="lp-nav-logo-icon">{shield}</div>DepAnalyzer</div><p className="lp-footer-desc">Real-time dependency vulnerability intelligence for modern engineering teams.</p></div>
-          {['Product|Scanner||Integrations|','Databases|NVD|OSV|GitHub Advisory','Resources|Docs|Knowledge Base|API Reference'].map(col => {
+          {['Product|Scanner|Analytics|Integrations|Pricing','Databases|NVD|OSV|GitHub Advisory','Resources|Docs|Knowledge Base|API Reference'].map(col => {
             const [title, ...links] = col.split('|')
-            return <div key={title}><div className="lp-footer-col-title">{title}</div><div className="lp-footer-links">{links.map(l => <button key={l} onClick={() => l === 'Scanner' ? navigate('/scan') : l === '' ? sample() : null}>{l}</button>)}</div></div>
+            return <div key={title}><div className="lp-footer-col-title">{title}</div><div className="lp-footer-links">{links.map(l => <button key={l} onClick={() => l === 'Scanner' ? navigate('/scan') : l === 'Analytics' ? sample() : null}>{l}</button>)}</div></div>
           })}
         </div>
         <div className="lp-footer-bottom"><div>© 2026 DepAnalyzer. All rights reserved.</div><div>Powered by NVD + OSV · Updated continuously</div></div>
