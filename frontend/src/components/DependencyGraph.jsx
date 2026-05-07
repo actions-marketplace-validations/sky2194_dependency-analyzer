@@ -31,13 +31,13 @@ function Node({ node, depth = 0, showVulnOnly }) {
           boxShadow: isVuln ? `0 0 8px ${glowColor}33` : 'none',
           marginBottom: 3, transition: 'all 0.15s',
         }}
-        onMouseEnter={e => { if (!isVuln) e.currentTarget.style.background = 'var(--surface2)' }}
+        onMouseEnter={e => { if (!isVuln) e.currentTarget.style.background = 'var(--bg-elevated)' }}
         onMouseLeave={e => { if (!isVuln) e.currentTarget.style.background = 'transparent' }}
       >
         {depth > 0 && <span style={{ color: 'var(--border)', fontSize: 11 }}>└─</span>}
         <span style={{ width: 8, height: 8, borderRadius: '50%', background: isVuln ? glowColor : depth === 0 ? 'var(--accent)' : hasChildren ? '#f59e0b' : '#22c55e', flexShrink: 0 }} />
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: depth === 0 ? 700 : 400 }}>{node.name}</span>
-        <span style={{ fontSize: 11, color: 'var(--muted)' }}>@{node.version}</span>
+        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>@{node.version}</span>
 
         {node.type === 'direct' && (
           <span style={{ fontSize: 10, background: 'var(--fix-bg)', color: '#22c55e', border: '1px solid var(--fix-border)', borderRadius: 3, padding: '1px 6px' }}>
@@ -65,8 +65,8 @@ function Node({ node, depth = 0, showVulnOnly }) {
             <span style={{ fontSize: 11, color: glowColor }}>⚠️ {vulns.length} CVE{vulns.length > 1 ? 's' : ''}</span>
           </div>
         )}
-        {!isVuln && depth > 0 && <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--ok)' }}>✓</span>}
-        {hasChildren && <span style={{ fontSize: 10, color: 'var(--muted)', marginLeft: isVuln ? 4 : 0 }}>{expanded ? '▲' : `▼ ${node.dependencies.length}`}</span>}
+        {!isVuln && depth > 0 && <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--green)' }}>✓</span>}
+        {hasChildren && <span style={{ fontSize: 10, color: 'var(--text-muted)', marginLeft: isVuln ? 4 : 0 }}>{expanded ? '▲' : `▼ ${node.dependencies.length}`}</span>}
       </div>
 
       {expanded && hasChildren && node.dependencies.map((child, i) => (
@@ -80,7 +80,7 @@ export default function DependencyGraph({ data }) {
   const [showVulnOnly, setShowVulnOnly] = useState(false)
   const tree = data?.dependency_tree || data?.graph
 
-  if (!tree) return <div style={{ color: 'var(--muted)', fontSize: 13 }}>No dependency tree available.</div>
+  if (!tree) return <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>No dependency tree available.</div>
 
   return (
     <div>
@@ -91,15 +91,15 @@ export default function DependencyGraph({ data }) {
           style={{
             display: 'flex', alignItems: 'center', gap: 8,
             padding: '6px 14px', borderRadius: 6, cursor: 'pointer',
-            background: showVulnOnly ? 'var(--vuln-bg)' : 'var(--surface2)',
+            background: showVulnOnly ? 'var(--vuln-bg)' : 'var(--bg-elevated)',
             border: `1px solid ${showVulnOnly ? '#ef4444' : 'var(--border)'}`,
-            color: showVulnOnly ? '#ef4444' : 'var(--muted)',
+            color: showVulnOnly ? '#ef4444' : 'var(--text-muted)',
             fontSize: 12, fontFamily: 'var(--font-mono)', transition: 'all 0.2s'
           }}>
-          <span style={{ width: 10, height: 10, borderRadius: 2, border: `2px solid ${showVulnOnly ? '#ef4444' : 'var(--muted)'}`, background: showVulnOnly ? '#ef4444' : 'transparent', display: 'inline-block', transition: 'all 0.2s' }} />
+          <span style={{ width: 10, height: 10, borderRadius: 2, border: `2px solid ${showVulnOnly ? '#ef4444' : 'var(--text-muted)'}`, background: showVulnOnly ? '#ef4444' : 'transparent', display: 'inline-block', transition: 'all 0.2s' }} />
           Show only vulnerable packages
         </button>
-        <div style={{ display: 'flex', gap: 12, marginLeft: 'auto', fontSize: 11, color: 'var(--muted)' }}>
+        <div style={{ display: 'flex', gap: 12, marginLeft: 'auto', fontSize: 11, color: 'var(--text-muted)' }}>
           {[['#ef4444','Critical'],['#f97316','High'],['#eab308','Medium'],['#22c55e','Safe']].map(([c,l]) => (
             <span key={l} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: c }} />{l}
@@ -109,7 +109,7 @@ export default function DependencyGraph({ data }) {
       </div>
 
       {/* Tree */}
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 16, fontFamily: 'var(--font-mono)', fontSize: 12 }}>
+      <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, padding: 16, fontFamily: 'var(--font-mono)', fontSize: 12, maxHeight: '60vh', overflowY: 'auto' }}>
         <Node node={tree} depth={0} showVulnOnly={showVulnOnly} />
       </div>
     </div>

@@ -54,7 +54,7 @@ export default function Analytics() {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', height: 'calc(100vh - 52px)' }}>
       {/* MAIN */}
-      <div style={{ overflowY: 'auto', padding: '24px 28px' }}>
+      <div style={{ overflowY: 'auto', overflowX: 'hidden', padding: '24px 28px', minHeight: 0 }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, gap: 16, flexWrap: 'wrap' }}>
           <div>
@@ -203,9 +203,9 @@ export default function Analytics() {
       </div>
 
       {/* RIGHT PANEL */}
-      <div style={{ overflowY: 'auto', borderLeft: '1px solid var(--border)', padding: 20, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--bg-panel)' }}>
+      <div style={{ overflowY: 'auto', overflowX: 'hidden', borderLeft: '1px solid var(--border)', padding: 20, display: 'flex', flexDirection: 'column', gap: 16, background: 'var(--bg-panel)', minHeight: 0 }}>
         {/* CVE Detail */}
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', flex: '1 1 auto' }}>
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', overflow: 'hidden', flexShrink: 0 }}>
           <div style={{ padding: '10px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>CVE Details</span>
             {selectedVuln && <span style={{ marginLeft: 'auto', fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: SEV_DIM[selectedVuln.severity], color: SEV_COLOR[selectedVuln.severity] }}>{selectedVuln.severity}</span>}
