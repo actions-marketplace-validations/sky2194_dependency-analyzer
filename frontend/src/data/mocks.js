@@ -1,5 +1,6 @@
 export const MOCKS = {
   npm: {
+    is_mock: true,
     total_packages: 12, ecosystem: 'npm',
     graph: {
       name: 'my-app', version: '1.0.0', type: 'root',
@@ -62,6 +63,7 @@ export const MOCKS = {
   },
 
   pypi: {
+    is_mock: true,
     total_packages: 10, ecosystem: 'pypi',
     graph: {
       name: 'my-python-app', version: '1.0.0', type: 'root',
@@ -113,6 +115,7 @@ export const MOCKS = {
   },
 
   maven: {
+    is_mock: true,
     total_packages: 11, ecosystem: 'maven',
     graph: {
       name: 'com.example:my-app', version: '1.0.0', type: 'root',

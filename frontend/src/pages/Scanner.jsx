@@ -19,8 +19,7 @@ const EXAMPLE = `{
 
 export default function Scanner() {
   const navigate = useNavigate()
-  // const { setScanning, setScanProject } = useScan()
-  const [scanning, setScanning] = useState(false);
+  const { setScanning, setScanProject } = useScan()
   const [ecosystem, setEcosystem] = useState('npm')
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
@@ -28,21 +27,11 @@ export default function Scanner() {
   const [error, setError] = useState('')
   const eco = ECOSYSTEMS[ecosystem]
 
-  async function runScan() {
+  function runScan() {
     if (!code.trim()) { setError('Paste a dependency file first'); return }
-    setLoading(true); setError(''); setScanStep(0); setScanning(true); setScanProject(eco?.label || 'project')
-    const interval = setInterval(() => setScanStep(s => Math.min(s + 1, SCAN_STEPS.length - 1)), 900)
-    try {
-      const res = await axios.post(`${API_BASE}/api/scan`, { content: code, ecosystem })
-      clearInterval(interval); setLoading(false); setScanning(false)
-      navigate('/results', { state: { result: res.data } })
-    } catch {
-      clearInterval(interval); setLoading(false); setScanning(false)
-      try {
-        const mock = MOCKS[ecosystem]
-        navigate('/results', { state: { result: mock } })
-      } catch { setError('Scan failed — backend unavailable') }
-    }
+    setError('')
+    setScanProject(eco?.label || 'project')
+    navigate('/scanning', { state: { code, ecosystem } })
   }
 
   const progress = loading ? Math.round(((scanStep + 1) / SCAN_STEPS.length) * 100) : 0
@@ -76,7 +65,7 @@ export default function Scanner() {
         </div>
 
         {/* Drop zone */}
-        <div onClick={() => setCode(EXAMPLE)} style={{ border: '1.5px dashed var(--border-light)', borderRadius: 'var(--radius)', padding: 32, textAlign: 'center', background: 'var(--bg-card)', cursor: 'pointer', marginBottom: 14, transition: 'all 0.2s' }}
+        <div onClick={() => setCode(ECOSYSTEMS[ecosystem]?.sampleContent || '')} style={{ border: '1.5px dashed var(--border-light)', borderRadius: 'var(--radius)', padding: 32, textAlign: 'center', background: 'var(--bg-card)', cursor: 'pointer', marginBottom: 14, transition: 'all 0.2s' }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--orange)'; e.currentTarget.style.background = 'var(--orange-dim)' }}
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-light)'; e.currentTarget.style.background = 'var(--bg-card)' }}>
           <div style={{ fontSize: 28, marginBottom: 8 }}>📂</div>
@@ -87,8 +76,8 @@ export default function Scanner() {
         {/* Example link */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Need an example?</span>
-          <span onClick={() => setCode(EXAMPLE)} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--orange-dim)', border: '1px solid rgba(224,92,42,0.3)', padding: '4px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600, color: 'var(--orange)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
-            ↓ Load package.json example
+          <span onClick={() => setCode(ECOSYSTEMS[ecosystem]?.sampleContent || '')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--orange-dim)', border: '1px solid rgba(224,92,42,0.3)', padding: '4px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600, color: 'var(--orange)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
+            ↓ Load {eco?.file || 'package.json'} example
           </span>
         </div>
 
@@ -102,7 +91,7 @@ export default function Scanner() {
           value={code}
           onChange={e => setCode(e.target.value)}
           rows={10}
-          placeholder={`Paste your package.json here...\n\nExample:\n{\n  "dependencies": {\n    "express": "4.17.1",\n    "lodash": "4.17.4"\n  }\n}`}
+          placeholder={`Paste your ${eco?.file || "manifest"} here...\n\n${eco?.sampleContent || ""}`}
           style={{ width: '100%', background: 'var(--code-bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 14, fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--text)', lineHeight: 1.6, minHeight: 180, outline: 'none', resize: 'vertical', transition: 'border-color 0.2s' }}
           onFocus={e => e.target.style.borderColor = 'var(--orange)'}
           onBlur={e => e.target.style.borderColor = 'var(--border)'}
@@ -138,7 +127,7 @@ export default function Scanner() {
       </div>
 
     {/* <button
-      onClick={() => { setScanning(true); runScan(); }}
+      onClick={runScan}
       disabled={loading}
       style={{
           display: 'flex',
@@ -200,22 +189,32 @@ export default function Scanner() {
           ))}
         </SidebarSection>
 
-        {/* Dep Mediation */}
-        <SidebarSection title="Dependency Mediation" titleColor="var(--orange)" extra="npm rules">
+        {/* Dep Mediation — driven by ECOSYSTEMS registry */}
+        <SidebarSection title="Dependency Mediation" titleColor="var(--orange)" extra={`${eco?.label || 'npm'} rules`}>
           <div style={{ fontSize: 11, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 12 }}>
-            npm resolves version conflicts using <strong style={{ color: 'var(--text)' }}>nearest-depth wins</strong>: the version closest to your project root is selected.
+            {eco?.mediationRule || 'Resolution rules vary by ecosystem.'}
           </div>
-          <div style={{ background: 'var(--code-bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: 11 }}>
-            <div style={{ display: 'flex', gap: 8, padding: '3px 0' }}><span style={{ color: 'var(--text-muted)', width: 50 }}>depth 1</span><span>my-app → lodash</span><span style={{ color: 'var(--yellow)', fontWeight: 700 }}>4.17.4 ▲</span></div>
-            <div style={{ display: 'flex', gap: 8, padding: '3px 0' }}><span style={{ color: 'var(--text-muted)', width: 50 }}>depth 2</span><span>terser → lodash</span><span style={{ color: 'var(--green)', fontWeight: 700 }}>4.17.21 ✓</span></div>
-            <div style={{ borderTop: '1px solid var(--border)', marginTop: 6, paddingTop: 6 }}>
-              <span style={{ color: 'var(--orange)', fontWeight: 700 }}>Winner: lodash@4.17.4</span>
-              <span style={{ color: 'var(--text-muted)', fontSize: 10 }}> (depth 1 beats depth 2)</span>
-            </div>
-          </div>
-          <div style={{ marginTop: 10, padding: '8px 10px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 'var(--radius-sm)', fontSize: 10, color: 'var(--yellow)', lineHeight: 1.6 }}>
-            ⚠ The safe version (4.17.21) lost because it was deeper. DepAnalyzer flags these hidden conflicts.
-          </div>
+          {eco?.mediationExample && (
+            <>
+              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>Example: <code style={{ color: 'var(--text)' }}>{eco.mediationExample.package}</code> needed by…</div>
+              <div style={{ background: 'var(--code-bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: 11 }}>
+                {eco.mediationExample.contestants.map((ct, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 8, padding: '3px 0' }}>
+                    <span style={{ color: 'var(--text-muted)', width: 50 }}>depth {ct.depth}</span>
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ct.requester}</span>
+                    <span style={{ color: ct.safe ? 'var(--green)' : 'var(--yellow)', fontWeight: 700 }}>{ct.version} {ct.safe ? '✓' : '▲'}</span>
+                  </div>
+                ))}
+                <div style={{ borderTop: '1px solid var(--border)', marginTop: 6, paddingTop: 6 }}>
+                  <span style={{ color: 'var(--orange)', fontWeight: 700 }}>Winner: {eco.mediationExample.package}@{eco.mediationExample.winner}</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: 10 }}> ({eco.mediationExample.winReason})</span>
+                </div>
+              </div>
+              <div style={{ marginTop: 10, padding: '8px 10px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 'var(--radius-sm)', fontSize: 10, color: 'var(--yellow)', lineHeight: 1.6 }}>
+                ⚠ {eco.mediationExample.danger}
+              </div>
+            </>
+          )}
         </SidebarSection>
 
         {/* Scan Tips */}

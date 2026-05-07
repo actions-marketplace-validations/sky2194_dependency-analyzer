@@ -213,6 +213,7 @@ def run_analysis(body):
     log.info(f"Scan complete: {project_name} ({ecosystem}) — {len(vulnerabilities)} vulns in {_count_packages(graph_deps)} packages")
 
     return jsonify({
+        'is_mock': False,
         'ecosystem': 'npm' if ecosystem == 'npm-lock' else ecosystem,
         'project_name': project_name,
         'total_packages': _count_packages(graph_deps),

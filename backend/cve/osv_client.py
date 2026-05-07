@@ -149,6 +149,7 @@ def format_vuln(vuln, package, version):
 
     return {
         'cve_id': cve_id,
+        'source': 'OSV',
         'osv_id': vuln.get('id'),
         'package': package,
         'version': version,

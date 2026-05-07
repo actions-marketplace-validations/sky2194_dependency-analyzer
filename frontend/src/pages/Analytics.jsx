@@ -60,7 +60,11 @@ export default function Analytics() {
           <div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, letterSpacing: -0.4, marginBottom: 4 }}>
               Security Risk Overview
-              <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: 'rgba(224,92,42,0.1)', border: '1px solid rgba(224,92,42,0.3)', color: 'var(--orange)', verticalAlign: 'middle' }}>DEMO MODE</span>
+              {result.is_mock ? (
+                <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', color: 'var(--yellow)', verticalAlign: 'middle' }} title="Backend unreachable — showing example data">⚠ DEMO DATA</span>
+              ) : (
+                <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', color: 'var(--green)', verticalAlign: 'middle' }} title="Live data from backend">● LIVE</span>
+              )}
             </h1>
             <div style={{ fontSize: 12, color: 'var(--red)', fontFamily: 'var(--font-mono)' }}>
               <strong>{vulns.length} vulnerabilities detected</strong> across {totalPkgs} packages — {counts.CRITICAL > 0 ? <span>{counts.CRITICAL} critical requires immediate attention</span> : 'no critical issues'}
@@ -155,6 +159,7 @@ export default function Analytics() {
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700 }}>{pkgName(v)}</span>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)' }}>v{pkgVersion(v)}</span>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--blue)' }}>{v.cve_id}</span>
+                    {v.source && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.3)', color: '#a78bfa' }} title="Vulnerability source">{v.source}</span>}
                     <span style={{ flex: 1 }} />
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700, color: SEV_COLOR[v.severity] }}>CVSS {v.cvss_score}</span>
                     <span style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: SEV_DIM[v.severity], border: `1px solid ${SEV_COLOR[v.severity]}44`, color: SEV_COLOR[v.severity] }}>{v.severity}</span>

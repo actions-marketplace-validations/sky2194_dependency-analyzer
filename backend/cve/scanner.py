@@ -18,6 +18,7 @@ def scan_package(name, version, ecosystem):
                 nvd_score, nvd_sev = get_cvss(v['cve_id'])
                 if nvd_score:
                     v['cvss_score'] = nvd_score
+                    v['source'] = 'OSV+NVD'
                 if nvd_sev:
                     v['severity'] = nvd_sev
             return v
