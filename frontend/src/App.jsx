@@ -4,6 +4,7 @@ import Landing from './pages/Landing'
 import Scanner from './pages/Scanner'
 import Analytics from './pages/Analytics'
 import Learn from './pages/Learn'
+import Scanning from './pages/Scanning'
 
 export const ScanContext = createContext({ scanning: false, scanProject: '', setScanning: () => {}, setScanProject: () => {} })
 export const useScan = () => useContext(ScanContext)
@@ -55,6 +56,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/scan" element={<Scanner />} />
+          <Route path="/scanning" element={<Scanning />} />
           <Route path="/results" element={<Analytics />} />
           <Route path="/learn" element={<Learn />} />
         </Routes>
