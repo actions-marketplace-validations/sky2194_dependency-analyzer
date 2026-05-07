@@ -23,7 +23,12 @@ def parse(content):
 
     deps = {}
     for section in ['dependencies', 'devDependencies', 'peerDependencies']:
-        for name, version_str in data.get(section, {}).items():
+        for name, version_val in data.get(section, {}).items():
+            # Lock-file format puts {"version":"4.17.4",...} as the value
+            if isinstance(version_val, dict):
+                version_str = version_val.get('version', '')
+            else:
+                version_str = str(version_val)
             # Strip semver operators — ^4.18.2 → 4.18.2, ~2.0.0 → 2.0.0
             clean = version_str.lstrip('^~>=<! ').split(' ')[0].strip()
 

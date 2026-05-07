@@ -177,6 +177,16 @@ def run_analysis(body):
 
     ecosystem = detect_ecosystem(filename)
 
+    # Auto-detect npm lock-file shape from content
+    if ecosystem == 'npm':
+        try:
+            import json as _json
+            probe = _json.loads(content)
+            if 'lockfileVersion' in probe or ('packages' in probe and isinstance(probe['packages'], dict)):
+                ecosystem = 'npm-lock'
+        except Exception:
+            pass
+
     try:
         parsed = PARSERS[ecosystem](content)
     except ValueError as e:
