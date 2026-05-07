@@ -20,12 +20,12 @@ export default function Scanning() {
   const { setScanning } = useScan()
   const [step, setStep] = useState(0)
 
+  // Defensive: if hot-reloaded or visited directly, show fallback instead of blank
+  const hasRequiredState = Boolean(state?.code && state?.ecosystem)
+
   useEffect(() => {
-    if (!state?.code || !state?.ecosystem) {
-      navigate('/scan')
-      return
-    }
-    setScanning(true)
+    if (!hasRequiredState) return
+    if (typeof setScanning === 'function') setScanning(true)
 
     const interval = setInterval(() => {
       setStep(s => Math.min(s + 1, STEPS.length - 1))
@@ -45,16 +45,34 @@ export default function Scanning() {
       clearInterval(interval)
       setStep(STEPS.length - 1)
       setTimeout(() => {
-        setScanning(false)
+        if (typeof setScanning === 'function') setScanning(false)
         navigate('/results', { state: { result } })
       }, 600)
     }
 
     performScan()
-    return () => { clearInterval(interval); setScanning(false) }
+    return () => { clearInterval(interval); if (typeof setScanning === 'function') setScanning(false) }
   }, [])
 
   const progress = Math.round(((step + 1) / STEPS.length) * 100)
+
+  // Visible fallback if user hits /scanning directly (no scan in flight)
+  if (!hasRequiredState) {
+    return (
+      <div style={{ minHeight: 'calc(100vh - 52px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 20 }}>
+        <div style={{ width: '100%', maxWidth: 420, padding: 32, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>No active scan</h2>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
+            This page only renders during a live scan. Start one from the Scanner.
+          </p>
+          <button onClick={() => navigate('/scan')} style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--orange)', color: 'white', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+            ← Go to Scanner
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div style={{ minHeight: 'calc(100vh - 52px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 20 }}>
