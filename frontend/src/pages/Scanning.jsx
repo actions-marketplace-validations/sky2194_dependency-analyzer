@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import API_BASE from '../config'
-import { MOCKS } from '../data/mocks'
 import { useScan } from '../App'
 
 const STEPS = [
@@ -15,33 +14,110 @@ const STEPS = [
 ]
 
 export default function Scanning() {
+  const { state: locationState } = useLocation()
   const navigate = useNavigate()
-  const { state } = useLocation()
   const { setScanning } = useScan()
   const [step, setStep] = useState(0)
+  
+  // Transaction model: latestTransactionId + status tracking
+  const [latestTransactionId, setLatestTransactionId] = useState(null)
+  const [transactionStatus, setTransactionStatus] = useState(null)
+  
+  // AbortController to cancel previous transactions
+  const abortControllerRef = useRef(null)
 
   // Defensive: if hot-reloaded or visited directly, show fallback instead of blank
-  const hasRequiredState = Boolean(state?.code && state?.ecosystem)
+  const hasRequiredState = Boolean(locationState?.code && locationState?.ecosystem)
 
   useEffect(() => {
     if (!hasRequiredState) return
+    
+    // STRICT: Invalidate previous transaction + cancel network request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      setTransactionStatus('CANCELLED')
+    }
+    
+    // Generate new transaction_id for this session
+    const newTransactionId = crypto.randomUUID()
+    setLatestTransactionId(newTransactionId)
+    setTransactionStatus('PENDING')
+    
+    // Create new AbortController for this transaction
+    abortControllerRef.current = new AbortController()
+    
     if (typeof setScanning === 'function') setScanning(true)
 
     const interval = setInterval(() => {
       setStep(s => Math.min(s + 1, STEPS.length - 1))
     }, 800)
 
-    async function performScan() {
+    let transactionCompleted = false
+
+    async function performTransaction() {
       let result
       try {
         const res = await axios.post(`${API_BASE}/api/scan`, {
-          content: state.code,
-          ecosystem: state.ecosystem,
+          content: locationState.code,
+          ecosystem: locationState.ecosystem,
+        }, { 
+          timeout: 120000,
+          signal: abortControllerRef.current.signal
         })
         result = res.data
+        
+        // STRICT: Only commit latest transaction - ignore stale responses
+        if (result.transaction_id !== latestTransactionId) {
+          console.error('Transaction ID mismatch - IGNORE ENTIRE RESPONSE - no state update')
+          transactionCompleted = true
+          setTransactionStatus('STALE')
+          clearInterval(interval)
+          setStep(STEPS.length - 1)
+          setTimeout(() => {
+            if (typeof setScanning === 'function') setScanning(false)
+            navigate('/scan', { state: { error: 'Transaction stale - please try again' } })
+          }, 600)
+          return
+        }
+        
+        // STRICT: Only accept COMPLETED transactions
+        if (result.status !== 'COMPLETED') {
+          console.error('Transaction not completed - IGNORE RESPONSE')
+          transactionCompleted = true
+          setTransactionStatus('FAILED')
+          clearInterval(interval)
+          setStep(STEPS.length - 1)
+          setTimeout(() => {
+            if (typeof setScanning === 'function') setScanning(false)
+            navigate('/scan', { state: { error: 'Transaction failed - please try again' } })
+          }, 600)
+          return
+        }
       } catch (err) {
-        result = { ...(MOCKS[state.ecosystem] || MOCKS.npm), is_mock: true }
+        // Ignore abort errors (from canceling previous transactions)
+        if (err.name === 'AbortError' || err.code === 'ERR_CANCELED') {
+          console.log('Previous transaction canceled')
+          setTransactionStatus('CANCELLED')
+          return
+        }
+        
+        console.error('Transaction failed:', err)
+        transactionCompleted = true
+        setTransactionStatus('FAILED')
+        clearInterval(interval)
+        setStep(STEPS.length - 1)
+        setTimeout(() => {
+          if (typeof setScanning === 'function') setScanning(false)
+          navigate('/scan', { state: { error: err.response?.data?.error || err.message || 'Failed to connect to backend. Please ensure the backend server is running.' } })
+        }, 600)
+        return
       }
+
+      if (transactionCompleted) return // Prevent double navigation
+
+      // STRICT: State commit layer - atomic replacement only
+      transactionCompleted = true
+      setTransactionStatus('COMPLETED')
       clearInterval(interval)
       setStep(STEPS.length - 1)
       setTimeout(() => {
@@ -50,8 +126,17 @@ export default function Scanning() {
       }, 600)
     }
 
-    performScan()
-    return () => { clearInterval(interval); if (typeof setScanning === 'function') setScanning(false) }
+    performTransaction()
+    return () => {
+      clearInterval(interval)
+      transactionCompleted = true
+      if (typeof setScanning === 'function') setScanning(false)
+      // Cancel transaction on unmount
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+        setTransactionStatus('CANCELLED')
+      }
+    }
   }, [])
 
   const progress = Math.round(((step + 1) / STEPS.length) * 100)
@@ -66,7 +151,7 @@ export default function Scanning() {
           <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
             This page only renders during a live scan. Start one from the Scanner.
           </p>
-          <button onClick={() => navigate('/scan')} style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--orange)', color: 'white', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+          <button onClick={() => navigate('/scan')} style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--orange)', color: 'var(--white)', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
             ← Go to Scanner
           </button>
         </div>
@@ -76,13 +161,13 @@ export default function Scanning() {
 
   return (
     <div style={{ minHeight: 'calc(100vh - 52px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 20 }}>
-      <div style={{ width: '100%', maxWidth: 480, padding: 40, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, boxShadow: '0 24px 64px rgba(0,0,0,0.5)' }}>
+      <div style={{ width: '100%', maxWidth: 480, padding: 40, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, boxShadow: '0 24px 64px var(--overlay-bg)' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🔐</div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Scanning Dependencies</h2>
           <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            {state?.ecosystem?.toUpperCase() || 'npm'} · Analyzing your project...
+            {locationState?.ecosystem?.toUpperCase() || 'npm'} · Analyzing your project...
           </p>
         </div>
 
@@ -102,7 +187,7 @@ export default function Scanning() {
                   border: `2px solid ${isPast ? 'var(--green)' : isCurrent ? 'var(--orange)' : 'var(--border-light)'}`,
                   background: isPast ? 'var(--green)' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, fontWeight: 700, color: isPast ? '#000' : isCurrent ? 'var(--orange)' : 'var(--text-muted)',
+                  fontSize: 11, fontWeight: 700, color: isPast ? 'var(--black)' : isCurrent ? 'var(--orange)' : 'var(--text-muted)',
                   transition: 'all 0.3s'
                 }}>
                   {isPast ? '✓' : isCurrent ? '●' : ''}

@@ -32,7 +32,7 @@ function PathRow({ label, path, color }) {
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, fontFamily: 'var(--font-mono)', fontSize: 12 }}>
         {path.map((p, i) => (
           <span key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ background: i === path.length - 1 ? 'var(--vuln-bg)' : 'var(--surface2)', color: i === path.length - 1 ? color || '#ef4444' : 'var(--text)', padding: '2px 8px', borderRadius: 4 }}>{p}</span>
+            <span style={{ background: i === path.length - 1 ? 'var(--vuln-bg)' : 'var(--surface2)', color: i === path.length - 1 ? color || 'var(--red)' : 'var(--text)', padding: '2px 8px', borderRadius: 4 }}>{p}</span>
             {i < path.length - 1 && <span style={{ color: 'var(--muted)' }}>→</span>}
           </span>
         ))}
@@ -44,7 +44,7 @@ function PathRow({ label, path, color }) {
 export default function CVEDetail({ vuln, onClose }) {
   if (!vuln) return null
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
+    <div style={{ position: 'fixed', inset: 0, background: 'var(--overlay-bg)', zIndex: 400, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }} onClick={onClose}>
       <div onClick={e => e.stopPropagation()} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, maxWidth: 620, width: '100%', maxHeight: '85vh', overflowY: 'auto' }}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
@@ -67,9 +67,9 @@ export default function CVEDetail({ vuln, onClose }) {
 
         <div style={{ marginBottom: 14 }}>
           <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>🔗 <Tooltip termKey="cvePath">CVE Path</Tooltip></div>
-          <PathRow label="Direct path:" path={vuln.path} color="#ef4444" />
-          {vuln.transitive_path && (
-            <PathRow label="Also reachable via transitive chain:" path={vuln.transitive_path} color="#f97316" />
+          <PathRow label="Direct path:" path={vuln.path} color="var(--red)" />
+          {vuln.transitive_path && vuln.transitive_path.length > 0 && (
+            <PathRow label="Also reachable via transitive chain:" path={vuln.transitive_path} color="var(--yellow)" />
           )}
         </div>
 

@@ -7,10 +7,10 @@ const SEV_COLOR = {
   LOW:      'var(--low)',
 }
 const SEV_FILL = {
-  CRITICAL: 'rgba(255,59,92,0.12)',
-  HIGH:     'rgba(255,140,66,0.12)',
-  MEDIUM:   'rgba(245,200,66,0.12)',
-  LOW:      'rgba(62,207,142,0.12)',
+  CRITICAL: 'var(--vuln-bg)',
+  HIGH:     'var(--warn-bg)',
+  MEDIUM:   'var(--blue-dim)',
+  LOW:      'var(--green-dim)',
 }
 
 function flatten(node, depth = 0, parentName = null, out = []) {
@@ -108,8 +108,8 @@ export default function DependencyGraph({ data }) {
           style={{
             display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px',
             borderRadius: 6, cursor: 'pointer', fontFamily: 'var(--font-mono)', fontSize: 12,
-            background: showVulnOnly ? 'rgba(255,59,92,0.10)' : 'var(--bg-elevated)',
-            border: `1px solid ${showVulnOnly ? 'rgba(255,59,92,0.40)' : 'var(--border)'}`,
+            background: showVulnOnly ? 'var(--vuln-bg)' : 'var(--bg-elevated)',
+            border: `1px solid ${showVulnOnly ? 'var(--vuln-border)' : 'var(--border)'}`,
             color: showVulnOnly ? 'var(--critical)' : 'var(--text-secondary)',
           }}>
           <span style={{
@@ -117,7 +117,7 @@ export default function DependencyGraph({ data }) {
             alignItems: 'center', justifyContent: 'center',
             border: `2px solid ${showVulnOnly ? 'var(--critical)' : 'var(--text-muted)'}`,
             background: showVulnOnly ? 'var(--critical)' : 'transparent',
-            fontSize: 8, color: '#fff',
+            fontSize: 8, color: 'var(--white)',
           }}>{showVulnOnly ? '✓' : ''}</span>
           Show only vulnerable
         </button>
@@ -166,7 +166,7 @@ export default function DependencyGraph({ data }) {
 
           {/* root */}
           <g>
-            <circle cx={root.x} cy={root.y} r="22" fill="rgba(79,142,247,0.10)" stroke="var(--accent)" strokeWidth="1.5" />
+            <circle cx={root.x} cy={root.y} r="22" fill="var(--orange-dim)" stroke="var(--accent)" strokeWidth="1.5" />
             <text x={root.x} y={root.y + 4} fontSize="10" fill="var(--accent)" textAnchor="middle" fontWeight="700">root</text>
             <text x={root.x} y={root.y + 38} fontSize="11" fill="var(--text)" textAnchor="middle" fontWeight="600">{root.name}</text>
           </g>
@@ -175,7 +175,7 @@ export default function DependencyGraph({ data }) {
           {[...directs, ...transitives].map((n, i) => {
             const sev = topSeverity(n.vulns)
             const col = sev ? SEV_COLOR[sev.sev] : 'var(--low)'
-            const fill = sev ? SEV_FILL[sev.sev] : 'rgba(62,207,142,0.06)'
+            const fill = sev ? SEV_FILL[sev.sev] : 'var(--green-dim)'
             const isVuln = !!sev
             return (
               <g key={`n-${i}`}>

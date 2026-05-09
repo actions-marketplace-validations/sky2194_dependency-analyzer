@@ -225,8 +225,8 @@ const SECTIONS = [
 ]
 
 const COLORS = { info: 'var(--info)', warn: 'var(--accent2)', ok: 'var(--ok)', critical: 'var(--critical)' }
-const BG     = { info: '#0d1f3c', warn: 'var(--warn-bg)', ok: 'var(--fix-bg)', critical: 'var(--vuln-bg)' }
-const BORDER = { info: '#1e3a5f', warn: 'var(--warn-border)', ok: 'var(--fix-border)', critical: 'var(--vuln-border)' }
+const BG     = { info: 'var(--blue-dim)', warn: 'var(--warn-bg)', ok: 'var(--fix-bg)', critical: 'var(--vuln-bg)' }
+const BORDER = { info: 'var(--blue-dim)', warn: 'var(--warn-border)', ok: 'var(--fix-border)', critical: 'var(--vuln-border)' }
 
 export default function Learn() {
   const [active, setActive] = useState('sca')
@@ -294,7 +294,7 @@ export default function Learn() {
                   <div key={j} style={{ display: 'flex', gap: 16, marginBottom: 16, alignItems: 'flex-start' }}>
                     <div style={{
                       minWidth: 32, height: 32, borderRadius: '50%',
-                      background: 'var(--accent)', color: '#000', fontWeight: 700,
+                      background: 'var(--accent)', color: 'var(--black)', fontWeight: 700,
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       fontSize: 13, flexShrink: 0
                     }}>{step.num}</div>

@@ -6,7 +6,6 @@ import API_BASE from '../config'
 import FileUpload from '../components/FileUpload'
 import Tooltip from '../components/Tooltip'
 import ECOSYSTEMS, { detectEcosystem } from '../data/ecosystems'
-import { MOCKS } from '../data/mocks'
 
 const LOADING_STEPS = [
   'Parsing dependency file...',
@@ -18,10 +17,10 @@ const LOADING_STEPS = [
 ]
 
 const SEVS = [
-  { level: 'CRITICAL', score: '9–10', color: '#ef4444', desc: 'Fix immediately' },
-  { level: 'HIGH',     score: '7–8',  color: '#f97316', desc: 'Fix this week' },
-  { level: 'MEDIUM',   score: '4–6',  color: '#eab308', desc: 'Fix this month' },
-  { level: 'LOW',      score: '0–3',  color: '#3b82f6', desc: 'Fix when convenient' },
+  { level: 'CRITICAL', score: '9–10', color: 'var(--critical)', desc: 'Fix immediately' },
+  { level: 'HIGH',     score: '7–8',  color: 'var(--high)', desc: 'Fix this week' },
+  { level: 'MEDIUM',   score: '4–6',  color: 'var(--medium)', desc: 'Fix this month' },
+  { level: 'LOW',      score: '0–3',  color: 'var(--low)', desc: 'Fix when convenient' },
 ]
 
 function MediationPanel({ eco }) {
@@ -39,17 +38,17 @@ function MediationPanel({ eco }) {
         {ex.contestants.map((c, i) => (
           <div key={i} style={{ display: 'grid', gridTemplateColumns: '52px 1fr auto', gap: 6, marginBottom: 8, alignItems: 'center' }}>
             <span style={{ color: 'var(--muted)', fontSize: 10, whiteSpace: 'nowrap' }}>depth {c.depth}</span>
-            <span style={{ color: c.safe ? '#22c55e' : '#f97316', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.requester}>{c.requester}</span>
+            <span style={{ color: c.safe ? 'var(--green)' : 'var(--high)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.requester}>{c.requester}</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
               <span style={{ color: 'var(--muted)' }}>{ex.package}@</span>
-              <span style={{ color: c.safe ? '#22c55e' : '#ef4444', fontWeight: 700 }}>{c.version}</span>
-              <span style={{ fontSize: 10, color: c.safe ? '#22c55e' : '#ef4444' }}>{c.safe ? '✓' : '⚠️'}</span>
+              <span style={{ color: c.safe ? 'var(--green)' : 'var(--red)', fontWeight: 700 }}>{c.version}</span>
+              <span style={{ fontSize: 10, color: c.safe ? 'var(--green)' : 'var(--red)' }}>{c.safe ? '✓' : '⚠️'}</span>
             </span>
           </div>
         ))}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8, marginTop: 4 }}>
           <span style={{ color: 'var(--accent2)' }}>Winner: </span>
-          <span style={{ color: '#ef4444', fontWeight: 700 }}>{ex.package}@{ex.winner}</span>
+          <span style={{ color: 'var(--red)', fontWeight: 700 }}>{ex.package}@{ex.winner}</span>
           <span style={{ color: 'var(--muted)', fontSize: 10, marginLeft: 6 }}>({ex.winReason})</span>
         </div>
       </div>
@@ -79,8 +78,8 @@ function RightPanel({ eco }) {
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, marginBottom: 12, color: 'var(--accent)' }}>DEPENDENCY TYPES</div>
         {[
-          { label: 'Direct', key: 'direct', color: '#22c55e', desc: "You added this. It's in your config file." },
-          { label: 'Transitive', key: 'transitive', color: '#f59e0b', desc: 'Pulled in automatically. Most CVEs hide here.' },
+          { label: 'Direct', key: 'direct', color: 'var(--green)', desc: "You added this. It's in your config file." },
+          { label: 'Transitive', key: 'transitive', color: 'var(--yellow)', desc: 'Pulled in automatically. Most CVEs hide here.' },
         ].map(d => (
           <div key={d.label} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0, marginTop: 4 }} />
@@ -98,9 +97,9 @@ function RightPanel({ eco }) {
           {['my-app', 'express', 'body-parser', 'lodash ⚠️'].map((p, i) => (
             <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {i > 0 && <span style={{ color: 'var(--border)', marginLeft: i * 10 }}>└─</span>}
-              <span style={{ marginLeft: i > 0 ? i * 10 : 0, color: p.includes('⚠️') ? '#ef4444' : 'var(--text)' }}>{p}</span>
+              <span style={{ marginLeft: i > 0 ? i * 10 : 0, color: p.includes('⚠️') ? 'var(--red)' : 'var(--text)' }}>{p}</span>
               {i === 0 && <span style={{ fontSize: 10, color: 'var(--muted)' }}>← your app</span>}
-              {p.includes('⚠️') && <span style={{ fontSize: 10, color: '#ef4444' }}>← CVE here</span>}
+              {p.includes('⚠️') && <span style={{ fontSize: 10, color: 'var(--red)' }}>← CVE here</span>}
             </div>
           ))}
         </div>
@@ -138,10 +137,7 @@ export default function Dashboard() {
       if (status === 408) { setError('Scan timed out — try a smaller file'); return }
       if (status === 413) { setError('File too large — maximum 512KB'); return }
       if (status === 429) { setError('Too many requests — wait 60s and try again'); return }
-      const ecoKey = detectedEco?.label?.toLowerCase() || 'npm'
-      const mockResult = MOCKS[ecoKey] || MOCKS.npm
-      mockResult._isMock = true
-      navigate('/results', { state: { result: mockResult } })
+      setError('Scan failed — please try again')
     }
   }
 
@@ -159,8 +155,8 @@ export default function Dashboard() {
 
       {/* Fullscreen loading overlay */}
       {loading && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,17,23,0.95)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '40px 48px', maxWidth: 520, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.5)' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'var(--overlay-bg)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '40px 48px', maxWidth: 520, width: '90%', boxShadow: '0 20px 60px var(--overlay-bg)' }}>
             <div style={{ textAlign: 'center', marginBottom: 32 }}>
               <div style={{ fontSize: 40, marginBottom: 16, display: 'inline-block', animation: 'spin 2s linear infinite' }}>⚙️</div>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Scanning Dependencies</h2>
@@ -169,7 +165,7 @@ export default function Dashboard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               {LOADING_STEPS.map((step, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13 }}>
-                  <div style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${i < loadingStep ? 'var(--ok)' : i === loadingStep ? 'var(--accent)' : 'var(--border)'}`, background: i < loadingStep ? 'var(--ok)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, flexShrink: 0, transition: 'all 0.3s', color: i < loadingStep ? '#fff' : 'var(--accent)' }}>
+                  <div style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${i < loadingStep ? 'var(--ok)' : i === loadingStep ? 'var(--accent)' : 'var(--border)'}`, background: i < loadingStep ? 'var(--ok)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, flexShrink: 0, transition: 'all 0.3s', color: i < loadingStep ? 'var(--white)' : 'var(--accent)' }}>
                     {i < loadingStep ? '✓' : i === loadingStep ? '●' : ''}
                   </div>
                   <span style={{ color: i < loadingStep ? 'var(--ok)' : i === loadingStep ? 'var(--text)' : 'var(--muted)', transition: 'color 0.3s' }}>{step}</span>
@@ -180,7 +176,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {error && <div style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 14px', color: '#ef4444', fontSize: 12, marginBottom: 16 }}>⚠️ {error}</div>}
+      {error && <div style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 14px', color: 'var(--red)', fontSize: 12, marginBottom: 16 }}>⚠️ {error}</div>}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24, alignItems: 'start' }}>
         <FileUpload onAnalyze={analyze} loading={loading} onEcosystemChange={setEco} />
         <RightPanel eco={eco} />

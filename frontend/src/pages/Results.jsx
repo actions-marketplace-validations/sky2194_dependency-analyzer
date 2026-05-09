@@ -15,7 +15,7 @@ function SummaryCard({ value, label, color, onClick, hint }) {
   const [hover, setHover] = useState(false)
   return (
     <div onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
-      style={{ background: 'var(--surface)', border: `1px solid ${hover ? color || 'var(--accent)' : 'var(--border)'}`, borderRadius: 'var(--radius)', padding: '14px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s', position: 'relative', transform: hover ? 'translateY(-2px)' : 'none', boxShadow: hover ? `0 4px 16px ${(color || '#e05c2a')}22` : 'none' }}>
+      style={{ background: 'var(--surface)', border: `1px solid ${hover ? color || 'var(--accent)' : 'var(--border)'}`, borderRadius: 'var(--radius)', padding: '14px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.15s', position: 'relative', transform: hover ? 'translateY(-2px)' : 'none', boxShadow: hover ? `0 4px 16px ${color || 'var(--orange)'}22` : 'none' }}>
       <div style={{ fontFamily: 'var(--font-mono)', fontSize: 26, fontWeight: 700, color: color || 'var(--info)' }}>{value}</div>
       <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 3 }}>{label}</div>
       {hover && <div style={{ position: 'absolute', bottom: 6, right: 8, fontSize: 10, color: color || 'var(--accent)', opacity: 0.8 }}>{hint} →</div>}
@@ -34,7 +34,7 @@ export default function Results() {
   if (!result) return (
     <div style={{ textAlign: 'center', padding: 80 }}>
       <p style={{ color: 'var(--muted)', marginBottom: 16 }}>No results found.</p>
-      <button onClick={() => navigate('/')} style={{ padding: '10px 20px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer' }}>← Back to Scanner</button>
+      <button onClick={() => navigate('/')} style={{ padding: '10px 20px', background: 'var(--accent)', color: 'var(--white)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer' }}>← Back to Scanner</button>
     </div>
   )
 
@@ -99,7 +99,7 @@ export default function Results() {
 
       {/* Mock data warning */}
       {result._isMock && (
-        <div style={{ background: 'var(--warn-bg)', border: '1px solid var(--warn-border)', borderRadius: 'var(--radius)', padding: '10px 16px', color: '#f59e0b', fontSize: 13, marginBottom: 16 }}>
+        <div style={{ background: 'var(--warn-bg)', border: '1px solid var(--warn-border)', borderRadius: 'var(--radius)', padding: '10px 16px', color: 'var(--yellow)', fontSize: 13, marginBottom: 16 }}>
           ⚠️ <strong>Demo data shown</strong> — backend not running. Start backend with{' '}
           <code style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }}>./start.sh backend</code> for real results.
         </div>
@@ -107,9 +107,9 @@ export default function Results() {
 
       {/* Export error */}
       {exportError && (
-        <div style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 16px', color: '#ef4444', fontSize: 13, marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 16px', color: 'var(--red)', fontSize: 13, marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           ⚠️ {exportError}
-          <button onClick={() => setExportError('')} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 16 }}>✕</button>
+          <button onClick={() => setExportError('')} style={{ background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', fontSize: 16 }}>✕</button>
         </div>
       )}
 
@@ -138,7 +138,7 @@ export default function Results() {
       <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: 24 }}>
         {TABS.map((t, i) => (
           <button key={t} onClick={() => setTab(i)} style={{ padding: '9px 20px', background: 'none', border: 'none', borderBottom: `2px solid ${tab === i ? 'var(--accent)' : 'transparent'}`, color: tab === i ? 'var(--accent)' : 'var(--muted)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, cursor: 'pointer', marginBottom: -1 }}>
-            {t} {i === 1 && vulns.length > 0 && <span style={{ background: 'var(--critical)', color: '#fff', borderRadius: 10, padding: '1px 6px', fontSize: 10, marginLeft: 4 }}>{vulns.length}</span>}
+            {t} {i === 1 && vulns.length > 0 && <span style={{ background: 'var(--critical)', color: 'var(--white)', borderRadius: 10, padding: '1px 6px', fontSize: 10, marginLeft: 4 }}>{vulns.length}</span>}
           </button>
         ))}
       </div>

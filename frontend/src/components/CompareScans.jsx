@@ -38,7 +38,7 @@ export default function CompareScans({ current }) {
       </label>
       {diff && (
         <button onClick={() => setOpen(o => !o)}
-          style={{ fontSize: 12, padding: '7px 14px', background: 'var(--accent)', border: 'none', borderRadius: 6, color: '#fff', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+          style={{ fontSize: 12, padding: '7px 14px', background: 'var(--accent)', border: 'none', borderRadius: 6, color: 'var(--white)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
           {open ? 'Hide' : 'Diff'} ({diff.added.length}↑ · {diff.fixed.length}↓)
         </button>
       )}

@@ -5,6 +5,7 @@ import Scanner from './pages/Scanner'
 import Analytics from './pages/Analytics'
 import Learn from './pages/Learn'
 import Scanning from './pages/Scanning'
+import ErrorBoundary from './components/ErrorBoundary'
 
 export const ScanContext = createContext({ scanning: false, scanProject: '', setScanning: () => {}, setScanProject: () => {} })
 export const useScan = () => useContext(ScanContext)
@@ -24,42 +25,53 @@ export default function App() {
 
   useEffect(() => { document.documentElement.setAttribute('data-theme', theme) }, [])
 
+  const handleMouseEnter = (e) => { e.currentTarget.style.transform = 'scale(1.05)' }
+  const handleMouseLeave = (e) => { e.currentTarget.style.transform = 'scale(1)' }
+
   return (
     <ScanContext.Provider value={{ scanning, setScanning, scanProject, setScanProject }}>
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}} @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}} @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}} @keyframes pulse-node{0%,100%{opacity:0.8}50%{opacity:1}} @keyframes dash{to{stroke-dashoffset:-20}}`}</style>
-      <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-        {!isLanding && (
-          <nav style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', padding: '0 24px', display: 'flex', alignItems: 'center', gap: 4, height: 52, position: 'sticky', top: 0, zIndex: 100 }}>
-            <NavLink to="/" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 16, color: 'var(--text)', marginRight: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{ width: 26, height: 26, background: 'var(--orange)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>🔐</div>
-              DepAnalyzer
-            </NavLink>
-            {[{to:'/scan',label:'Scanner'},{to:'/learn',label:'📖 Knowledge Base'}].map(({to,label}) => (
-              <NavLink key={to} to={to} style={({isActive}) => ({ padding: '6px 14px', fontSize: 13, fontWeight: 600, borderRadius: 6, background: isActive ? 'rgba(224,92,42,0.1)' : 'none', color: isActive ? 'var(--orange)' : 'var(--text-muted)', transition: 'all 0.15s' })}>
-                {label}
-              </NavLink>
-            ))}
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
-              {scanning && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(224,92,42,0.1)', border: '1px solid rgba(224,92,42,0.3)', borderRadius: 6, padding: '4px 12px', color: 'var(--orange)', fontSize: 12, fontFamily: 'var(--font-mono)' }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--orange)', display: 'inline-block', animation: 'pulse 1s infinite' }} />
-                  Scanning {scanProject}...
-                </div>
-              )}
-              <button onClick={toggleTheme} style={{ background: 'none', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 10px', cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)' }}>
+      <ErrorBoundary>
+        <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}} @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}} @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}} @keyframes pulse-node{0%,100%{opacity:0.8}50%{opacity:1}} @keyframes dash{to{stroke-dashoffset:-20}}`}</style>
+        <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+          {isLanding ? (
+            <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 1000 }}>
+              <button onClick={toggleTheme} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} style={{ background: 'var(--bg-card)', border: '2px solid var(--border)', borderRadius: 12, padding: '8px 12px', cursor: 'pointer', fontSize: 18, color: 'var(--text)', boxShadow: '0 4px 12px var(--overlay-bg)', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 6 }}>
                 {theme === 'dark' ? '☀️' : '🌙'}
               </button>
             </div>
-          </nav>
-        )}
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/scan" element={<Scanner />} />
-          <Route path="/scanning" element={<Scanning />} />
-          <Route path="/results" element={<Analytics />} />
-          <Route path="/learn" element={<Learn />} />
-        </Routes>
-      </div>
+          ) : (
+            <nav style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', padding: '0 16px', display: 'flex', alignItems: 'center', gap: 4, height: 52, position: 'sticky', top: 0, zIndex: 100 }}>
+              <NavLink to="/" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 16, color: 'var(--text)', marginRight: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{ width: 26, height: 26, background: 'var(--orange)', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>🔐</div>
+                DepAnalyzer
+              </NavLink>
+              {[{to:'/scan',label:'Scanner'},{to:'/learn',label:'📖 Knowledge Base'}].map(({to,label}) => (
+                <NavLink key={to} to={to} style={({isActive}) => ({ padding: '6px 12px', fontSize: 13, fontWeight: 600, borderRadius: 6, background: isActive ? 'var(--orange-dim)' : 'none', color: isActive ? 'var(--orange)' : 'var(--text-muted)', transition: 'all 0.15s', whiteSpace: 'nowrap' })}>
+                  {label}
+                </NavLink>
+              ))}
+              <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+                {scanning && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--orange-dim)', border: '1px solid var(--orange)', borderRadius: 6, padding: '4px 10px', color: 'var(--orange)', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--orange)', display: 'inline-block', animation: 'pulse 1s infinite' }} />
+                    Scanning...
+                  </div>
+                )}
+                <button onClick={toggleTheme} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', fontSize: 14, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {theme === 'dark' ? '☀️' : '🌙'}
+                </button>
+              </div>
+            </nav>
+          )}
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/scan" element={<Scanner />} />
+            <Route path="/scanning" element={<Scanning />} />
+            <Route path="/results" element={<Analytics />} />
+            <Route path="/learn" element={<Learn />} />
+          </Routes>
+        </div>
+      </ErrorBoundary>
     </ScanContext.Provider>
   )
 }

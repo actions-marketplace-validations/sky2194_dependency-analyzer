@@ -37,16 +37,16 @@ export default function Scanner() {
   const progress = loading ? Math.round(((scanStep + 1) / SCAN_STEPS.length) * 100) : 0
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', height: 'calc(100vh - 52px)' }}>
+    <div className="scanner-layout" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', minHeight: 'calc(100vh - 52px)' }}>
       {/* MAIN */}
-      <div style={{ overflowY: 'auto', padding: '28px 32px', borderRight: '1px solid var(--border)' }}>
+      <div style={{ padding: '28px 32px', borderRight: '1px solid var(--border)', overflowX: 'auto' }}>
         <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 700, letterSpacing: -0.5, marginBottom: 4 }}>Dependency Vulnerability Scanner</h1>
         <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 24, lineHeight: 1.5 }}>
           Upload or paste your manifest file. We resolve the full dependency tree and cross-reference against NVD + OSV databases.
         </p>
 
         {/* Info box */}
-        <div style={{ background: 'rgba(224,92,42,0.07)', border: '1px solid rgba(224,92,42,0.25)', borderRadius: 'var(--radius)', padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 20 }}>
+        <div style={{ background: 'var(--orange-dim)', border: '1px solid var(--orange)', borderRadius: 'var(--radius)', padding: '14px 16px', display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: 20 }}>
           <span style={{ fontSize: 16, flexShrink: 0, marginTop: 1 }}>📦</span>
           <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.7 }}>
             <strong style={{ color: 'var(--text)' }}>Supports package.json, package-lock.json, requirements.txt, pom.xml.</strong>{' '}
@@ -56,10 +56,10 @@ export default function Scanner() {
 
         {/* Ecosystem tabs */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, marginBottom: 16 }}>
-          {[{id:'npm',label:'npm',sub:'package.json',color:'#f59e0b'},{id:'pypi',label:'PyPI',sub:'requirements.txt',color:'#3b82f6'},{id:'maven',label:'Maven',sub:'pom.xml',color:'#ef4444'}].map(e => (
+          {[{id:'npm',label:'npm',sub:'package.json',color:'var(--npm-color)'},{id:'pypi',label:'PyPI',sub:'requirements.txt',color:'var(--pypi-color)'},{id:'maven',label:'Maven',sub:'pom.xml',color:'var(--maven-color)'}].map(e => (
             <div key={e.id} onClick={() => setEcosystem(e.id)} style={{ background: ecosystem===e.id ? 'var(--orange-dim)' : 'var(--bg-card)', border: `1px solid ${ecosystem===e.id ? 'var(--orange)' : 'var(--border)'}`, borderRadius: 'var(--radius-sm)', padding: '10px 14px', cursor: 'pointer', transition: 'all 0.15s' }}>
               <div style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-mono)', color: ecosystem===e.id ? 'var(--orange)' : e.color }}>● {e.label}</div>
-              <div style={{ fontSize: 10, color: ecosystem===e.id ? 'rgba(224,92,42,0.8)' : 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>{e.sub}</div>
+              <div style={{ fontSize: 10, color: ecosystem===e.id ? 'var(--orange)' : 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>{e.sub}</div>
             </div>
           ))}
         </div>
@@ -76,13 +76,13 @@ export default function Scanner() {
         {/* Example link */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Need an example?</span>
-          <span onClick={() => setCode(ECOSYSTEMS[ecosystem]?.sampleContent || '')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--orange-dim)', border: '1px solid rgba(224,92,42,0.3)', padding: '4px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600, color: 'var(--orange)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
+          <span onClick={() => setCode(ECOSYSTEMS[ecosystem]?.sampleContent || '')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--orange-dim)', border: '1px solid var(--orange)', padding: '4px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600, color: 'var(--orange)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
             ↓ Load {eco?.file || 'package.json'} example
           </span>
         </div>
 
         {code && eco && (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--orange-dim)', border: '1px solid rgba(224,92,42,0.3)', padding: '4px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600, color: 'var(--orange)', fontFamily: 'var(--font-mono)', marginBottom: 10 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--orange-dim)', border: '1px solid var(--orange)', padding: '4px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600, color: 'var(--orange)', fontFamily: 'var(--font-mono)', marginBottom: 10 }}>
             🔵 {eco.lang} detected
           </div>
         )}
@@ -117,9 +117,9 @@ export default function Scanner() {
           </div>
         )}
 
-        {error && <div style={{ marginTop: 12, fontSize: 12, color: 'var(--red)', padding: '8px 12px', background: 'var(--red-dim)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(239,68,68,0.2)' }}>{error}</div>}
+        {error && <div style={{ marginTop: 12, fontSize: 12, color: 'var(--red)', padding: '8px 12px', background: 'var(--red-dim)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--vuln-border)' }}>{error}</div>}
 
-        <button onClick={runScan} disabled={loading} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', padding: 13, background: loading ? 'rgba(224,92,42,0.5)' : 'var(--orange)', color: 'white', border: 'none', borderRadius: 'var(--radius)', fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', marginTop: 14 }}
+        <button onClick={runScan} disabled={loading} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, width: '100%', padding: 13, background: loading ? 'var(--orange-dim)' : 'var(--orange)', color: 'var(--white)', border: 'none', borderRadius: 'var(--radius)', fontFamily: 'var(--font-ui)', fontSize: 14, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', transition: 'all 0.2s', marginTop: 14 }}
           onMouseEnter={e => { if (!loading) e.currentTarget.style.boxShadow = '0 4px 20px var(--orange-glow)' }}
           onMouseLeave={e => e.currentTarget.style.boxShadow = 'none'}>
           {loading ? '⏳ Scanning...' : '🔍 Scan and Detect Vulnerabilities'}
@@ -136,8 +136,8 @@ export default function Scanner() {
           gap: 10,
           width: '100%',
           padding: 13,
-          background: loading ? 'rgba(224,92,42,0.5)' : 'var(--orange)',
-          color: 'white',
+          background: loading ? 'var(--orange-dim)' : 'var(--orange)',
+          color: 'var(--white)',
           border: 'none',
           borderRadius: 'var(--radius)',
           fontFamily: 'var(--font-ui)',
@@ -161,7 +161,7 @@ export default function Scanner() {
 )} */}
 
       {/* SIDEBAR */}
-      <div style={{ overflowY: 'auto', background: 'var(--bg-panel)', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ background: 'var(--bg-panel)', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* Severity Guide */}
         <SidebarSection title="Severity Guide">
           {[{cls:'critical',name:'CRITICAL',range:'9–10',action:'Fix immediately — active exploit risk'},{cls:'high',name:'HIGH',range:'7–8',action:'Fix this week — high exploitability'},{cls:'medium',name:'MEDIUM',range:'4–6',action:'Fix this month — limited scope'},{cls:'low',name:'LOW',range:'0–3',action:'Fix when convenient — low impact'}].map(s => (
@@ -210,7 +210,7 @@ export default function Scanner() {
                   <span style={{ color: 'var(--text-muted)', fontSize: 10 }}> ({eco.mediationExample.winReason})</span>
                 </div>
               </div>
-              <div style={{ marginTop: 10, padding: '8px 10px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 'var(--radius-sm)', fontSize: 10, color: 'var(--yellow)', lineHeight: 1.6 }}>
+              <div style={{ marginTop: 10, padding: '8px 10px', background: 'var(--warn-bg)', border: '1px solid var(--warn-border)', borderRadius: 'var(--radius-sm)', fontSize: 10, color: 'var(--yellow)', lineHeight: 1.6 }}>
                 ⚠ {eco.mediationExample.danger}
               </div>
             </>
@@ -354,8 +354,8 @@ function SidebarSection({ title, titleColor, extra, children }) {
 //           style={{
 //             width: '100%',
 //             padding: 13,
-//             background: loading ? 'rgba(224,92,42,0.5)' : 'var(--orange)',
-//             color: 'white',
+//             background: loading ? 'var(--orange-dim)' : 'var(--orange)',
+//             color: 'var(--white)',
 //             border: 'none',
 //             borderRadius: 'var(--radius)',
 //             marginTop: 14,
