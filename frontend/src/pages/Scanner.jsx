@@ -76,13 +76,13 @@ export default function Scanner() {
         {/* Example link */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
           <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Need an example?</span>
-          <span onClick={() => setCode(ECOSYSTEMS[ecosystem]?.sampleContent || '')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--orange-dim)', border: '1px solid var(--orange)', padding: '4px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600, color: 'var(--orange)', fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
+          <span onClick={() => setCode(ECOSYSTEMS[ecosystem]?.sampleContent || '')} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: `${eco?.color}20`, border: `1px solid ${eco?.color}`, padding: '4px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600, color: eco?.color, fontFamily: 'var(--font-mono)', cursor: 'pointer' }}>
             ↓ Load {eco?.file || 'package.json'} example
           </span>
         </div>
 
         {code && eco && (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'var(--orange-dim)', border: '1px solid var(--orange)', padding: '4px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600, color: 'var(--orange)', fontFamily: 'var(--font-mono)', marginBottom: 10 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: `${eco?.color}20`, border: `1px solid ${eco?.color}`, padding: '4px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600, color: eco?.color, fontFamily: 'var(--font-mono)', marginBottom: 10 }}>
             🔵 {eco.lang} detected
           </div>
         )}
