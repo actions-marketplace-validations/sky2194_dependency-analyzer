@@ -1,10 +1,10 @@
-import { Routes, Route, NavLink, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation, NavLink } from 'react-router-dom'
 import { createContext, useContext, useState, useEffect } from 'react'
 import Landing from './pages/Landing'
-import Scanner from './pages/Scanner'
+import Dashboard from './pages/Dashboard'
+import Scanning from './pages/Scanning'
 import Analytics from './pages/Analytics'
 import Learn from './pages/Learn'
-import Scanning from './pages/Scanning'
 import ErrorBoundary from './components/ErrorBoundary'
 
 export const ScanContext = createContext({ scanning: false, scanProject: '', setScanning: () => {}, setScanProject: () => {} })
@@ -13,7 +13,11 @@ export const useScan = () => useContext(ScanContext)
 export default function App() {
   const [scanning, setScanning] = useState(false)
   const [scanProject, setScanProject] = useState('')
-  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark')
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = localStorage.getItem('theme') || 'dark'
+    document.documentElement.setAttribute('data-theme', savedTheme)
+    return savedTheme
+  })
   const location = useLocation()
   const isLanding = location.pathname === '/'
 
@@ -23,7 +27,7 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', next)
   }
 
-  useEffect(() => { document.documentElement.setAttribute('data-theme', theme) }, [])
+  useEffect(() => { document.documentElement.setAttribute('data-theme', theme) }, [theme])
 
   const handleMouseEnter = (e) => { e.currentTarget.style.transform = 'scale(1.05)' }
   const handleMouseLeave = (e) => { e.currentTarget.style.transform = 'scale(1)' }
@@ -65,7 +69,7 @@ export default function App() {
           )}
           <Routes>
             <Route path="/" element={<Landing />} />
-            <Route path="/scan" element={<Scanner />} />
+            <Route path="/scan" element={<Dashboard />} />
             <Route path="/scanning" element={<Scanning />} />
             <Route path="/results" element={<Analytics />} />
             <Route path="/learn" element={<Learn />} />

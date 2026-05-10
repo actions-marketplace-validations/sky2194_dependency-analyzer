@@ -85,3 +85,8 @@ backend/venv/
 frontend/node_modules/
 *.backups
 .backups/.backups/
+node_modules/
+dist/
+build/
+.env
+*.log

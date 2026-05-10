@@ -122,6 +122,13 @@
   --danger-border: rgba(239,68,68,0.15);
   --overlay-bg: rgba(0,0,0,0.5);
   --overlay-blur: 8px;
+  --radius: 8px;
+  --radius-sm: 5px;
+  --radius-lg: 12px;
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --font-ui: 'DM Sans', sans-serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -376,6 +383,41 @@ body {
   }
 }
 
+/* Shared UI Utility Classes */
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); }
+.card-hover { transition: all 0.15s; }
+.card-hover:hover { border-color: var(--border-light); box-shadow: 0 4px 12px var(--overlay-bg); }
+
+.badge-critical { background: var(--red-dim); border: 1px solid var(--vuln-border); color: var(--critical); }
+.badge-high { background: var(--yellow-dim); border: 1px solid var(--warn-border); color: var(--high); }
+.badge-medium { background: var(--blue-dim); border: 1px solid rgba(59,130,246,0.3); color: var(--medium); }
+.badge-low { background: var(--green-dim); border: 1px solid var(--fix-border); color: var(--low); }
+
+.text-muted { color: var(--text-muted); }
+.text-secondary { color: var(--text-secondary); }
+
+.surface { background: var(--surface); }
+.surface-elevated { background: var(--surface2); }
+
+.btn-primary { background: var(--orange); color: var(--white); border: none; }
+.btn-primary:hover { background: var(--blue); }
+
+/* Severity Colors - Globally Standardized */
+.severity-critical { color: var(--critical); }
+.severity-high { color: var(--high); }
+.severity-medium { color: var(--medium); }
+.severity-low { color: var(--low); }
+
+.bg-critical { background: var(--red-dim); }
+.bg-high { background: var(--yellow-dim); }
+.bg-medium { background: var(--blue-dim); }
+.bg-low { background: var(--green-dim); }
+
+.border-critical { border-color: var(--critical); }
+.border-high { border-color: var(--high); }
+.border-medium { border-color: var(--medium); }
+.border-low { border-color: var(--low); }
+
 /* FLUID NAVBAR */
 .nav {
   display: flex;
@@ -400,7 +442,7 @@ body {
 /* ANALYTICS SAFE FLEX AREA */
 .analytics-layout {
   display: grid !important;
-  grid-template-columns: 1fr 600px !important;
+  grid-template-columns: 1fr 400px !important;
   min-height: calc(100vh - 52px);
 }
 .scan-overlay {

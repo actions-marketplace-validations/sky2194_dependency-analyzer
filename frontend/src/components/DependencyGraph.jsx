@@ -19,7 +19,7 @@ function flatten(node, depth = 0, parentName = null, out = []) {
     name: node.name, version: node.version, depth,
     type: node.type || (depth === 0 ? 'root' : depth === 1 ? 'direct' : 'transitive'),
     parent: parentName,
-    vulns: node.vulnerabilities || [],
+    vulns: Array.isArray(node.vulnerabilities) ? node.vulnerabilities : [],
   })
   if (node.dependencies) for (const d of node.dependencies) flatten(d, depth + 1, node.name, out)
   return out

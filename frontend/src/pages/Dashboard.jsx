@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useScan } from '../App'
 import axios from 'axios'
 import API_BASE from '../config'
+import ECOSYSTEMS, { detectEcosystem } from '../data/ecosystems'
+import { useScan } from '../App'
 import FileUpload from '../components/FileUpload'
 import Tooltip from '../components/Tooltip'
-import ECOSYSTEMS, { detectEcosystem } from '../data/ecosystems'
 
 const LOADING_STEPS = [
   'Parsing dependency file...',
@@ -35,7 +35,7 @@ function MediationPanel({ eco }) {
       <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 12, lineHeight: 1.6 }}>{eco.mediationRule}</div>
       <div style={{ background: 'var(--code-bg)', borderRadius: 6, padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: 11 }}>
         <div style={{ color: 'var(--muted)', marginBottom: 8 }}>{ex.package} needed by:</div>
-        {ex.contestants.map((c, i) => (
+        {Array.isArray(ex.contestants) && ex.contestants.map((c, i) => (
           <div key={i} style={{ display: 'grid', gridTemplateColumns: '52px 1fr auto', gap: 6, marginBottom: 8, alignItems: 'center' }}>
             <span style={{ color: 'var(--muted)', fontSize: 10, whiteSpace: 'nowrap' }}>depth {c.depth}</span>
             <span style={{ color: c.safe ? 'var(--green)' : 'var(--high)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.requester}>{c.requester}</span>
@@ -117,18 +117,66 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false)
   const [loadingStep, setLoadingStep] = useState(0)
   const [error, setError] = useState('')
-  const [eco, setEco] = useState(lastEco ? (ECOSYSTEMS[lastEco] || ECOSYSTEMS.npm) : ECOSYSTEMS.npm)
+  const [code, setCode] = useState('')
+  const [file, setFile] = useState('')
   const { setScanning, setScanProject } = useScan()
   const navigate = useNavigate()
+  const [eco, setEco] = useState(lastEco ? (ECOSYSTEMS[lastEco] || ECOSYSTEMS.npm) : ECOSYSTEMS.npm)
 
-  const analyze = async (content, filename) => {
+  const loadExample = (type) => {
+    const examples = {
+      'npm': {
+        filename: 'package-lock.json',
+        content: JSON.stringify({
+          "name": "example-app",
+          "version": "1.0.0",
+          "lockfileVersion": 2,
+          "packages": {
+            "node_modules/lodash": {
+              "version": "4.17.21",
+              "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
+            }
+          }
+        }, null, 2)
+      },
+      'pypi': {
+        filename: 'requirements.txt',
+        content: 'flask==2.0.1\nrequests==2.26.0\njinja2==3.0.1'
+      },
+      'maven': {
+        filename: 'pom.xml',
+        content: `<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.example</groupId>
+  <artifactId>example-app</artifactId>
+  <version>1.0.0</version>
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-core</artifactId>
+      <version>5.3.8</version>
+    </dependency>
+  </dependencies>
+</project>`
+      }
+    }
+    
+    const example = examples[type] || examples['npm']
+    setCode(example.content)
+    setFile(example.filename)
+    setEco(ECOSYSTEMS[type] || ECOSYSTEMS.npm)
+  }
+
+  const analyze = async (content, filename) => {   
     setLoading(true); setScanning(true); setScanProject(filename); setError(''); setLoadingStep(0)
     const detectedEco = detectEcosystem(filename)
+    
     const interval = setInterval(() => setLoadingStep(s => Math.min(s + 1, LOADING_STEPS.length - 1)), 2000)
     try {
-      const res = await axios.post(`${API_BASE}/api/analyze`, { content, filename }, { timeout: 180000 })
+      const res = await axios.post(`${API_BASE}/api/scan`, { content, ecosystem: detectedEco?.label?.toLowerCase() || 'npm' }, { timeout: 180000 })
       clearInterval(interval)
       setLoading(false); setScanning(false); setScanProject('')
+      
       navigate('/results', { state: { result: res.data } })
     } catch (err) {
       clearInterval(interval)
@@ -177,6 +225,19 @@ export default function Dashboard() {
       )}
 
       {error && <div style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 14px', color: 'var(--red)', fontSize: 12, marginBottom: 16 }}>⚠️ {error}</div>}
+      
+      <div style={{ marginBottom: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button onClick={() => loadExample('npm')} style={{ padding: '8px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 12, cursor: 'pointer', color: 'var(--text)', transition: 'all 0.15s' }}>
+          📦 Load npm example
+        </button>
+        <button onClick={() => loadExample('pypi')} style={{ padding: '8px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 12, cursor: 'pointer', color: 'var(--text)', transition: 'all 0.15s' }}>
+          🐍 Load Python example
+        </button>
+        <button onClick={() => loadExample('maven')} style={{ padding: '8px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 12, cursor: 'pointer', color: 'var(--text)', transition: 'all 0.15s' }}>
+          ☕ Load Maven example
+        </button>
+      </div>
+      
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24, alignItems: 'start' }}>
         <FileUpload onAnalyze={analyze} loading={loading} onEcosystemChange={setEco} />
         <RightPanel eco={eco} />

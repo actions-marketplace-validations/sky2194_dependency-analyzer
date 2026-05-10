@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useScan } from '../App'
 import axios from 'axios'
 import API_BASE from '../config'
-import { MOCKS } from '../data/mocks'
+// import { MOCKS } from '../data/mocks'
 import ECOSYSTEMS from '../data/ecosystems'
 
 const SCAN_STEPS = ['Parsing manifest structure','Resolving dependency tree','Fetching NVD + OSV data','Cross-referencing CVEs','Generating risk report']
@@ -198,7 +198,7 @@ export default function Scanner() {
             <>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 6 }}>Example: <code style={{ color: 'var(--text)' }}>{eco.mediationExample.package}</code> needed by…</div>
               <div style={{ background: 'var(--code-bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: 11 }}>
-                {eco.mediationExample.contestants.map((ct, i) => (
+                {Array.isArray(eco?.mediationExample?.contestants) && eco.mediationExample.contestants.map((ct, i) => (
                   <div key={i} style={{ display: 'flex', gap: 8, padding: '3px 0' }}>
                     <span style={{ color: 'var(--text-muted)', width: 50 }}>depth {ct.depth}</span>
                     <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ct.requester}</span>

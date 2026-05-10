@@ -1,9 +1,12 @@
-import { useLocation, useNavigate } from 'react-router-dom'
+import React, { useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import API_BASE from '../config'
-import { useState } from 'react'
 import DependencyGraph from '../components/DependencyGraph'
-import VulnerabilityReport from '../components/VulnerabilityReport'
+import validateContract from '../utils/validateSnapshot'
+import normalizeSnapshot from '../utils/normalizeSnapshot'
 import SeverityBadge from '../components/SeverityBadge'
+import VulnerabilityReport from '../components/VulnerabilityReport'
+import SummaryCard from '../components/SummaryCard'
 import Tooltip from '../components/Tooltip'
 import CompareScans from '../components/CompareScans'
 
@@ -54,9 +57,46 @@ export default function Results() {
     } catch { setExportError('Export failed — is the backend running?') }
   }
 
-  const vulns = result.vulnerabilities || []
-  const warnings = result.warnings || []
-  const counts = SEVS.reduce((a, s) => ({ ...a, [s]: vulns.filter(v => v.severity === s).length }), {})
+  // PHASE 6: TRANSACTION IMMUTABILITY RULE - Block stale transactions
+  const [activeTransactionId, setActiveTransactionId] = useState(result.transaction_id)
+  
+  // PHASE 7: FAIL-LOUD STRATEGY - Contract violations fail hard
+  let frozenResult, snapshot
+  try {
+    if (result.transaction_id !== activeTransactionId) {
+      throw new Error(`STALE TRANSACTION BLOCKED - Expected ${activeTransactionId}, got ${result.transaction_id}`)
+    }
+
+    // PHASE 4: PURE RENDERING RULE - Freeze snapshot and validate contract
+    frozenResult = Object.freeze(result)
+    validateContract(frozenResult)
+    
+    // PHASE 4: STRICT - No normalization fallbacks, pass-through only
+    snapshot = normalizeSnapshot(frozenResult)
+  } catch (error) {
+    // PHASE 7: FAIL-LOUD - Render error boundary, no fallback UI
+    return (
+      <div style={{ textAlign: 'center', padding: 80, background: 'var(--bg-card)', border: '1px solid var(--red)', borderRadius: 'var(--radius)' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🚨</div>
+        <h2 style={{ color: 'var(--red)', marginBottom: 16 }}>CONTRACT VIOLATION</h2>
+        <p style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', fontSize: 12, maxWidth: 600, margin: '0 auto', lineHeight: 1.6 }}>
+          {error.message}
+        </p>
+        <button onClick={() => navigate('/scan')} style={{ marginTop: 24, padding: '12px 24px', background: 'var(--red)', color: 'var(--white)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontWeight: 700 }}>
+          ← Return to Scan
+        </button>
+      </div>
+    )
+  }
+
+  const vulns = snapshot.vulnerabilities
+  const summary = snapshot.summary
+  const counts = {
+    CRITICAL: summary.critical,
+    HIGH: summary.high,
+    MEDIUM: summary.medium,
+    LOW: summary.low,
+  }
 
   const goToGraph = () => setTab(0)
   const goToVulns = (sev = 'ALL') => { setTab(1); setSevFilter(sev) }
@@ -97,13 +137,6 @@ export default function Results() {
         </div>
       </div>
 
-      {/* Mock data warning */}
-      {result._isMock && (
-        <div style={{ background: 'var(--warn-bg)', border: '1px solid var(--warn-border)', borderRadius: 'var(--radius)', padding: '10px 16px', color: 'var(--yellow)', fontSize: 13, marginBottom: 16 }}>
-          ⚠️ <strong>Demo data shown</strong> — backend not running. Start backend with{' '}
-          <code style={{ fontFamily: 'var(--font-mono)', fontSize: 11 }}>./start.sh backend</code> for real results.
-        </div>
-      )}
 
       {/* Export error */}
       {exportError && (
@@ -113,22 +146,10 @@ export default function Results() {
         </div>
       )}
 
-      {/* Unpinned version warnings */}
-      {warnings.length > 0 && (
-        <div style={{ background: 'var(--warn-bg)', border: '1px solid var(--warn-border)', borderRadius: 'var(--radius)', padding: '12px 16px', marginBottom: 20 }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: 'var(--accent2)', marginBottom: 8 }}>
-            ⚠️ {warnings.length} unpinned version{warnings.length > 1 ? 's' : ''} detected
-          </div>
-          {warnings.map((w, i) => (
-            <div key={i} style={{ fontSize: 12, color: 'var(--warn-text)', marginBottom: 4, lineHeight: 1.5 }}>• {w}</div>
-          ))}
-        </div>
-      )}
-
       {/* Clickable summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 10, marginBottom: 28 }}>
-        <SummaryCard value={result.total_packages} label="Total Packages" color="var(--info)" onClick={goToGraph} hint="View Graph" />
-        <SummaryCard value={vulns.length} label="Vulnerabilities" color="var(--critical)" onClick={() => goToVulns('ALL')} hint="View All" />
+        <SummaryCard value={summary.total_packages} label="Total Packages" color="var(--info)" onClick={goToGraph} hint="View Graph" />
+        <SummaryCard value={summary.vulnerabilities} label="Vulnerabilities" color="var(--critical)" onClick={() => goToVulns('ALL')} hint="View All" />
         {SEVS.map(s => (
           <SummaryCard key={s} value={counts[s]} label={<SeverityBadge level={s} />} color={SEV_COLORS[s]} onClick={() => goToVulns(s)} hint={`Filter ${s}`} />
         ))}
@@ -138,13 +159,13 @@ export default function Results() {
       <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: 24 }}>
         {TABS.map((t, i) => (
           <button key={t} onClick={() => setTab(i)} style={{ padding: '9px 20px', background: 'none', border: 'none', borderBottom: `2px solid ${tab === i ? 'var(--accent)' : 'transparent'}`, color: tab === i ? 'var(--accent)' : 'var(--muted)', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13, cursor: 'pointer', marginBottom: -1 }}>
-            {t} {i === 1 && vulns.length > 0 && <span style={{ background: 'var(--critical)', color: 'var(--white)', borderRadius: 10, padding: '1px 6px', fontSize: 10, marginLeft: 4 }}>{vulns.length}</span>}
+            {t} {i === 1 && summary.vulnerabilities > 0 && <span style={{ background: 'var(--critical)', color: 'var(--white)', borderRadius: 10, padding: '1px 6px', fontSize: 10, marginLeft: 4 }}>{summary.vulnerabilities}</span>}
           </button>
         ))}
       </div>
 
-      {tab === 0 && <DependencyGraph data={result} />}
-      {tab === 1 && <VulnerabilityReport data={result} defaultFilter={sevFilter} />}
+      {tab === 0 && <DependencyGraph data={snapshot} />}
+      {tab === 1 && <VulnerabilityReport data={snapshot} defaultFilter={sevFilter} />}
     </div>
   )
 }

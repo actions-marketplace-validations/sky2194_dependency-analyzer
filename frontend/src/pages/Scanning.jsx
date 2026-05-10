@@ -19,11 +19,7 @@ export default function Scanning() {
   const { setScanning } = useScan()
   const [step, setStep] = useState(0)
   
-  // Transaction model: latestTransactionId + status tracking
-  const [latestTransactionId, setLatestTransactionId] = useState(null)
-  const [transactionStatus, setTransactionStatus] = useState(null)
-  
-  // AbortController to cancel previous transactions
+  // AbortController to cancel previous scans
   const abortControllerRef = useRef(null)
 
   // Defensive: if hot-reloaded or visited directly, show fallback instead of blank
@@ -32,18 +28,12 @@ export default function Scanning() {
   useEffect(() => {
     if (!hasRequiredState) return
     
-    // STRICT: Invalidate previous transaction + cancel network request
+    // Cancel previous scan
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
-      setTransactionStatus('CANCELLED')
     }
     
-    // Generate new transaction_id for this session
-    const newTransactionId = crypto.randomUUID()
-    setLatestTransactionId(newTransactionId)
-    setTransactionStatus('PENDING')
-    
-    // Create new AbortController for this transaction
+    // Create new AbortController for this scan
     abortControllerRef.current = new AbortController()
     
     if (typeof setScanning === 'function') setScanning(true)
@@ -52,9 +42,9 @@ export default function Scanning() {
       setStep(s => Math.min(s + 1, STEPS.length - 1))
     }, 800)
 
-    let transactionCompleted = false
+    let scanCompleted = false
 
-    async function performTransaction() {
+    async function performScan() {
       let result
       try {
         const res = await axios.post(`${API_BASE}/api/scan`, {
@@ -65,45 +55,15 @@ export default function Scanning() {
           signal: abortControllerRef.current.signal
         })
         result = res.data
-        
-        // STRICT: Only commit latest transaction - ignore stale responses
-        if (result.transaction_id !== latestTransactionId) {
-          console.error('Transaction ID mismatch - IGNORE ENTIRE RESPONSE - no state update')
-          transactionCompleted = true
-          setTransactionStatus('STALE')
-          clearInterval(interval)
-          setStep(STEPS.length - 1)
-          setTimeout(() => {
-            if (typeof setScanning === 'function') setScanning(false)
-            navigate('/scan', { state: { error: 'Transaction stale - please try again' } })
-          }, 600)
-          return
-        }
-        
-        // STRICT: Only accept COMPLETED transactions
-        if (result.status !== 'COMPLETED') {
-          console.error('Transaction not completed - IGNORE RESPONSE')
-          transactionCompleted = true
-          setTransactionStatus('FAILED')
-          clearInterval(interval)
-          setStep(STEPS.length - 1)
-          setTimeout(() => {
-            if (typeof setScanning === 'function') setScanning(false)
-            navigate('/scan', { state: { error: 'Transaction failed - please try again' } })
-          }, 600)
-          return
-        }
       } catch (err) {
-        // Ignore abort errors (from canceling previous transactions)
+        // Ignore abort errors (from canceling previous scans)
         if (err.name === 'AbortError' || err.code === 'ERR_CANCELED') {
-          console.log('Previous transaction canceled')
-          setTransactionStatus('CANCELLED')
+          console.log('Previous scan canceled')
           return
         }
         
-        console.error('Transaction failed:', err)
-        transactionCompleted = true
-        setTransactionStatus('FAILED')
+        console.error('Scan failed:', err)
+        scanCompleted = true
         clearInterval(interval)
         setStep(STEPS.length - 1)
         setTimeout(() => {
@@ -113,11 +73,9 @@ export default function Scanning() {
         return
       }
 
-      if (transactionCompleted) return // Prevent double navigation
+      if (scanCompleted) return // Prevent double navigation
 
-      // STRICT: State commit layer - atomic replacement only
-      transactionCompleted = true
-      setTransactionStatus('COMPLETED')
+      scanCompleted = true
       clearInterval(interval)
       setStep(STEPS.length - 1)
       setTimeout(() => {
@@ -126,15 +84,14 @@ export default function Scanning() {
       }, 600)
     }
 
-    performTransaction()
+    performScan()
     return () => {
       clearInterval(interval)
-      transactionCompleted = true
+      scanCompleted = true
       if (typeof setScanning === 'function') setScanning(false)
-      // Cancel transaction on unmount
+      // Cancel scan on unmount
       if (abortControllerRef.current) {
         abortControllerRef.current.abort()
-        setTransactionStatus('CANCELLED')
       }
     }
   }, [])

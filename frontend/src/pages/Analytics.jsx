@@ -1,7 +1,13 @@
-import { useLocation, useNavigate } from 'react-router-dom'
-import { useReducer, useState, useEffect } from 'react'
+import React, { useState, useEffect, useReducer, useRef } from 'react'
+import { useLocation, useNavigate, NavLink } from 'react-router-dom'
 import API_BASE from '../config'
 import DependencyGraph from '../components/DependencyGraph'
+import validateContract from '../utils/validateSnapshot'
+import normalizeSnapshot from '../utils/normalizeSnapshot'
+import tokens from '../theme/tokens'
+import SnapshotErrorState from '../components/SnapshotErrorState'
+import SecurityOverview from '../components/SecurityOverview'
+import RiskRing from '../components/RiskRing'
 
 const SEV_COLOR = { CRITICAL: 'var(--red)', HIGH: 'var(--yellow)', MEDIUM: 'var(--blue)', LOW: 'var(--green)' }
 const SEV_DIM = { CRITICAL: 'var(--red-dim)', HIGH: 'var(--yellow-dim)', MEDIUM: 'var(--blue-dim)', LOW: 'var(--green-dim)' }
@@ -77,90 +83,90 @@ export default function Analytics() {
   const { state: locationState } = useLocation()
   const navigate = useNavigate()
   const [state, dispatch] = useReducer(analyticsReducer, initialState)
-
+  
   const result = locationState?.result
 
-  // STRICT: Validate transaction_id for session isolation - discard if mismatch
-  if (result?.transaction_id) {
-    const [activeTransactionId] = useState(() => result.transaction_id)
-    if (result.transaction_id !== activeTransactionId) {
-      console.error('Transaction ID mismatch - discarding stale results')
-      return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>Transaction expired. Please scan again.</div>
-    }
-  }
-  
-  // STRICT: Only accept COMPLETED transactions
-  if (result?.status !== 'COMPLETED') {
-    console.error('Transaction not completed - discarding results')
-    return <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>Transaction incomplete. Please scan again.</div>
+  // STRICT: Transaction-safe rendering - validate before any rendering
+  if (!result) {
+    return (
+      <div style={{ textAlign: 'center', padding: 80 }}>
+        <p style={{ color: 'var(--text-muted)', marginBottom: 16 }}>No scan result found.</p>
+        <button onClick={() => navigate('/scan')} style={{ padding: '10px 20px', background: tokens.accent.primary, color: 'var(--white)', border: 'none', borderRadius: tokens.radius.md, cursor: 'pointer', fontFamily: tokens.font.ui, fontWeight: 700 }}>← Run a Scan</button>
+      </div>
+    )
   }
 
-  // STRICT: Clear ALL state on new transaction - reset reducer to initial state
-  useEffect(() => {
-    if (result?.transaction_id) {
-      dispatch({ type: 'RESET_ALL' })
-    }
-  }, [result?.transaction_id])
+  // PHASE 6: TRANSACTION IMMUTABILITY RULE - Block stale transactions
+  const [activeTransactionId, setActiveTransactionId] = useState(result.transaction_id)
   
-  // STRICT: Use ONLY backend data - no fallbacks, no calculations
-  const vulns = result?.vulnerabilities || []
-  const riskScore = result?.risk_score || 0
-  const resolvedPackages = result?.resolved_packages || 0
-  const inputPackages = result?.input_packages || 0
-  const directDeps = result?.direct_dependencies || 0
-  const transitiveDeps = result?.transitive_dependencies || 0
-  const tree = result?.dependency_tree || result?.graph
-  const explanation = result?.explanation || ''
+  // PHASE 7: FAIL-LOUD STRATEGY - Contract violations fail hard
+  let frozenResult, snapshot
+  try {
+    if (result.transaction_id !== activeTransactionId) {
+      throw new Error(`STALE TRANSACTION BLOCKED - Expected ${activeTransactionId}, got ${result.transaction_id}`)
+    }
+
+    // PHASE 4: PURE RENDERING RULE - Freeze snapshot and validate contract
+    frozenResult = Object.freeze(result)
+    validateContract(frozenResult)
+    
+    // PHASE 4: STRICT - No normalization fallbacks, pass-through only
+    snapshot = normalizeSnapshot(frozenResult)
+  } catch (error) {
+    // PHASE 7: FAIL-LOUD - Render error boundary, no fallback UI
+    return (
+      <div style={{ textAlign: 'center', padding: 80, background: 'var(--bg-card)', border: '1px solid var(--red)', borderRadius: 'var(--radius)' }}>
+        <div style={{ fontSize: 48, marginBottom: 16 }}>🚨</div>
+        <h2 style={{ color: 'var(--red)', marginBottom: 16 }}>CONTRACT VIOLATION</h2>
+        <p style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', fontSize: 12, maxWidth: 600, margin: '0 auto', lineHeight: 1.6 }}>
+          {error.message}
+        </p>
+        <button onClick={() => navigate('/scan')} style={{ marginTop: 24, padding: '12px 24px', background: 'var(--red)', color: 'var(--white)', border: 'none', borderRadius: 'var(--radius)', cursor: 'pointer', fontFamily: 'var(--font-ui)', fontWeight: 700 }}>
+          ← Return to Scan
+        </button>
+      </div>
+    )
+  }
+
+  // PHASE 4: PURE RENDERING - Use frozen snapshot data only, no mutation
+  const groupedPackages = snapshot.grouped_packages
+  const vulns = snapshot.vulnerabilities
+  const summary = snapshot.summary
+  const graph = snapshot.graph
+  const dependencyTree = snapshot.dependency_tree
+  const tree = dependencyTree || graph
+
+  // STRICT: Use backend summary only - NO frontend derivation
+  const riskScore = summary.risk_score
+  const riskLabel = summary.risk_label
+  const totalPackages = summary.total_packages
+  const directDeps = summary.direct_dependencies
+  const transitiveDeps = summary.transitive_dependencies
+  const totalVulns = summary.vulnerabilities
+  const counts = {
+    CRITICAL: summary.critical,
+    HIGH: summary.high,
+    MEDIUM: summary.medium,
+    LOW: summary.low,
+  }
 
   // STRICT: No derivations allowed - use backend data only
   const filtered = state.sevFilter === 'ALL' ? vulns : vulns.filter(v => v.severity === state.sevFilter)
   const directOnlyFiltered = state.showDirectOnly ? filtered.filter(v => v.is_direct) : filtered
   const selectedVuln = vulns.find(v => v.cve_id === state.selected)
-  
-  // STRICT: Use backend-provided counts only - NO array.length usage
-  const directPkgs = result?.direct_dependencies || 0
-  const transitivePkgs = result?.transitive_dependencies || 0
-  const packagesWithVulns = result?.grouped_vulnerability_count || 0
-  const securePackages = resolvedPackages - packagesWithVulns
 
-  // STRICT: Use backend-provided counts only - NO array.length usage
-  const counts = {
-    CRITICAL: result?.grouped_vulnerability_count || 0,
-    HIGH: 0,
-    MEDIUM: 0,
-    LOW: 0
-  }
-
-  // STRICT: Simple deduplication for display only
-  const dedupedFixes = []
-  vulns.filter(v=>v.fix_version).forEach(v => {
-    const pkg = pkgName(v)
-    const existing = dedupedFixes.find(d => pkgName(d) === pkg)
-    const severityOrder = { CRITICAL: 4, HIGH: 3, MEDIUM: 2, LOW: 1 }
-    if (!existing || severityOrder[v.severity] > severityOrder[existing.severity]) {
-      dedupedFixes.push(v)
-    }
-  })
-
-  // STRICT: Simple grouping for display only
-  const groupedByPackage = {}
-  directOnlyFiltered.forEach(v => {
-    const pkg = pkgName(v)
-    if (!groupedByPackage[pkg]) {
-      groupedByPackage[pkg] = {
-        package: pkg,
-        version: pkgVersion(v),
-        vulnerabilities: [],
-        highestSeverity: 'LOW',
-        severityOrder: { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }
+  // STRICT: Simple deduplication for display only - read-only
+  const fixes = []
+  if (snapshot.fixes && Array.isArray(snapshot.fixes)) {
+    snapshot.fixes.forEach(v => {
+      const pkg = pkgName(v)
+      const existing = fixes.find(d => pkgName(d) === pkg)
+      const severityOrder = { CRITICAL: 4, HIGH: 3, MEDIUM: 2, LOW: 1 }
+      if (!existing || severityOrder[v.severity] > severityOrder[existing.severity]) {
+        fixes.push(v)
       }
-    }
-    groupedByPackage[pkg].vulnerabilities.push(v)
-    if (groupedByPackage[pkg].severityOrder[v.severity] < groupedByPackage[pkg].severityOrder[groupedByPackage[pkg].highestSeverity]) {
-      groupedByPackage[pkg].highestSeverity = v.severity
-    }
-  })
-  const groupedPackages = Object.values(groupedByPackage).sort((a, b) => a.severityOrder[a.highestSeverity] - a.severityOrder[b.highestSeverity])
+    })
+  }
 
   const [showExportMenu, setShowExportMenu] = useState(false)
 
@@ -209,14 +215,10 @@ export default function Analytics() {
           <div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, letterSpacing: -0.4, marginBottom: 4 }}>
               Security Risk Overview
-              {result.is_mock ? (
-                <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: 'var(--yellow-dim)', border: '1px solid var(--warn-border)', color: 'var(--yellow)', verticalAlign: 'middle' }} title="Backend unreachable — showing example data">⚠ DEMO DATA</span>
-              ) : (
-                <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: 'var(--green-dim)', border: '1px solid var(--fix-border)', color: 'var(--green)', verticalAlign: 'middle' }} title="Live data from backend">● LIVE</span>
-              )}
+              <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 700, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: 'var(--green-dim)', border: '1px solid var(--fix-border)', color: 'var(--green)', verticalAlign: 'middle' }} title="Live data from backend">● LIVE</span>
             </h1>
             <div style={{ fontSize: 12, color: 'var(--red)', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <strong>{vulns.length} vulnerabilities detected</strong> across {resolvedPackages} packages ({directDeps} direct + {transitiveDeps} transitive) — {counts.CRITICAL > 0 ? <span>{counts.CRITICAL} critical requires immediate attention</span> : 'no critical issues'}
+              <strong>{totalVulns} vulnerabilities detected</strong> across {totalPackages} packages ({directDeps} direct + {transitiveDeps} transitive) — {counts.CRITICAL > 0 ? <span>{counts.CRITICAL} critical requires immediate attention</span> : 'no critical issues'}
               <span 
                 style={{ fontSize: 14, color: 'var(--text-muted)', cursor: 'help', position: 'relative' }}
                 onMouseEnter={() => dispatch({ type: 'SET_SHOW_TOOLTIP', payload: true })}
@@ -237,7 +239,7 @@ export default function Analytics() {
                     width: 200, 
                     zIndex: 10,
                     marginTop: 4,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                    boxShadow: '0 4px 12px var(--overlay-bg)'
                   }}>
                     Only packages with vulnerabilities are shown here. Use the 'All Packages' tab to see all scanned packages.
                   </div>
@@ -253,7 +255,7 @@ export default function Analytics() {
             <div style={{ position: 'relative' }}>
               <button onClick={() => setShowExportMenu(!showExportMenu)} style={{ padding: '8px 14px', fontSize: 12, fontWeight: 600, borderRadius: 6, border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>↓ Export</button>
               {showExportMenu && (
-                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 6, boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 100, minWidth: 150 }}>
+                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 4, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 6, boxShadow: '0 4px 12px var(--overlay-bg)', zIndex: 100, minWidth: 150 }}>
                   <div onClick={() => exportReport('pdf')} style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 12, color: 'var(--text)', ':hover': { background: 'var(--bg)' } }}>PDF Report</div>
                   <div onClick={() => exportReport('csv')} style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 12, color: 'var(--text)', ':hover': { background: 'var(--bg)' } }}>CSV Data</div>
                   <div onClick={() => exportReport('json')} style={{ padding: '8px 12px', cursor: 'pointer', fontSize: 12, color: 'var(--text)', ':hover': { background: 'var(--bg)' } }}>JSON Data</div>
@@ -269,24 +271,24 @@ export default function Analytics() {
           <div style={{ fontSize: 12, fontWeight: 700, marginBottom: 12, color: 'var(--text-secondary)' }}>Package Status Summary</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
             <div style={{ background: 'var(--bg)', padding: 12, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--blue)', fontFamily: 'var(--font-mono)' }}>{totalPkgs}</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--blue)', fontFamily: 'var(--font-mono)' }}>{totalPackages}</div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Total Packages</div>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>{directPkgs} direct + {transitivePkgs} transitive</div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>{directDeps} direct + {transitiveDeps} transitive</div>
             </div>
             <div style={{ background: 'var(--bg)', padding: 12, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--red)', fontFamily: 'var(--font-mono)' }}>{packagesWithVulns.size}</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--red)', fontFamily: 'var(--font-mono)' }}>{summary.vulnerable_package_count || 0}</div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Have Vulnerabilities</div>
               <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>Shown in vulnerability list</div>
             </div>
             <div style={{ background: 'var(--bg)', padding: 12, borderRadius: 'var(--radius)', border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>{securePackages}</div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>{summary.secure_package_count || 0}</div>
               <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>Secure</div>
               <div style={{ fontSize: 10, color: 'var(--text-muted)', marginTop: 4 }}>No vulnerabilities found</div>
             </div>
           </div>
           <div style={{ marginTop: 12, padding: 8, background: 'var(--yellow-dim)', borderRadius: 'var(--radius)', fontSize: 10, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 12 }}>ℹ️</span>
-            <span>{explanation}</span>
+            <span>Includes direct dependencies and all their transitive dependencies. Use the "All Packages" tab to see the complete list.</span>
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'auto 1px 1fr auto auto auto auto', gap: 16, alignItems: 'center', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '18px 22px', marginBottom: 16 }}>
@@ -311,7 +313,7 @@ export default function Analytics() {
             </div>
           </div>
           {/* Stat pills */}
-          {[{v:totalPkgs,l:'Packages',c:'var(--text)',icon:'🔍'},{v:vulns.length,l:'Vulnerabilities',c:'var(--yellow)',icon:'⚠️'},{v:counts.CRITICAL,l:'Critical',c:'var(--red)',icon:'🔴'},{v:counts.HIGH,l:'High',c:'var(--yellow)',icon:'🟡'}].map(({v,l,c,icon}) => (
+          {[{v:totalPackages,l:'Packages',c:'var(--text)',icon:'🔍'},{v:totalVulns,l:'Vulnerabilities',c:'var(--yellow)',icon:'⚠️'},{v:counts.CRITICAL,l:'Critical',c:'var(--red)',icon:'🔴'},{v:counts.HIGH,l:'High',c:'var(--yellow)',icon:'🟡'}].map(({v,l,c,icon}) => (
             <div key={l} style={{ textAlign: 'center', padding: '0 8px' }}>
               <div style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: 'var(--font-mono)', display: 'flex', alignItems: 'center', gap: 4, justifyContent: 'center' }}>{icon}</div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 24, fontWeight: 700, color: c }}>{v}</div>
@@ -321,14 +323,14 @@ export default function Analytics() {
         </div>
 
         {/* Priority fixes banner */}
-        {vulns.filter(v=>v.severity==='CRITICAL'||v.severity==='HIGH').length > 0 && (
+        {totalVulns > 0 && (
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '14px 16px', marginBottom: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--red)', animation: 'pulse 2s infinite' }} />
               <span style={{ fontWeight: 700, fontSize: 14 }}>Priority Fixes — Resolve these first</span>
               <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', padding: '2px 8px', border: '1px solid var(--border)', borderRadius: 4 }}>→ Auto-prioritized by CVSS + exposure</span>
             </div>
-            {vulns.filter(v=>v.severity==='CRITICAL'||v.severity==='HIGH').slice(0,3).map(v => (
+            {Array.isArray(vulns) && vulns.filter(v=>v.severity==='CRITICAL'||v.severity==='HIGH').slice(0,3).map(v => (
               <div key={v.cve_id} onClick={() => dispatch({ type: 'SET_SELECTED', payload: v.cve_id })} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '10px 0', borderTop: '1px solid var(--border)', cursor: 'pointer' }}>
                 <div style={{ flex: 1 }}>
                   <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, fontSize: 13 }}>{pkgName(v)}</span>
@@ -346,10 +348,10 @@ export default function Analytics() {
         {/* Tabs */}
         <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: 16, overflowX: 'auto' }}>
           {[
-            { id: 'vulns', label: 'Vulnerabilities', count: vulns.length },
-            { id: 'all-pkgs', label: 'All Packages', count: totalPkgs },
+            { id: 'vulns', label: 'Vulnerabilities', count: totalVulns },
+            { id: 'all-pkgs', label: 'All Packages', count: totalPackages },
             { id: 'tree', label: 'Dependency Graph', count: null },
-            { id: 'fixes', label: 'Fix Suggestions', count: dedupedFixes.length }
+            { id: 'fixes', label: 'Fix Suggestions', count: fixes.length }
           ].map(({ id, label, count }) => (
             <button key={id} onClick={() => dispatch({ type: 'SET_TAB', payload: id })} style={{ padding: '10px 16px', fontSize: 13, fontWeight: 600, color: state.tab===id ? 'var(--text)' : 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer', borderBottom: `2px solid ${state.tab===id ? 'var(--orange)' : 'transparent'}`, marginBottom: -1, display: 'flex', alignItems: 'center', gap: 6, transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
               {label}
@@ -362,10 +364,10 @@ export default function Analytics() {
         {state.tab === 'all-pkgs' && (
           <div>
             <div style={{ marginBottom: 12, fontSize: 11, color: 'var(--text-muted)' }}>
-              Showing all {resolvedPackages} packages scanned ({directDeps} direct + {transitiveDeps} transitive)
+              Showing all {totalPackages} packages scanned ({directDeps} direct + {transitiveDeps} transitive)
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {groupedByPackage.map((group, idx) => {
+              {Array.isArray(groupedPackages) && groupedPackages.map((group, idx) => {
                 const hasVulns = group.vulnerabilities.length > 0
                 const borderColor = hasVulns ? SEV_COLOR[group.highestSeverity] : 'var(--green)'
                 const bgColor = hasVulns ? SEV_DIM[group.highestSeverity] : 'var(--green-dim)'
@@ -375,7 +377,7 @@ export default function Analytics() {
                     <span style={{ fontSize: 12, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: bgColor, color: textColor, fontFamily: 'var(--font-mono)' }}>
                       {hasVulns ? group.vulnerabilities.length + ' CVEs' : '✓ Secure'}
                     </span>
-                    <span onClick={(e) => { e.stopPropagation(); handleDeepScan(group.package, group.version, result.ecosystem) }} style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>{group.package}</span>
+                    <span onClick={(e) => { e.stopPropagation(); handleDeepScan(group.package, group.version, snapshot.ecosystem) }} style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>{group.package}</span>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)' }}>v{group.version}</span>
                     <span style={{ flex: 1 }} />
                     {hasVulns && <span style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: SEV_DIM[group.highestSeverity], border: `1px solid ${SEV_COLOR[group.highestSeverity]}44`, color: SEV_COLOR[group.highestSeverity] }}>{group.highestSeverity}</span>}
@@ -391,7 +393,7 @@ export default function Analytics() {
           <div>
             {/* Deep scan result modal */}
             {state.deepScanResult && (
-              <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ position: 'fixed', inset: 0, background: 'var(--overlay-bg)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', maxWidth: 800, maxHeight: '80vh', overflow: 'auto', padding: 24, border: '1px solid var(--border)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                     <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Deep Scan: {state.selectedPackage}</h3>
@@ -401,7 +403,7 @@ export default function Analytics() {
                     {state.deepScanResult.total_packages} packages scanned • {state.deepScanResult.vulnerabilities.length} vulnerabilities found
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {state.deepScanResult.vulnerabilities.slice(0, 10).map(v => (
+                    {Array.isArray(state.deepScanResult?.vulnerabilities) && state.deepScanResult.vulnerabilities.slice(0, 10).map(v => (
                       <div key={v.cve_id} style={{ background: 'var(--bg)', border: `1px solid var(--border)`, borderLeft: `3px solid ${SEV_COLOR[v.severity]}`, borderRadius: 'var(--radius)', padding: 12 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
                           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, fontWeight: 700 }}>{v.package}</span>
@@ -413,7 +415,7 @@ export default function Analytics() {
                         <div style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{v.description}</div>
                       </div>
                     ))}
-                    {state.deepScanResult.vulnerabilities.length > 10 && (
+                    {Array.isArray(state.deepScanResult?.vulnerabilities) && state.deepScanResult.vulnerabilities.length > 10 && (
                       <div style={{ fontSize: 11, color: 'var(--text-muted)', textAlign: 'center', padding: 8 }}>
                         ...and {state.deepScanResult.vulnerabilities.length - 10} more
                       </div>
@@ -424,14 +426,14 @@ export default function Analytics() {
             )}
             {/* Deep scan loading indicator */}
             {state.deepScanLoading && (
-              <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ position: 'fixed', inset: 0, background: 'var(--overlay-bg)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ background: 'var(--bg-card)', borderRadius: 'var(--radius-lg)', padding: 24, border: '1px solid var(--border)' }}>
                   <div style={{ fontSize: 14, fontWeight: 700 }}>Deep scanning {state.selectedPackage}...</div>
                 </div>
               </div>
             )}
             <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-              {['ALL','CRITICAL','HIGH','MEDIUM','LOW'].map(s => (
+              {Array.isArray(['ALL','CRITICAL','HIGH','MEDIUM','LOW']) && ['ALL','CRITICAL','HIGH','MEDIUM','LOW'].map(s => (
                 <button key={s} onClick={() => dispatch({ type: 'SET_SEV_FILTER', payload: s })} style={{ padding: '4px 10px', borderRadius: 14, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: '1px solid var(--border)', background: state.sevFilter===s ? 'var(--orange-dim)' : 'var(--bg-card)', color: state.sevFilter===s ? 'var(--orange)' : 'var(--text-secondary)', fontFamily: 'var(--font-mono)', transition: 'all 0.15s' }}>
                   {s}{s!=='ALL' && ` (${counts[s]||0})`}
                 </button>
@@ -442,19 +444,19 @@ export default function Analytics() {
               <button onClick={() => dispatch({ type: 'SET_VIEW_MODE', payload: state.viewMode === 'list' ? 'grouped' : 'list' })} style={{ padding: '4px 10px', borderRadius: 14, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: '1px solid var(--border)', background: 'var(--bg-card)', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', transition: 'all 0.15s' }}>
                 {state.viewMode === 'list' ? '📋 Group by Package' : '📄 List View'}
               </button>
-              {directOnlyFiltered.length > 5 && (
+              {Array.isArray(directOnlyFiltered) && directOnlyFiltered.length > 5 && (
                 <button onClick={() => dispatch({ type: 'TOGGLE_VULN_EXPANDED' })} style={{ padding: '4px 10px', borderRadius: 14, fontSize: 11, fontWeight: 600, cursor: 'pointer', border: '1px solid var(--border)', background: state.vulnExpanded ? 'var(--orange-dim)' : 'var(--bg-card)', color: state.vulnExpanded ? 'var(--orange)' : 'var(--text-secondary)', fontFamily: 'var(--font-mono)', transition: 'all 0.15s' }}>
-                  {state.vulnExpanded ? '▼ Show Less' : '▶ Show All'} ({directOnlyFiltered.length})
+                  {state.vulnExpanded ? '▼ Show Less' : '▶ Show All'} ({Array.isArray(directOnlyFiltered) ? directOnlyFiltered.length : 0})
                 </button>
               )}
             </div>
             {/* List View */}
             {state.viewMode === 'list' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {(state.vulnExpanded ? directOnlyFiltered : directOnlyFiltered.slice(0, 10)).map(v => (
+                {(state.vulnExpanded ? directOnlyFiltered : Array.isArray(directOnlyFiltered) ? directOnlyFiltered.slice(0, 50) : []).map(v => (
                   <div key={v.cve_id} onClick={() => dispatch({ type: 'SET_SELECTED', payload: state.selected===v.cve_id?null:v.cve_id })} style={{ background: state.selected===v.cve_id ? 'var(--orange-dim)' : 'var(--bg-card)', border: `1px solid ${state.selected===v.cve_id ? 'var(--orange)' : 'var(--border)'}`, borderLeft: `3px solid ${SEV_COLOR[v.severity]}`, borderRadius: 'var(--radius)', padding: '14px 16px', cursor: 'pointer', transition: 'all 0.15s' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
-                      <span onClick={(e) => { e.stopPropagation(); handleDeepScan(pkgName(v), pkgVersion(v), result.ecosystem) }} style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>{pkgName(v)}</span>
+                      <span onClick={(e) => { e.stopPropagation(); handleDeepScan(pkgName(v), pkgVersion(v), snapshot.ecosystem) }} style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>{pkgName(v)}</span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)' }}>v{pkgVersion(v)}</span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--blue)' }}>{v.cve_id}</span>
                       {v.source && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, fontWeight: 700, padding: '1px 5px', borderRadius: 3, background: 'var(--purple-dim)', border: '1px solid var(--purple-border)', color: 'var(--purple)' }} title="Vulnerability source">{v.source}</span>}
@@ -476,14 +478,14 @@ export default function Analytics() {
             {/* Grouped View (Package-centric) */}
             {state.viewMode === 'grouped' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {(state.vulnExpanded ? groupedByPackage : groupedByPackage.slice(0, 8)).map((group, idx) => {
+                {(state.vulnExpanded ? groupedPackages : Array.isArray(groupedPackages) ? groupedPackages.slice(0, 8) : []).map((group, idx) => {
                   const isExpanded = state.expandedPackages.has(group.package)
                   return (
                     <div key={idx} style={{ background: 'var(--bg-card)', border: `1px solid ${SEV_COLOR[group.highestSeverity]}44`, borderRadius: 'var(--radius)', overflow: 'hidden' }}>
                       {/* Package Header */}
                       <div onClick={() => togglePackageExpand(group.package)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 16, cursor: 'pointer', background: SEV_DIM[group.highestSeverity] }}>
                         <span style={{ fontSize: 12, color: SEV_COLOR[group.highestSeverity] }}>{isExpanded ? '▼' : '▶'}</span>
-                        <span onClick={(e) => { e.stopPropagation(); handleDeepScan(group.package, group.version, result.ecosystem) }} style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>{group.package}</span>
+                        <span onClick={(e) => { e.stopPropagation(); handleDeepScan(group.package, group.version, snapshot.ecosystem) }} style={{ fontFamily: 'var(--font-mono)', fontSize: 14, fontWeight: 700, color: 'var(--blue)', cursor: 'pointer', textDecoration: 'underline' }}>{group.package}</span>
                         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)' }}>v{group.version}</span>
                         <span style={{ flex: 1 }} />
                         <span style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: SEV_DIM[group.highestSeverity], border: `1px solid ${SEV_COLOR[group.highestSeverity]}44`, color: SEV_COLOR[group.highestSeverity] }}>{group.highestSeverity}</span>
@@ -493,7 +495,7 @@ export default function Analytics() {
                       {isExpanded && (
                         <div style={{ padding: 12, borderTop: '1px solid var(--border)', background: 'var(--bg)' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                            {group.vulnerabilities.map(v => (
+                            {Array.isArray(group.vulnerabilities) && group.vulnerabilities.map(v => (
                               <div key={v.cve_id} onClick={() => dispatch({ type: 'SET_SELECTED', payload: v.cve_id })} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: 10, background: state.selected === v.cve_id ? 'var(--orange-dim)' : 'var(--bg-card)', border: `1px solid ${state.selected === v.cve_id ? 'var(--orange)' : 'var(--border)'}`, borderRadius: 4, cursor: 'pointer' }}>
                                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--blue)', fontWeight: 700 }}>{v.cve_id}</span>
                                 <span style={{ fontSize: 10, fontWeight: 700, padding: '1px 5px', borderRadius: 3, background: SEV_DIM[v.severity], border: `1px solid ${SEV_COLOR[v.severity]}44`, color: SEV_COLOR[v.severity] }}>{v.severity}</span>
@@ -513,13 +515,13 @@ export default function Analytics() {
         )}
 
         {/* Tab: Dependency Graph */}
-        {state.tab === 'tree' && <DependencyGraph data={result} />}
+        {state.tab === 'tree' && <DependencyGraph data={snapshot} />}
 
         {/* Tab: Fix Suggestions */}
         {state.tab === 'fixes' && (
           <div>
             {/* Deduplicated by package name, showing most severe */}
-            {dedupedFixes.map((v, i) => (
+            {Array.isArray(fixes) && fixes.map((v, i) => (
               <div key={v.cve_id} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16, marginBottom: 10 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'var(--orange-dim)', border: '1px solid var(--orange)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--orange)' }}>{i+1}</div>
@@ -530,8 +532,8 @@ export default function Analytics() {
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 8 }}>{v.description}</div>
                 <div style={{ background: 'var(--code-bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '8px 12px', fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span>{installCmd(v, result.ecosystem)}</span>
-                  <button onClick={() => navigator.clipboard?.writeText(installCmd(v, result.ecosystem))} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11 }}>copy</button>
+                  <span>{installCmd(v, snapshot.ecosystem)}</span>
+                  <button onClick={() => navigator.clipboard?.writeText(installCmd(v, snapshot.ecosystem))} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 11 }}>copy</button>
                 </div>
               </div>
             ))}
@@ -576,8 +578,8 @@ export default function Analytics() {
                     <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--green)', textTransform: 'uppercase', fontFamily: 'var(--font-mono)', marginBottom: 4 }}>RECOMMENDED FIX</div>
                     <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)' }}>{fixText(selectedVuln)}</div>
                     <div style={{ marginTop: 8, background: 'var(--code-bg)', borderRadius: 4, padding: '6px 10px', fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--green)', display: 'flex', justifyContent: 'space-between' }}>
-                      <span>{installCmd(selectedVuln, result.ecosystem)}</span>
-                      <button onClick={() => navigator.clipboard?.writeText(installCmd(selectedVuln, result.ecosystem))} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 10 }}>Copy</button>
+                      <span>{installCmd(selectedVuln, snapshot.ecosystem)}</span>
+                      <button onClick={() => navigator.clipboard?.writeText(installCmd(selectedVuln, snapshot.ecosystem))} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 10 }}>Copy</button>
                     </div>
                   </div>
                 )}
@@ -650,7 +652,7 @@ export default function Analytics() {
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.8, textTransform: 'uppercase', color: 'var(--text-secondary)' }}>Scan Info</span>
           </div>
           <div style={{ padding: '10px 14px' }}>
-            {[['Direct Packages', directPkgs],['Transitive Packages', transitivePkgs],['Total Packages', totalPkgs],['Vulnerabilities', vulns.length],['Source', result.project_name||'package.json'],['Databases', 'NVD + OSV']].map(([l,v]) => (
+            {[['Direct Packages', directDeps],['Transitive Packages', transitiveDeps],['Total Packages', totalPackages],['Vulnerabilities', totalVulns],['Source', snapshot.project_name||'package.json'],['Databases', 'NVD + OSV']].map(([l,v]) => (
               <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid var(--border)', fontSize: 12 }}>
                 <span style={{ color: 'var(--text-muted)' }}>{l}</span>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600 }}>{v}</span>

@@ -74,9 +74,16 @@ function DiffSection({ title, items, color }) {
 }
 
 function computeDiff(prev, current) {
-  const prevIds = new Set(prev.vulnerabilities?.map(v => `${v.cve_id}:${v.package}`) || [])
-  const currIds = new Set(current.vulnerabilities?.map(v => `${v.cve_id}:${v.package}`) || [])
-  const added = current.vulnerabilities?.filter(v => !prevIds.has(`${v.cve_id}:${v.package}`)) || []
-  const fixed = prev.vulnerabilities?.filter(v => !currIds.has(`${v.cve_id}:${v.package}`)) || []
+  if (!prev?.vulnerabilities || !Array.isArray(prev.vulnerabilities)) {
+    return { added: [], fixed: [] }
+  }
+  if (!current?.vulnerabilities || !Array.isArray(current.vulnerabilities)) {
+    return { added: [], fixed: [] }
+  }
+  
+  const prevIds = new Set(prev.vulnerabilities.map(v => `${v.cve_id}:${v.package}`))
+  const currIds = new Set(current.vulnerabilities.map(v => `${v.cve_id}:${v.package}`))
+  const added = current.vulnerabilities.filter(v => !prevIds.has(`${v.cve_id}:${v.package}`))
+  const fixed = prev.vulnerabilities.filter(v => !currIds.has(`${v.cve_id}:${v.package}`))
   return { added, fixed }
 }
