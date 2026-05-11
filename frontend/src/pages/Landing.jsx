@@ -195,7 +195,7 @@ export default function Landing() {
             ['🧠','Intelligent Risk Scoring','Combines CVSS scores, attack vector, authentication requirements, and fix availability into a single prioritized risk score.'],
             ['⚡','Actionable Fix Commands','Exact install commands, safe version ranges, and dependency override strategies — ready to copy-paste or automate.'],
             ['🗺️','Visual Dependency Graph','See your full dependency tree visualized with vulnerability highlighting. Instantly understand which packages are the source of transitive CVEs.'],
-            ['🔁','CI/CD Gate Integration','Block builds on critical CVEs. Integrate with GitHub Actions, GitLab CI, Jenkins, or CircleCI in minutes.'],
+            // ['🔁','CI/CD Gate Integration','Block builds on critical CVEs. Integrate with GitHub Actions, GitLab CI, Jenkins, or CircleCI in minutes.'],
             ['📊','Scan History & Comparison','Track your security posture over time. Compare scans to see if new vulnerabilities were introduced between deploys.'],
           ].map(([icon, title, text], i) => <div className={`lp-feat-card reveal reveal-delay-${(i % 3) + 1}`} key={title}><div className="lp-feat-icon">{icon}</div><div className="lp-feat-title">{title}</div><div className="lp-feat-text">{text}</div></div>)}
         </div>
