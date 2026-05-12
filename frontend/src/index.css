@@ -532,15 +532,7 @@ body {
   }
 }
 
-/* ── Analytics mobile sidebar ───────────────────────────────────── */
-@media (max-width: 768px) {
-  .analytics-layout > div:last-child {
-    display: none !important;
-  }
-  .analytics-layout > div:first-child {
-    padding: 16px !important;
-  }
-}
+/* old analytics sidebar rule removed — handled in single source block below */
 
 /* ── Learn page mobile ──────────────────────────────────────────── */
 @media (max-width: 768px) {
