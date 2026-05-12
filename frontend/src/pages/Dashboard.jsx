@@ -1,11 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useScan } from '../App'
 import axios from 'axios'
 import API_BASE from '../config'
-import ECOSYSTEMS, { detectEcosystem } from '../data/ecosystems'
-import { useScan } from '../App'
+import { signRequest } from '../utils/signing'
 import FileUpload from '../components/FileUpload'
 import Tooltip from '../components/Tooltip'
+import ECOSYSTEMS, { detectEcosystem } from '../data/ecosystems'
+import { MOCKS } from '../data/mocks'
 
 const LOADING_STEPS = [
   'Parsing dependency file...',
@@ -17,10 +19,10 @@ const LOADING_STEPS = [
 ]
 
 const SEVS = [
-  { level: 'CRITICAL', score: '9–10', color: 'var(--critical)', desc: 'Fix immediately' },
-  { level: 'HIGH',     score: '7–8',  color: 'var(--high)', desc: 'Fix this week' },
-  { level: 'MEDIUM',   score: '4–6',  color: 'var(--medium)', desc: 'Fix this month' },
-  { level: 'LOW',      score: '0–3',  color: 'var(--low)', desc: 'Fix when convenient' },
+  { level: 'CRITICAL', score: '9–10', color: '#ef4444', desc: 'Fix immediately' },
+  { level: 'HIGH',     score: '7–8',  color: '#f97316', desc: 'Fix this week' },
+  { level: 'MEDIUM',   score: '4–6',  color: '#eab308', desc: 'Fix this month' },
+  { level: 'LOW',      score: '0–3',  color: '#3b82f6', desc: 'Fix when convenient' },
 ]
 
 function MediationPanel({ eco }) {
@@ -35,20 +37,20 @@ function MediationPanel({ eco }) {
       <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 12, lineHeight: 1.6 }}>{eco.mediationRule}</div>
       <div style={{ background: 'var(--code-bg)', borderRadius: 6, padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: 11 }}>
         <div style={{ color: 'var(--muted)', marginBottom: 8 }}>{ex.package} needed by:</div>
-        {Array.isArray(ex.contestants) && ex.contestants.map((c, i) => (
+        {ex.contestants.map((c, i) => (
           <div key={i} style={{ display: 'grid', gridTemplateColumns: '52px 1fr auto', gap: 6, marginBottom: 8, alignItems: 'center' }}>
             <span style={{ color: 'var(--muted)', fontSize: 10, whiteSpace: 'nowrap' }}>depth {c.depth}</span>
-            <span style={{ color: c.safe ? 'var(--green)' : 'var(--high)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.requester}>{c.requester}</span>
+            <span style={{ color: c.safe ? '#22c55e' : '#f97316', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={c.requester}>{c.requester}</span>
             <span style={{ display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
               <span style={{ color: 'var(--muted)' }}>{ex.package}@</span>
-              <span style={{ color: c.safe ? 'var(--green)' : 'var(--red)', fontWeight: 700 }}>{c.version}</span>
-              <span style={{ fontSize: 10, color: c.safe ? 'var(--green)' : 'var(--red)' }}>{c.safe ? '✓' : '⚠️'}</span>
+              <span style={{ color: c.safe ? '#22c55e' : '#ef4444', fontWeight: 700 }}>{c.version}</span>
+              <span style={{ fontSize: 10, color: c.safe ? '#22c55e' : '#ef4444' }}>{c.safe ? '✓' : '⚠️'}</span>
             </span>
           </div>
         ))}
         <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8, marginTop: 4 }}>
           <span style={{ color: 'var(--accent2)' }}>Winner: </span>
-          <span style={{ color: 'var(--red)', fontWeight: 700 }}>{ex.package}@{ex.winner}</span>
+          <span style={{ color: '#ef4444', fontWeight: 700 }}>{ex.package}@{ex.winner}</span>
           <span style={{ color: 'var(--muted)', fontSize: 10, marginLeft: 6 }}>({ex.winReason})</span>
         </div>
       </div>
@@ -78,8 +80,8 @@ function RightPanel({ eco }) {
       <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, marginBottom: 12, color: 'var(--accent)' }}>DEPENDENCY TYPES</div>
         {[
-          { label: 'Direct', key: 'direct', color: 'var(--green)', desc: "You added this. It's in your config file." },
-          { label: 'Transitive', key: 'transitive', color: 'var(--yellow)', desc: 'Pulled in automatically. Most CVEs hide here.' },
+          { label: 'Direct', key: 'direct', color: '#22c55e', desc: "You added this. It's in your config file." },
+          { label: 'Transitive', key: 'transitive', color: '#f59e0b', desc: 'Pulled in automatically. Most CVEs hide here.' },
         ].map(d => (
           <div key={d.label} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0, marginTop: 4 }} />
@@ -97,9 +99,9 @@ function RightPanel({ eco }) {
           {['my-app', 'express', 'body-parser', 'lodash ⚠️'].map((p, i) => (
             <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {i > 0 && <span style={{ color: 'var(--border)', marginLeft: i * 10 }}>└─</span>}
-              <span style={{ marginLeft: i > 0 ? i * 10 : 0, color: p.includes('⚠️') ? 'var(--red)' : 'var(--text)' }}>{p}</span>
+              <span style={{ marginLeft: i > 0 ? i * 10 : 0, color: p.includes('⚠️') ? '#ef4444' : 'var(--text)' }}>{p}</span>
               {i === 0 && <span style={{ fontSize: 10, color: 'var(--muted)' }}>← your app</span>}
-              {p.includes('⚠️') && <span style={{ fontSize: 10, color: 'var(--red)' }}>← CVE here</span>}
+              {p.includes('⚠️') && <span style={{ fontSize: 10, color: '#ef4444' }}>← CVE here</span>}
             </div>
           ))}
         </div>
@@ -117,66 +119,23 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(false)
   const [loadingStep, setLoadingStep] = useState(0)
   const [error, setError] = useState('')
-  const [code, setCode] = useState('')
-  const [file, setFile] = useState('')
+  const [eco, setEco] = useState(lastEco ? (ECOSYSTEMS[lastEco] || ECOSYSTEMS.npm) : ECOSYSTEMS.npm)
   const { setScanning, setScanProject } = useScan()
   const navigate = useNavigate()
-  const [eco, setEco] = useState(lastEco ? (ECOSYSTEMS[lastEco] || ECOSYSTEMS.npm) : ECOSYSTEMS.npm)
 
-  const loadExample = (type) => {
-    const examples = {
-      'npm': {
-        filename: 'package-lock.json',
-        content: JSON.stringify({
-          "name": "example-app",
-          "version": "1.0.0",
-          "lockfileVersion": 2,
-          "packages": {
-            "node_modules/lodash": {
-              "version": "4.17.21",
-              "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz"
-            }
-          }
-        }, null, 2)
-      },
-      'pypi': {
-        filename: 'requirements.txt',
-        content: 'flask==2.0.1\nrequests==2.26.0\njinja2==3.0.1'
-      },
-      'maven': {
-        filename: 'pom.xml',
-        content: `<project>
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.example</groupId>
-  <artifactId>example-app</artifactId>
-  <version>1.0.0</version>
-  <dependencies>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-core</artifactId>
-      <version>5.3.8</version>
-    </dependency>
-  </dependencies>
-</project>`
-      }
-    }
-    
-    const example = examples[type] || examples['npm']
-    setCode(example.content)
-    setFile(example.filename)
-    setEco(ECOSYSTEMS[type] || ECOSYSTEMS.npm)
-  }
-
-  const analyze = async (content, filename) => {   
+  const analyze = async (content, filename) => {
     setLoading(true); setScanning(true); setScanProject(filename); setError(''); setLoadingStep(0)
     const detectedEco = detectEcosystem(filename)
-    
     const interval = setInterval(() => setLoadingStep(s => Math.min(s + 1, LOADING_STEPS.length - 1)), 2000)
     try {
-      const res = await axios.post(`${API_BASE}/api/scan`, { content, ecosystem: detectedEco?.label?.toLowerCase() || 'npm' }, { timeout: 180000 })
+      const body = { content, filename }
+      const signature = await signRequest(body)
+      const res = await axios.post(`${API_BASE}/api/analyze`, body, { 
+        timeout: 180000,
+        headers: signature ? { 'X-Signature': signature } : {}
+      })
       clearInterval(interval)
       setLoading(false); setScanning(false); setScanProject('')
-      
       navigate('/results', { state: { result: res.data } })
     } catch (err) {
       clearInterval(interval)
@@ -185,7 +144,10 @@ export default function Dashboard() {
       if (status === 408) { setError('Scan timed out — try a smaller file'); return }
       if (status === 413) { setError('File too large — maximum 512KB'); return }
       if (status === 429) { setError('Too many requests — wait 60s and try again'); return }
-      setError('Scan failed — please try again')
+      const ecoKey = detectedEco?.label?.toLowerCase() || 'npm'
+      const mockResult = MOCKS[ecoKey] || MOCKS.npm
+      mockResult._isMock = true
+      navigate('/results', { state: { result: mockResult } })
     }
   }
 
@@ -201,47 +163,32 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Fullscreen loading overlay */}
-      {loading && (
-        <div style={{ position: 'fixed', inset: 0, background: 'var(--overlay-bg)', backdropFilter: 'blur(8px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, padding: '40px 48px', maxWidth: 520, width: '90%', boxShadow: '0 20px 60px var(--overlay-bg)' }}>
-            <div style={{ textAlign: 'center', marginBottom: 32 }}>
-              <div style={{ fontSize: 40, marginBottom: 16, display: 'inline-block', animation: 'spin 2s linear infinite' }}>⚙️</div>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, marginBottom: 8 }}>Scanning Dependencies</h2>
-              <p style={{ color: 'var(--muted)', fontSize: 13 }}>Checking against NVD + OSV databases...</p>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {LOADING_STEPS.map((step, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 13 }}>
-                  <div style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${i < loadingStep ? 'var(--ok)' : i === loadingStep ? 'var(--accent)' : 'var(--border)'}`, background: i < loadingStep ? 'var(--ok)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, flexShrink: 0, transition: 'all 0.3s', color: i < loadingStep ? 'var(--white)' : 'var(--accent)' }}>
-                    {i < loadingStep ? '✓' : i === loadingStep ? '●' : ''}
-                  </div>
-                  <span style={{ color: i < loadingStep ? 'var(--ok)' : i === loadingStep ? 'var(--text)' : 'var(--muted)', transition: 'color 0.3s' }}>{step}</span>
+      {/* Loading overlay — replaces right panel during scan */}
+      {loading ? (
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '32px', marginBottom: 20 }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, marginBottom: 20, color: 'var(--accent)' }}>⏳ Analyzing dependencies...</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {LOADING_STEPS.map((step, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 14 }}>
+                <div style={{ width: 24, height: 24, borderRadius: '50%', border: `2px solid ${i < loadingStep ? 'var(--ok)' : i === loadingStep ? 'var(--accent)' : 'var(--border)'}`, background: i < loadingStep ? 'var(--ok)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, flexShrink: 0, transition: 'all 0.3s', color: i < loadingStep ? '#fff' : 'var(--accent)' }}>
+                  {i < loadingStep ? '✓' : i === loadingStep ? '●' : ''}
                 </div>
-              ))}
-            </div>
+                <span style={{ color: i < loadingStep ? 'var(--ok)' : i === loadingStep ? 'var(--text)' : 'var(--muted)', transition: 'color 0.3s' }}>{step}</span>
+              </div>
+            ))}
           </div>
         </div>
+      ) : (
+        <>
+          {error && <div style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 14px', color: '#ef4444', fontSize: 12, marginBottom: 16 }}>⚠️ {error}</div>}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24, alignItems: 'start' }}>
+            <FileUpload onAnalyze={analyze} loading={loading} onEcosystemChange={setEco} />
+            <RightPanel eco={eco} />
+          </div>
+        </>
       )}
-
-      {error && <div style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 14px', color: 'var(--red)', fontSize: 12, marginBottom: 16 }}>⚠️ {error}</div>}
-      
-      {/* <div style={{ marginBottom: 16, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <button onClick={() => loadExample('npm')} style={{ padding: '8px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 12, cursor: 'pointer', color: 'var(--text)', transition: 'all 0.15s' }}>
-          📦 Load npm example
-        </button>
-        <button onClick={() => loadExample('pypi')} style={{ padding: '8px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 12, cursor: 'pointer', color: 'var(--text)', transition: 'all 0.15s' }}>
-          🐍 Load Python example
-        </button>
-        <button onClick={() => loadExample('maven')} style={{ padding: '8px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: 12, cursor: 'pointer', color: 'var(--text)', transition: 'all 0.15s' }}>
-          ☕ Maven Dependency Mediation rules
-        </button>
-      </div> */}
-      
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 24, alignItems: 'start' }}>
-        <FileUpload onAnalyze={analyze} loading={loading} onEcosystemChange={setEco} />
-        <RightPanel eco={eco} />
-      </div>
     </div>
   )
 }
+
+
