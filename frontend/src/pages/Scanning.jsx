@@ -18,70 +18,63 @@ export default function Scanning() {
   const navigate = useNavigate()
   const { setScanning } = useScan()
   const [step, setStep] = useState(0)
-  
-  // AbortController to cancel previous scans
+  const [scanError, setScanError] = useState(null)
   const abortControllerRef = useRef(null)
 
-  // Defensive: if hot-reloaded or visited directly, show fallback instead of blank
   const hasRequiredState = Boolean(locationState?.code && locationState?.ecosystem)
 
   useEffect(() => {
     if (!hasRequiredState) return
-    
-    // Cancel previous scan
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort()
-    }
-    
-    // Create new AbortController for this scan
+
+    if (abortControllerRef.current) abortControllerRef.current.abort()
     abortControllerRef.current = new AbortController()
-    
+
     if (typeof setScanning === 'function') setScanning(true)
 
+    // Slower step progression — feels more realistic for longer scans
     const interval = setInterval(() => {
-      setStep(s => Math.min(s + 1, STEPS.length - 1))
-    }, 800)
+      setStep(s => {
+        if (s >= STEPS.length - 2) return s // Hold at second-to-last until scan completes
+        return s + 1
+      })
+    }, 1500)
 
     let scanCompleted = false
 
     async function performScan() {
-      let result
       try {
         const res = await axios.post(`${API_BASE}/api/scan`, {
           content: locationState.code,
           ecosystem: locationState.ecosystem,
-        }, { 
+        }, {
           timeout: 120000,
           signal: abortControllerRef.current.signal
         })
-        result = res.data
-      } catch (err) {
-        // Ignore abort errors (from canceling previous scans)
-        if (err.name === 'AbortError' || err.code === 'ERR_CANCELED') {
-          console.log('Previous scan canceled')
-          return
-        }
-        
-        console.error('Scan failed:', err)
+
+        if (scanCompleted) return
         scanCompleted = true
         clearInterval(interval)
         setStep(STEPS.length - 1)
         setTimeout(() => {
           if (typeof setScanning === 'function') setScanning(false)
-          navigate('/scan', { state: { error: err.response?.data?.error || err.message || 'Failed to connect to backend. Please ensure the backend server is running.' } })
+          navigate('/results', { state: { result: res.data } })
         }, 600)
-        return
-      }
+      } catch (err) {
+        if (err.name === 'AbortError' || err.code === 'ERR_CANCELED') return
 
-      if (scanCompleted) return // Prevent double navigation
-
-      scanCompleted = true
-      clearInterval(interval)
-      setStep(STEPS.length - 1)
-      setTimeout(() => {
+        scanCompleted = true
+        clearInterval(interval)
         if (typeof setScanning === 'function') setScanning(false)
-        navigate('/results', { state: { result } })
-      }, 600)
+
+        const status = err?.response?.status
+        let msg = 'Scan failed — please try again'
+        if (status === 408) msg = 'Scan timed out — try a smaller file'
+        if (status === 413) msg = 'File too large — maximum 512KB'
+        if (status === 429) msg = 'Too many requests — wait 60s and try again'
+        if (status === 403) msg = 'Request blocked — signature mismatch'
+
+        setScanError(msg)
+      }
     }
 
     performScan()
@@ -89,20 +82,23 @@ export default function Scanning() {
       clearInterval(interval)
       scanCompleted = true
       if (typeof setScanning === 'function') setScanning(false)
-      // Cancel scan on unmount
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort()
-      }
+      if (abortControllerRef.current) abortControllerRef.current.abort()
     }
   }, [])
 
+  const handleCancel = () => {
+    if (abortControllerRef.current) abortControllerRef.current.abort()
+    if (typeof setScanning === 'function') setScanning(false)
+    navigate('/scan')
+  }
+
   const progress = Math.round(((step + 1) / STEPS.length) * 100)
 
-  // Visible fallback if user hits /scanning directly (no scan in flight)
+  // Fallback: user hit /scanning directly
   if (!hasRequiredState) {
     return (
       <div style={{ minHeight: 'calc(100vh - 52px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 20 }}>
-        <div style={{ width: '100%', maxWidth: 420, padding: 32, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, textAlign: 'center' }}>
+        <div style={{ width: '90%', maxWidth: 420, padding: 32, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, textAlign: 'center' }}>
           <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>No active scan</h2>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
@@ -116,9 +112,32 @@ export default function Scanning() {
     )
   }
 
+  // Error state
+  if (scanError) {
+    return (
+      <div style={{ minHeight: 'calc(100vh - 52px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 20 }}>
+        <div style={{ width: '90%', maxWidth: 420, padding: 32, background: 'var(--bg-card)', border: '1px solid var(--critical)', borderRadius: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, marginBottom: 8, color: 'var(--critical)' }}>Scan Failed</h2>
+          <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
+            {scanError}
+          </p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+            <button onClick={() => navigate('/scan')} style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--bg-elevated)', color: 'var(--text)', border: '1px solid var(--border)', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+              ← Back
+            </button>
+            <button onClick={() => { setScanError(null); setStep(0); window.location.reload() }} style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--orange)', color: 'var(--white)', border: 'none', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{ minHeight: 'calc(100vh - 52px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 20 }}>
-      <div style={{ width: '100%', maxWidth: 480, width: '90%', padding: 40, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, boxShadow: '0 24px 64px var(--overlay-bg)' }}>
+      <div style={{ width: '90%', maxWidth: 480, padding: 'clamp(24px, 5vw, 40px)', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, boxShadow: '0 24px 64px var(--overlay-bg)' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🔐</div>
@@ -144,7 +163,7 @@ export default function Scanning() {
                   border: `2px solid ${isPast ? 'var(--green)' : isCurrent ? 'var(--orange)' : 'var(--border-light)'}`,
                   background: isPast ? 'var(--green)' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, fontWeight: 700, color: isPast ? 'var(--black)' : isCurrent ? 'var(--orange)' : 'var(--text-muted)',
+                  fontSize: 11, fontWeight: 700, color: isPast ? 'var(--white)' : isCurrent ? 'var(--orange)' : 'var(--text-muted)',
                   transition: 'all 0.3s'
                 }}>
                   {isPast ? '✓' : isCurrent ? '●' : ''}
@@ -177,8 +196,16 @@ export default function Scanning() {
             width: `${progress}%`, transition: 'width 0.6s ease', borderRadius: 8
           }} />
         </div>
-        <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--text-muted)' }}>
-          Step {step + 1} of {STEPS.length}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+            Step {step + 1} of {STEPS.length}
+          </span>
+          <button onClick={handleCancel} style={{
+            fontSize: 12, color: 'var(--text-muted)', background: 'none', border: 'none',
+            cursor: 'pointer', textDecoration: 'underline', padding: 0
+          }}>
+            Cancel
+          </button>
         </div>
 
       </div>
