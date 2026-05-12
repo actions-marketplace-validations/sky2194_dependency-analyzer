@@ -21,7 +21,7 @@ _MAX_CACHE_SIZE = 500
 npm_circuit_breaker = CircuitBreaker(failure_threshold=5, timeout=60, recovery_timeout=30)
 
 @npm_circuit_breaker.call
-@retry_with_backoff(max_retries=2, base_delay=1, max_delay=5)
+@retry_with_backoff(max_retries=1, base_delay=0.5, max_delay=3)
 def _fetch_deps(name, version):
     # Validate package name and version before making API calls
     try:

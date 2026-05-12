@@ -302,6 +302,7 @@ body {
   body { font-size: 14px; }
   .nav { flex-direction: column; }
   .app-container { padding: 10px; }
+  .page-container, .page-container-md { padding: 16px !important; }
   
   /* Stack grid layouts */
   .scanner-layout,
@@ -384,6 +385,8 @@ body {
 }
 
 /* Shared UI Utility Classes */
+.page-container { max-width: 1400px; margin: 0 auto; padding: 36px 40px; }
+.page-container-md { max-width: 1200px; margin: 0 auto; padding: 32px 40px; }
 .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); }
 .card-hover { transition: all 0.15s; }
 .card-hover:hover { border-color: var(--border-light); box-shadow: 0 4px 12px var(--overlay-bg); }

@@ -6,7 +6,6 @@ import validateContract from '../utils/validateSnapshot'
 import normalizeSnapshot from '../utils/normalizeSnapshot'
 import SeverityBadge from '../components/SeverityBadge'
 import VulnerabilityReport from '../components/VulnerabilityReport'
-import SummaryCard from '../components/SummaryCard'
 import Tooltip from '../components/Tooltip'
 import CompareScans from '../components/CompareScans'
 

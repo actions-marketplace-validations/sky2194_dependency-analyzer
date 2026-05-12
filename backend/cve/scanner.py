@@ -9,8 +9,8 @@ import logging
 log = logging.getLogger(__name__)
 
 # DigitalOcean 1GB RAM - optimized for 1CPU/1GB droplet with NVD API key
-MAX_SCAN_WORKERS = 6
-MAX_NVD_WORKERS  = 4
+MAX_SCAN_WORKERS = 8
+MAX_NVD_WORKERS  = 6
 _CACHE_TTL = 3600
 _MAX_CACHE_SIZE = 1000
 

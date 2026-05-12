@@ -13,13 +13,13 @@ NVD_URL = 'https://services.nvd.nist.gov/rest/json/cves/2.0'
 nvd_circuit_breaker = CircuitBreaker(failure_threshold=3, timeout=60, recovery_timeout=60)
 
 @nvd_circuit_breaker.call
-@retry_with_backoff(max_retries=2, base_delay=2, max_delay=10)
+@retry_with_backoff(max_retries=1, base_delay=0.5, max_delay=3)
 def get_cvss(cve_id):
     """Fetch CVSS score and severity from NVD for a specific CVE."""
     api_key = os.environ.get('NVD_API_KEY')
     headers = {'apiKey': api_key} if api_key else {}
     try:
-        res = requests.get(NVD_URL, params={'cveId': cve_id}, headers=headers, timeout=8)
+        res = requests.get(NVD_URL, params={'cveId': cve_id}, headers=headers, timeout=5)
         if res.status_code == 200:
             items = res.json().get('vulnerabilities', [])
             if items:

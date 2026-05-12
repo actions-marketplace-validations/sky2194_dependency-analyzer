@@ -16,14 +16,14 @@ ECOSYSTEM_MAP = {'npm': 'npm', 'pypi': 'PyPI', 'maven': 'Maven', 'lockfile': 'np
 osv_circuit_breaker = CircuitBreaker(failure_threshold=5, timeout=60, recovery_timeout=30)
 
 @osv_circuit_breaker.call
-@retry_with_backoff(max_retries=3, base_delay=1, max_delay=10)
+@retry_with_backoff(max_retries=1, base_delay=0.5, max_delay=3)
 def query_package(name, version, ecosystem):
     eco = ECOSYSTEM_MAP.get(ecosystem, 'npm')
     try:
         res = requests.post(f"{OSV_URL}/query", json={
             'version': version,
             'package': {'name': name, 'ecosystem': eco}
-        }, timeout=8)
+        }, timeout=5)
         if res.status_code != 200:
             log.warning(f"OSV API returned {res.status_code} for {name}@{version}")
             return []
