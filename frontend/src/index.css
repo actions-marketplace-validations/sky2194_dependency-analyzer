@@ -562,3 +562,38 @@ body {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ── Landing Light Mode Extended ────────────────────────────────── */
+[data-theme="light"] .lp-vuln-row.critical {
+  background: var(--vuln-bg) !important;
+}
+[data-theme="light"] .lp-vuln-row.high {
+  background: var(--warn-bg) !important;
+}
+[data-theme="light"] .lp-cta-band {
+  background: linear-gradient(135deg, var(--accent-dim) 0%, var(--purple-dim) 100%) !important;
+}
+[data-theme="light"] .landing-page:after {
+  opacity: 0.08 !important;
+}
+[data-theme="light"] .lp-hero-bg {
+  opacity: 0.5;
+}
+[data-theme="light"] .lp-hero-graph {
+  opacity: 0.15 !important;
+}
+
+/* ── Landing mobile nav scan button ─────────────────────────────── */
+@media (min-width: 901px) {
+  .lp-nav-cta .lp-btn-primary {
+    display: none !important;
+  }
+}
+@media (max-width: 900px) {
+  .lp-mini-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .lp-hero-stats {
+    gap: 20px !important;
+  }
+}
