@@ -236,7 +236,7 @@ def _build_all_packages(graph_deps, grouped_vulns):
                 })
             walk(dep.get('dependencies', []))
     
-    walk(deps)
+    walk(graph_deps)
     # Sort: vulnerable first (by severity), then secure
     sev_order = {'CRITICAL': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3, None: 99}
     all_pkgs.sort(key=lambda p: sev_order.get(p['highestSeverity'], 99))
