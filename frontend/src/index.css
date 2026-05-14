@@ -577,7 +577,7 @@ body {
 }
 
 /* ══ Analytics Page ══════════════════════════════════════════════ */
-.a-layout { display: grid; grid-template-columns: 1fr 360px; height: calc(100vh - 52px); max-height: calc(100vh - 52px); overflow: hidden; position: sticky; top: 52px; }
+.a-layout { display: grid; grid-template-columns: 1fr 360px; height: calc(100vh - 52px); overflow: hidden; }
 .a-main { padding: 24px 28px; overflow-y: auto; overflow-x: hidden; min-height: 0; }
 .a-right { border-left: 1px solid var(--border); padding: 16px; overflow-y: auto; background: var(--bg-panel); display: flex; flex-direction: column; gap: 14px; min-height: 0; }
 
@@ -620,6 +620,8 @@ body {
 .a-mono-bold { font-family: var(--font-mono); font-size: 13px; font-weight: 700; }
 .a-muted-mono { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); }
 .sev-badge { font-size: 10px; font-weight: 700; font-family: var(--font-mono); padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+.a-dep-tag { font-size: 9px; font-weight: 700; font-family: var(--font-mono); padding: 2px 6px; border-radius: 3px; background: var(--yellow-dim); border: 1px solid var(--high); color: var(--high); white-space: nowrap; }
+.a-dep-tag.direct { background: var(--green-dim); border-color: var(--green); color: var(--green); }
 
 .a-pkg-row { background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid; border-radius: var(--radius); padding: 12px 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .a-search { width: 100%; padding: 8px 12px; border-radius: var(--radius); border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-family: var(--font-mono); font-size: 12px; margin-bottom: 12px; outline: none; }

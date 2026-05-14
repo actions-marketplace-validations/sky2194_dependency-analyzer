@@ -34,7 +34,7 @@ export default function App() {
     <ScanContext.Provider value={{ scanning, setScanning, scanProject, setScanProject }}>
       <ErrorBoundary>
         <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}} @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}} @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}} @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}} @keyframes pulse-node{0%,100%{opacity:0.8}50%{opacity:1}} @keyframes dash{to{stroke-dashoffset:-20}}`}</style>
-        <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
+        <div style={{ minHeight: location.pathname === '/results' ? undefined : '100vh', height: location.pathname === '/results' ? '100vh' : undefined, overflow: location.pathname === '/results' ? 'hidden' : undefined, background: 'var(--bg)' }}>
           {isLanding ? (
             <div style={{ position: 'fixed', top: 20, right: 20, zIndex: 1000 }}>
               <button onClick={toggleTheme} aria-label="Toggle theme" style={{ width: 40, height: 22, borderRadius: 11, border: 'none', background: theme === 'dark' ? 'var(--orange)' : 'var(--border-light)', cursor: 'pointer', position: 'relative', transition: 'background 0.3s', padding: 0 }}>

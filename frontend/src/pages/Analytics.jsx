@@ -192,9 +192,18 @@ export default function Analytics() {
                       <div key={idx} className="a-pkg-group" style={{ borderLeftColor: SEV_COLOR[topSev] }}>
                         <div className="a-pkg-group-header" onClick={() => toggleExpand(pkg.package)}>
                           <span style={{ color: SEV_COLOR[topSev], fontSize: 12, flexShrink: 0 }}>{isOpen ? '\u25BC' : '\u25B6'}</span>
-                          <span className="a-mono-bold">{pkg.package}</span>
-                          <span className="a-muted-mono">v{pkg.version}</span>
-                          <span style={{ flex: 1 }} />
+                          <div style={{ minWidth: 0, flex: 1 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                              <span className="a-mono-bold">{pkg.package}</span>
+                              <span className="a-muted-mono">v{pkg.version}</span>
+                              <span className={`a-dep-tag ${pkg.is_direct ? 'direct' : ''}`}>{pkg.is_direct ? 'DIRECT' : 'TRANSITIVE'}</span>
+                            </div>
+                            {!pkg.is_direct && pkg.vulnerabilities?.[0]?.path?.length > 2 && (
+                              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
+                                Introduced via <span style={{ color: 'var(--blue)' }}>{pkg.vulnerabilities[0].path.slice(1, -1).join(' \u2192 ')}</span>
+                              </div>
+                            )}
+                          </div>
                           <span className="sev-badge" style={{ background: SEV_DIM[topSev], color: SEV_COLOR[topSev] }}>{topSev}</span>
                           <span className="a-muted-mono">{cves.length} CVE{cves.length !== 1 ? 's' : ''}</span>
                           {pkg.recommended_fix && <span style={{ fontSize: 10, color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>Fix available</span>}
@@ -237,6 +246,7 @@ export default function Analytics() {
                     </span>
                     <span className="a-mono-bold">{g.package}</span>
                     <span className="a-muted-mono">v{g.version}</span>
+                    <span className={`a-dep-tag ${g.is_direct ? 'direct' : ''}`}>{g.is_direct ? 'DIRECT' : 'TRANSITIVE'}</span>
                   </div>
                 )
               })}
@@ -292,6 +302,20 @@ export default function Analytics() {
                     </div>
                   </div>
                   <div className="a-panel-row"><div className="a-panel-label">Description</div><span style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6 }}>{selectedVuln.description}</span></div>
+                  <div className="a-panel-row">
+                    <div className="a-panel-label">Dependency Type</div>
+                    <span className={`a-dep-tag ${selectedVuln.is_direct ? 'direct' : ''}`}>{selectedVuln.is_direct ? 'DIRECT' : 'TRANSITIVE'}</span>
+                    {selectedVuln.path && selectedVuln.path.length > 2 && (
+                      <div style={{ marginTop: 6, fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+                        {selectedVuln.path.map((p, i) => (
+                          <span key={i}>
+                            {i > 0 && <span style={{ color: 'var(--text-muted)', margin: '0 4px' }}>{'\u2192'}</span>}
+                            <span style={{ color: i === selectedVuln.path.length - 1 ? SEV_COLOR[selectedVuln.severity] : i === 0 ? 'var(--text-muted)' : 'var(--blue)' }}>{p}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   {selectedVuln.fix_version && (
                     <div style={{ background: 'var(--green-dim)', border: '1px solid var(--fix-border)', borderRadius: 6, padding: '10px 12px', marginBottom: 8 }}>
                       <div className="a-panel-label" style={{ color: 'var(--green)' }}>FIX</div>
@@ -324,14 +348,27 @@ export default function Analytics() {
         </div>
 
         <div className="a-panel">
-          <div className="a-panel-hdr"><span>Scan Info</span></div>
-          <div style={{ padding: '10px 14px' }}>
-            {[['Direct', directDeps], ['Transitive', transitiveDeps], ['Total', totalPkgs], ['Vulns', totalVulns], ['Vulnerable Pkgs', vulnPackages.length], ['Secure Pkgs', safePackages.length], ['Source', snapshot.project_name || 'manifest'], ['DBs', 'NVD + OSV']].map(([l, v]) => (
-              <div key={l} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px 0', borderBottom: '1px solid var(--border)', fontSize: 12 }}>
-                <span style={{ color: 'var(--text-muted)' }}>{l}</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600 }}>{v}</span>
+          <div className="a-panel-hdr"><span>Risk Insights</span></div>
+          <div style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+            {vulnPackages.length > 0 && (
+              <div style={{ marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                  <span style={{ color: 'var(--text-muted)' }}>Attack surface</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{Math.round((vulnPackages.length / totalPkgs) * 100)}% of packages</span>
+                </div>
+                <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${(vulnPackages.length / totalPkgs) * 100}%`, background: 'var(--critical)', borderRadius: 2 }} />
+                </div>
               </div>
-            ))}
+            )}
+            {(() => { const directVuln = vulnPackages.filter(p => p.is_direct).length; const transitiveVuln = vulnPackages.length - directVuln; return (
+              <div style={{ marginBottom: 8 }}>
+                {directVuln > 0 && <div style={{ padding: '4px 0', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Vulnerable direct deps</span><span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--critical)' }}>{directVuln} of {directDeps}</span></div>}
+                {transitiveVuln > 0 && <div style={{ padding: '4px 0', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Vulnerable transitive deps</span><span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--high)' }}>{transitiveVuln} of {transitiveDeps}</span></div>}
+                <div style={{ padding: '4px 0', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Fixable vulnerabilities</span><span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--green)' }}>{fixes.length > 0 ? `${fixes.length} packages` : 'None'}</span></div>
+                <div style={{ padding: '4px 0', display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Sources</span><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600 }}>NVD + OSV</span></div>
+              </div>
+            )})()}
           </div>
         </div>
       </div>
