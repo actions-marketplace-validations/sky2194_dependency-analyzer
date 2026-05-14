@@ -198,7 +198,7 @@ export default function Analytics() {
                               <span className="a-muted-mono">v{pkg.version}</span>
                               <span className={`a-dep-tag ${pkg.is_direct ? 'direct' : ''}`}>{pkg.is_direct ? 'DIRECT' : 'TRANSITIVE'}</span>
                             </div>
-                            {!pkg.is_direct && pkg.vulnerabilities?.[0]?.path?.length > 2 && (
+                            {!pkg.is_direct && pkg.vulnerabilities?.[0]?.path && pkg.vulnerabilities[0].path.length > 1 && (
                               <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 2 }}>
                                 Introduced via <span style={{ color: 'var(--blue)' }}>{pkg.vulnerabilities[0].path.slice(1, -1).join(' \u2192 ')}</span>
                               </div>
