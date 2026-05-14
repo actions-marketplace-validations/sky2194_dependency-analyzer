@@ -208,7 +208,7 @@ def _build_all_packages(graph_deps, grouped_vulns):
         key = f"{g['package']}@{g['version']}"
         vuln_map[key] = g
 
-    # Top-level deps are direct
+    # Track which packages are direct (top-level only)
     direct_names = set()
     for dep in graph_deps:
         if dep.get('type') == 'direct':
@@ -217,13 +217,14 @@ def _build_all_packages(graph_deps, grouped_vulns):
     all_pkgs = []
     visited = set()
     
-    def walk(deps):
+    def walk(deps, depth=0):
         for dep in deps:
             key = f"{dep.get('name')}@{dep.get('version')}"
             if key in visited:
                 continue
             visited.add(key)
-            is_direct = dep.get('name') in direct_names
+            # Only top-level deps (depth 0) can be direct
+            is_direct = depth == 0 and dep.get('name') in direct_names
             g = vuln_map.get(key)
             if g:
                 all_pkgs.append({
@@ -243,7 +244,7 @@ def _build_all_packages(graph_deps, grouped_vulns):
                     'recommended_fix': None,
                     'is_direct': is_direct,
                 })
-            walk(dep.get('dependencies', []))
+            walk(dep.get('dependencies', []), depth + 1)
     
     walk(graph_deps)
     # Sort: vulnerable first (by severity), then secure
@@ -354,13 +355,21 @@ def run_analysis(body):
     
     log.info(f"Scan complete: {project_name} ({ecosystem}) — {len(vulnerabilities)} raw vulns, {len(grouped_vulns)} grouped in {total_packages} packages")
 
-    # Calculate risk score
+    # Calculate risk score with logarithmic scaling to prevent capping at 100
     counts = {'CRITICAL': 0, 'HIGH': 0, 'MEDIUM': 0, 'LOW': 0}
     for v in vulnerabilities:
         sev = v.get('severity', 'LOW')
         if sev in counts:
             counts[sev] += 1
-    risk_score = min(100, round(counts['CRITICAL']*25 + counts['HIGH']*10 + counts['MEDIUM']*4 + counts['LOW']*1))
+    
+    # Use logarithmic scale: more vulns = higher score, but diminishing returns
+    import math
+    crit_impact = 40 * (1 - math.exp(-counts['CRITICAL'] / 3)) if counts['CRITICAL'] > 0 else 0
+    high_impact = 30 * (1 - math.exp(-counts['HIGH'] / 5)) if counts['HIGH'] > 0 else 0
+    med_impact = 20 * (1 - math.exp(-counts['MEDIUM'] / 8)) if counts['MEDIUM'] > 0 else 0
+    low_impact = 10 * (1 - math.exp(-counts['LOW'] / 10)) if counts['LOW'] > 0 else 0
+    
+    risk_score = min(100, round(crit_impact + high_impact + med_impact + low_impact))
     
     # Calculate risk label for frontend display
     if risk_score >= 90:
