@@ -128,7 +128,7 @@ export default function Analytics() {
               Security Report
               <span style={{ marginLeft: 10, fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: 'var(--green-dim)', border: '1px solid var(--fix-border)', color: 'var(--green)', verticalAlign: 'middle' }}>LIVE</span>
             </h1>
-            <div style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{totalPkgs} packages &middot; {directDeps} direct &middot; {transitiveDeps} transitive</div>
+            <div style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{snapshot.project_name || 'Scanned project'} &middot; {directDeps} direct + {transitiveDeps} transitive dependencies</div>
           </div>
           <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             <div ref={exportRef} style={{ position: 'relative' }}>
@@ -154,7 +154,7 @@ export default function Analytics() {
           </div>
           <div className="a-risk-divider" />
           <div className="a-risk-stats">
-            {[{ v: totalVulns, l: 'Vulns', c: totalVulns > 0 ? 'var(--critical)' : 'var(--green)' }, { v: counts.CRITICAL, l: 'Critical', c: 'var(--critical)' }, { v: counts.HIGH, l: 'High', c: 'var(--high)' }, { v: counts.MEDIUM, l: 'Medium', c: 'var(--medium)' }, { v: counts.LOW, l: 'Low', c: 'var(--low)' }].map(({ v, l, c }) => (
+            {[{ v: totalPkgs, l: 'Packages', c: 'var(--blue)' }, { v: counts.CRITICAL, l: 'Critical', c: 'var(--critical)' }, { v: counts.HIGH, l: 'High', c: 'var(--high)' }, { v: counts.MEDIUM, l: 'Medium', c: 'var(--medium)' }, { v: counts.LOW, l: 'Low', c: 'var(--low)' }].map(({ v, l, c }) => (
               <div key={l} className="a-risk-stat"><div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, fontWeight: 700, color: c }}>{v}</div><div style={{ fontSize: 10, color: 'var(--text-muted)' }}>{l}</div></div>
             ))}
           </div>
