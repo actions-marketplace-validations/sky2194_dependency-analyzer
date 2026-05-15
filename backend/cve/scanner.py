@@ -8,6 +8,14 @@ import logging
 
 log = logging.getLogger(__name__)
 
+# ============================================================================
+# PRIMARY VULNERABILITY SOURCE CONFIGURATION
+# ============================================================================
+# Currently only OSV is supported as primary source
+# NVD is used for CVSS score enrichment when OSV returns 0.0
+# PRIMARY_VULN_SOURCE = 'OSV'  # OSV is the only supported primary source currently
+# ============================================================================
+
 # DigitalOcean 1GB RAM - optimized for 1CPU/1GB droplet with NVD API key
 MAX_SCAN_WORKERS = 8
 MAX_NVD_WORKERS  = 6
@@ -37,13 +45,22 @@ def scan_package(name, version, ecosystem):
     cached = _get_cached_scan(name, version, ecosystem)
     if cached:
         return cached
-    
+
+    # ============================================================================
+    # PRIMARY VULNERABILITY SOURCE CONFIGURATION
+    # ============================================================================
+    # To change primary source, swap the blocks below:
+    # - Option 1: OSV as primary (current) - faster, no API key needed
+    # - Option 2: NVD as primary - requires API key, slower but more comprehensive
+    # ============================================================================
+
     try:
+        # OSV as primary source
         raw = osv_query(name, version, ecosystem)
         vulns = [osv_format(v, name, version) for v in raw]
         vulns = [v for v in vulns if v is not None]
 
-        # Enrich missing CVSS scores from NVD in parallel (only if CVSS is 0.0)
+        # Enrich missing CVSS scores from NVD
         needs_enrichment = [v for v in vulns if v['cvss_score'] == 0.0 and v['cve_id'].startswith('CVE-')]
         if needs_enrichment:
             def enrich(v):
@@ -57,7 +74,6 @@ def scan_package(name, version, ecosystem):
 
             with ThreadPoolExecutor(max_workers=MAX_NVD_WORKERS) as ex:
                 enriched = list(ex.map(enrich, needs_enrichment))
-                # Update the original list with enriched values
                 for i, v in enumerate(vulns):
                     if v in needs_enrichment:
                         idx = needs_enrichment.index(v)
@@ -65,7 +81,7 @@ def scan_package(name, version, ecosystem):
 
         # Cache the result
         _set_cached_scan(name, version, ecosystem, vulns)
-        
+
         return vulns
     except requests.exceptions.Timeout as e:
         log.warning(f"Timeout scanning {name}@{version}: {e}")

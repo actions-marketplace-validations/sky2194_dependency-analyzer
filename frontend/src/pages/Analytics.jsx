@@ -149,6 +149,23 @@ export default function Analytics() {
           </div>
         </div>
 
+        {/* Quick explanation */}
+        <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: 20 }}>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <span style={{ fontSize: 20 }}>💡</span>
+            <div>
+              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, color: 'var(--text-primary)' }}>Understanding Your Results</h3>
+              <ul style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.7, margin: 0, paddingLeft: 16 }}>
+                <li><strong style={{ color: 'var(--text-primary)' }}>Total Packages:</strong> All dependencies in your project (direct + transitive)</li>
+                <li><strong style={{ color: 'var(--text-primary)' }}>Direct vs Transitive:</strong> Direct = you installed it. Transitive = brought in by other packages.</li>
+                <li><strong style={{ color: 'var(--text-primary)' }}>Vulnerabilities:</strong> Known security issues found in your dependencies</li>
+                <li><strong style={{ color: 'var(--text-primary)' }}>Severity Levels:</strong> CRITICAL (urgent fix), HIGH (fix soon), MEDIUM (plan fix), LOW (monitor)</li>
+                <li><strong style={{ color: 'var(--text-primary)' }}>Risk Score:</strong> Calculated based on severity counts × severity weights (CRITICAL=9, HIGH=7, MEDIUM=4, LOW=1)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         {/* Risk Card */}
         <div className="a-risk-card">
           <div className="a-risk-ring-wrap">
