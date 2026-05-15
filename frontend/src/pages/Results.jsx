@@ -90,6 +90,10 @@ export default function Results() {
 
   const vulns = snapshot.vulnerabilities
   const summary = snapshot.summary
+  const directDeps = summary.direct_dependencies
+  const transitiveDeps = summary.transitive_dependencies
+  const riskScore = summary.risk_score
+  const riskLabel = summary.risk_label
   const counts = {
     CRITICAL: summary.critical,
     HIGH: summary.high,
@@ -145,9 +149,31 @@ export default function Results() {
         </div>
       )}
 
+      {/* Quick explanation */}
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: 24 }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          <span style={{ fontSize: 20 }}>💡</span>
+          <div>
+            <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, color: 'var(--text)' }}>Understanding Your Results</h3>
+            <ul style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.7, margin: 0, paddingLeft: 16 }}>
+              <li><strong style={{ color: 'var(--text)' }}>Total Packages:</strong> All dependencies in your project (direct + transitive)</li>
+              <li><strong style={{ color: 'var(--text)' }}>Direct vs Transitive:</strong> Direct = you installed it. Transitive = brought in by other packages.</li>
+              <li><strong style={{ color: 'var(--text)' }}>Vulnerabilities:</strong> Known security issues found in your dependencies</li>
+              <li><strong style={{ color: 'var(--text)' }}>Severity Levels:</strong> CRITICAL (urgent fix), HIGH (fix soon), MEDIUM (plan fix), LOW (monitor)</li>
+              <li><strong style={{ color: 'var(--text)' }}>Risk Score:</strong> Calculated based on severity counts × severity weights (CRITICAL=9, HIGH=7, MEDIUM=4, LOW=1)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       {/* Clickable summary cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: 10, marginBottom: 28 }}>
         <SummaryCard value={summary.total_packages} label="Total Packages" color="var(--info)" onClick={goToGraph} hint="View Graph" />
+        <SummaryCard value={directDeps} label="Direct Deps" color="var(--green)" onClick={goToGraph} hint="You installed these" />
+        <SummaryCard value={transitiveDeps} label="Transitive Deps" color="var(--blue)" onClick={goToGraph} hint="Brought by other packages" />
+        {riskScore !== undefined && (
+          <SummaryCard value={riskScore} label={`Risk: ${riskLabel || 'N/A'}`} color={riskLabel === 'CRITICAL' ? 'var(--critical)' : riskLabel === 'HIGH' ? 'var(--high)' : riskLabel === 'MEDIUM' ? 'var(--medium)' : 'var(--low)'} onClick={() => goToVulns('ALL')} hint="Based on severity" />
+        )}
         <SummaryCard value={summary.vulnerabilities} label="Vulnerabilities" color="var(--critical)" onClick={() => goToVulns('ALL')} hint="View Details" />
         {SEVS.map(s => (
           <SummaryCard key={s} value={counts[s]} label={<SeverityBadge level={s} />} color={SEV_COLORS[s]} onClick={() => goToVulns(s)} hint={`Filter ${s}`} />
