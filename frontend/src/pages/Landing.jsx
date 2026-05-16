@@ -89,14 +89,14 @@ export default function Landing() {
           ))}
         </svg>
         <div className="lp-hero-content">
-          <div className="lp-hero-badge"><div className="lp-hero-badge-dot" />Real-time dependency risk intelligence for CI/CD</div>
+          <div className="lp-hero-badge"><div className="lp-hero-badge-dot" />Dependency vulnerability scanner for development teams</div>
           <h1 className="lp-hero-title">Your Dependencies<br />Have <span>Hidden Vulnerabilities</span></h1>
-          <p className="lp-hero-sub">DepAnalyzer scans your full dependency tree — direct <em>and</em> transitive — against <strong>NVD + OSV</strong> databases and delivers <strong>actionable fixes</strong> before a single line ships to production.</p>
+          <p className="lp-hero-sub">DepAnalyzer scans your full dependency tree — direct <em>and</em> transitive — against <strong>NVD + OSV</strong> databases and delivers <strong>actionable fix commands</strong> so you can resolve issues before they become incidents.</p>
           <div className="lp-hero-actions">
             <button onClick={() => navigate('/scan')} className="lp-btn-hero">{shield}Start Scanning Free</button>
           </div>
           <div className="lp-hero-stats">
-            {['2 CVE DBs|NVD + OSV','3 Ecosystems|npm · PyPI · Maven','Full Tree|Direct + Transitive','Real-time|Live vulnerability data'].map(item => {
+            {['2 CVE DBs|NVD + OSV','3 Ecosystems|npm · PyPI · Maven','Full Tree|Direct + Transitive','On-demand|Latest CVE data'].map(item => {
               const [val, label] = item.split('|')
               return <div className="lp-hero-stat" key={item}><div className="lp-hero-stat-val">{val}</div><div className="lp-hero-stat-label">{label}</div></div>
             })}
@@ -112,7 +112,7 @@ export default function Landing() {
         </div>
         <div className="lp-problem-grid">
           {[
-            ['78%', 'Of CVEs are in transitive deps', 'Packages you never installed directly carry the most risk. Most security tools only scan your direct dependencies, missing the real attack surface.'],
+            ['Most', 'CVEs hide in transitive deps', 'Packages you never installed directly carry the most risk. Most security tools only scan your direct dependencies, missing the real attack surface.'],
             ['60d', 'Average time-to-patch for teams', 'Without clear fix guidance — just CVSS scores and CVE IDs — teams lack the context to prioritize. Alerts pile up. Critical issues get buried.'],
             ['$4.5M', 'Average cost of a supply chain breach', 'A single vulnerable transitive dependency can open your entire pipeline. Log4Shell, XZ Utils, and SolarWinds all shared one trait: transitive exposure.'],
           ].map(([num, title, text], i) => (
@@ -133,7 +133,7 @@ export default function Landing() {
             <div>
               <div className="lp-section-label">The Solution</div>
               <h2 className="lp-section-title">Risk intelligence,<br />not just raw alerts</h2>
-              <p className="lp-section-sub" style={{ marginBottom: 28 }}>DepAnalyzer doesn't just list CVEs. It ranks vulnerabilities by real-world exploitability, maps fix impact, and gives you exact commands to resolve each issue.</p>
+              <p className="lp-section-sub" style={{ marginBottom: 28 }}>DepAnalyzer doesn't just list CVEs. It groups vulnerabilities by package, scores risk with logarithmic weighting, and gives you exact commands to resolve each issue.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <CheckRow title="Full transitive tree analysis" text="Maps every nested dependency, not just what's in your manifest" />
                 <CheckRow title="Logarithmic risk scoring" text="Weighs critical, high, medium, and low vulnerabilities with diminishing returns into a single prioritized risk score" />
@@ -151,7 +151,7 @@ export default function Landing() {
                 </div>
                 {[
                   ['lodash@4.17.15','Prototype Pollution via merge()','critical','7.4'],
-                  ['axios@0.21.1','Server-Side Request Forgery','high','7.5'],
+                  ['axios@0.21.1','Regular Expression Denial of Service','high','7.5'],
                   ['ejs@3.1.5','Template injection → RCE','critical','9.8'],
                   ['path-parse@1.0.6','ReDoS vulnerability','medium','5.3'],
                 ].map(([pkg, desc, sev, score]) => <div className={`lp-vuln-row ${sev}`} key={pkg}><div><b>{pkg}</b><small>{desc}</small></div><em>{sev}</em><span>{score}</span></div>)}
@@ -172,7 +172,7 @@ export default function Landing() {
               <div><u>⚠ HIGH</u> axios@0.21.1 <i>CVE-2021-3749 · CVSS 7.5</i></div>
               <br />
               <div><b>→</b> Risk Score: <mark>72/100</mark> <i>(High Risk)</i></div>
-              <div><b>→</b> Fix 2 packages to reduce risk by <strong>80%</strong></div>
+              <div><b>→</b> Fix 2 critical packages to significantly reduce risk</div>
               <br />
               <div><i>Suggested fix:</i></div>
               <div><strong>$</strong> npm install lodash@4.17.21 ejs@3.1.8</div>
@@ -192,8 +192,8 @@ export default function Landing() {
         <div className="lp-features-grid">
           {[
             ['🔬','Deep Transitive Analysis','Traverses the full dependency tree — not just your direct installs. Catches CVEs that hide in nested packages your team never explicitly installed.'],
-            ['🧠','Intelligent Risk Scoring','Combines CVSS scores, attack vector, authentication requirements, and fix availability into a single prioritized risk score.'],
-            ['⚡','Actionable Fix Commands','Exact install commands, safe version ranges, and dependency override strategies — ready to copy-paste or automate.'],
+            ['🧠','Intelligent Risk Scoring','Uses logarithmic weighting of CVSS severity counts to produce a single prioritized risk score from 0 to 100.'],
+            ['⚡','Actionable Fix Commands','Exact install commands, safe version ranges, and dependency override strategies — ready to copy-paste into your terminal.'],
             ['🗺️','Visual Dependency Graph','See your full dependency tree visualized with vulnerability highlighting. Instantly understand which packages are the source of transitive CVEs.'],
             // ['🔁','CI/CD Gate Integration','Block builds on critical CVEs. Integrate with GitHub Actions, GitLab CI, Jenkins, or CircleCI in minutes.'],
             ['📋','Export Reports','Download scan results as PDF, CSV, or JSON. Share findings with your team or attach to compliance documentation.'],
@@ -210,7 +210,7 @@ export default function Landing() {
           <p className="lp-section-sub" style={{ margin: '0 auto' }}>No agents to install. No config files. Just upload your manifest and get results.</p>
         </div>
         <div className="lp-hiw-steps">
-          {['Upload manifest|Drop your package.json, requirements.txt, or pom.xml — any ecosystem.','Tree resolution|We build the complete dependency graph including all transitive packages.','CVE matching|Each package-version pair is cross-referenced against NVD and OSV vulnerability databases.','Risk report|Receive a prioritized report with risk scores, impact analysis, and exact fix commands.'].map((item, i) => {
+          {['Upload manifest|Drop your package.json, requirements.txt, or pom.xml — any ecosystem.','Tree resolution|We build the complete dependency graph including all transitive packages.','CVE matching|Each package-version pair is cross-referenced against NVD and OSV vulnerability databases.','Risk report|Receive a prioritized report with risk scores, severity breakdowns, and exact fix commands.'].map((item, i) => {
             const [title, text] = item.split('|')
             return <div className={`lp-hiw-step reveal reveal-delay-${i + 1}`} key={title}><div className="lp-hiw-num">{i + 1}</div><div className="lp-hiw-title">{title}</div><div className="lp-hiw-text">{text}</div></div>
           })}
@@ -267,7 +267,7 @@ export default function Landing() {
       </section> */}
 
       <div className="lp-cta-band reveal">
-        <div><div className="lp-cta-title">Stop guessing.<br />Start securing.</div><div className="lp-cta-sub">Scan your first project in under 30 seconds — no account required.</div></div>
+        <div><div className="lp-cta-title">Stop guessing.<br />Start securing.</div><div className="lp-cta-sub">Scan your first project — no account required.</div></div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}><button onClick={() => navigate('/scan')} className="lp-btn-hero">→ Scan Now for Free</button></div>
       </div>
 
