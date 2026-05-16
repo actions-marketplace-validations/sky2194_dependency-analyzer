@@ -429,14 +429,6 @@ def run_analysis(body):
     
     return jsonify(copy.deepcopy(scan_result))
 
-@app.route('/api/analyze', methods=['POST'])
-@rate_limited
-def analyze():
-    body = request.get_json(silent=True)
-    if not body:
-        return jsonify({'error': 'Invalid JSON body'}), 400
-    return run_analysis(body)
-
 @app.route('/api/scan', methods=['POST'])
 @rate_limited
 def scan():

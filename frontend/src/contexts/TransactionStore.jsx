@@ -41,27 +41,21 @@ export const TransactionStoreProvider = ({ children }) => {
   }, [])
 
   const commitTransaction = useCallback((result) => {
-    console.log('CommitTransaction called with:', result)
-    console.log('activeTransaction:', activeTransaction)
     
     // STRICT: Only accept COMPLETED transactions
     if (result.status !== 'COMPLETED') {
-      console.error('Transaction not completed - COMMIT BLOCKED', result.status)
       return false
     }
 
     // STRICT: Only commit if transaction is active
     if (!activeTransaction) {
-      console.error('No active transaction - COMMIT BLOCKED')
       return false
     }
 
-    console.log('Transaction committing...')
     // Deep freeze entire transaction object
     const frozenResult = deepFreeze(deepClone(result))
     setCommittedTransaction(frozenResult)
     setActiveTransaction(false)
-    console.log('Transaction committed successfully')
     return true
   }, [activeTransaction])
 
