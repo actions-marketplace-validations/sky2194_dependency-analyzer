@@ -57,16 +57,9 @@ export default function Landing() {
         <div className="lp-nav-links">
           <a href="#features" className="lp-nav-link">Features</a>
           <a href="#how-it-works" className="lp-nav-link">How it works</a>
-          {/* <a href="#integrations" className="lp-nav-link">Integrations</a>
-          <a href="#pricing" className="lp-nav-link"></a> */}
           <button onClick={handleScan} className="lp-nav-link">Scan Now</button>
         </div>
         <div className="lp-nav-cta"><button onClick={handleScan} className="lp-btn-primary" style={{fontSize:12,padding:"6px 14px"}}>{shield}Scan</button>
-          {/* <button className="lp-btn-ghost">Sign in</button> */}
-          {/* <button onClick={() => navigate('/scan')} className="lp-btn-primary">
-            {shield}
-            Start scanning →
-          </button> */}
         </div>
       </nav>
 
@@ -93,7 +86,7 @@ export default function Landing() {
           <h1 className="lp-hero-title">Your Dependencies<br />Have <span>Hidden Vulnerabilities</span></h1>
           <p className="lp-hero-sub">DepAnalyzer scans your full dependency tree — direct <em>and</em> transitive — against <strong>NVD + OSV</strong> databases and delivers <strong>actionable fix commands</strong> so you can resolve issues before they become incidents.</p>
           <div className="lp-hero-actions">
-            <button onClick={() => navigate('/scan')} className="lp-btn-hero">{shield}Start Scanning Free</button>
+            <button onClick={() => navigate('/scan')} className="lp-btn-hero">{shield}Start Scanning</button>
           </div>
           <div className="lp-hero-stats">
             {['2 CVE DBs|NVD + OSV','3 Ecosystems|npm · PyPI · Maven','Full Tree|Direct + Transitive','On-demand|Latest CVE data'].map(item => {
@@ -112,7 +105,7 @@ export default function Landing() {
         </div>
         <div className="lp-problem-grid">
           {[
-            ['Most', 'CVEs hide in transitive deps', 'Packages you never installed directly carry the most risk. Most security tools only scan your direct dependencies, missing the real attack surface.'],
+            ['80%+', 'Of CVEs in transitive deps', 'Packages you never installed directly carry the most risk. Most security tools only scan your direct dependencies, missing the real attack surface.'],
             ['60d', 'Average time-to-patch for teams', 'Without clear fix guidance — just CVSS scores and CVE IDs — teams lack the context to prioritize. Alerts pile up. Critical issues get buried.'],
             ['$4.5M', 'Average cost of a supply chain breach', 'A single vulnerable transitive dependency can open your entire pipeline. Log4Shell, XZ Utils, and SolarWinds all shared one trait: transitive exposure.'],
           ].map(([num, title, text], i) => (
@@ -161,14 +154,14 @@ export default function Landing() {
           <div className="lp-terminal reveal">
             <div className="lp-terminal-bar"><span style={{ background: 'var(--critical)' }} /><span style={{ background: 'var(--high)' }} /><span style={{ background: 'var(--green)' }} /><div>depanalyzer scan</div></div>
             <div className="lp-terminal-body">
-              <div><i>$</i> <b>depanalyzer</b> scan --file package.json</div>
+              <div><i>></i> <b>Upload</b> package.json</div>
               <br />
               <div><strong>✓</strong> Resolved dependency tree <i>(10 packages, 43 transitive)</i></div>
               <div><strong>✓</strong> Queried NVD + OSV databases</div>
               <div><strong>✓</strong> Risk scoring complete</div>
               <br />
               <div><mark>✗ CRITICAL</mark> lodash@4.17.15 <i>CVE-2020-28500 · CVSS 7.4</i></div>
-              <div><mark>✗ CRITICAL</mark> ejs@3.1.7 <i>CVE-2022-29078 · CVSS 9.8</i></div>
+              <div><mark>✗ CRITICAL</mark> ejs@3.1.5 <i>CVE-2022-29078 · CVSS 9.8</i></div>
               <div><u>⚠ HIGH</u> axios@0.21.1 <i>CVE-2021-3749 · CVSS 7.5</i></div>
               <br />
               <div><b>→</b> Risk Score: <mark>72/100</mark> <i>(High Risk)</i></div>
@@ -219,53 +212,6 @@ export default function Landing() {
 
       <div className="lp-section-divider" />
 
-      {/* <section className="lp-integrations-bg reveal" id="integrations">
-        <div className="lp-integrations-inner">
-          <div className="lp-two-col">
-            <div>
-              <div className="lp-section-label">Integrations</div>
-              <h2 className="lp-section-title">Works where your team already works</h2>
-              <p className="lp-section-sub">Integrate DepAnalyzer into your existing pipeline. Catch vulnerabilities before they merge — not after they deploy.</p>
-            </div>
-            <div>
-              <div className="lp-integration-logos">
-                {['GitHub Actions','GitLab CI','Jenkins','CircleCI','Bitbucket','Azure DevOps','+ Your CI tool'].map(label => <div className="lp-integration-badge" key={label}><span />{label}</div>)}
-              </div>
-              <div className="lp-code-card">
-                <div># .github/workflows/security.yml</div>
-                <p><b>uses</b>: <span>depanalyzer/scan-action@v2</span></p>
-                <p><b>with</b>:</p>
-                <p>&nbsp;&nbsp;<em>fail-on</em>: critical</p>
-                <p>&nbsp;&nbsp;<em>ecosystem</em>: npm</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section> */}
-
-      {/* <section className="lp-section reveal">
-        <div style={{ textAlign: 'center' }}><div className="lp-section-label">Trusted by teams</div><h2 className="lp-section-title">Security-conscious teams depend on it</h2></div>
-        <div className="lp-testimonials">
-          {[
-            ['AK','We found 3 critical CVEs in transitive deps on the first scan that our previous tool completely missed.','Arjun Kapoor','Head of Security, FinTech startup'],
-            ['SR','The fix commands made all the difference. Instead of spending hours researching safe upgrade paths, devs can resolve issues in one copy-paste.','Sofia Reyes','Platform Engineering Lead'],
-            ['MN','We integrated it into our GitLab pipeline and blocked 2 supply chain risks before they hit staging.','Marcus Nguyen','DevSecOps Engineer'],
-          ].map(([initials, quote, name, role], i) => <div className={`lp-testi-card reveal reveal-delay-${i + 1}`} key={name}><div className="lp-testi-quote">"{quote}"</div><div className="lp-testi-author"><div className="lp-testi-avatar">{initials}</div><div><div className="lp-testi-name">{name}</div><div className="lp-testi-role">{role}</div></div></div></div>)}
-        </div>
-      </section>
-
-      <div className="lp-section-divider" />
-
-      <section className="lp-section reveal" id="pricing">
-        <div style={{ textAlign: 'center' }}><div className="lp-section-label"></div><h2 className="lp-section-title">Simple, transparent pricing</h2><p className="lp-section-sub" style={{ margin: '0 auto' }}>Start free. Scale when you need to.</p></div>
-        <div className="lp-pricing-grid">
-          {['Free|$0|For individual developers and open-source projects.|Get started free','Pro|$29|For teams that ship to production and need CI-gate security.|Start Pro trial','Enterprise|Custom|For large teams with advanced compliance and audit requirements.|Contact sales'].map((item, i) => {
-            const [tier, price, desc, cta] = item.split('|')
-            return <div className={`lp-price-card ${i === 1 ? 'featured' : ''} reveal reveal-delay-${i + 1}`} key={tier}>{i === 1 && <div className="lp-price-badge">Most popular</div>}<div><div className="lp-price-tier">{tier}</div><div className="lp-price-val">{price}{price !== 'Custom' && <span>/mo</span>}</div><div className="lp-price-desc">{desc}</div></div><div className="lp-price-features">{['Unlimited scans','All ecosystems','NVD + OSV databases','CI/CD integration'].map(f => <div className="lp-price-feat" key={f}><div>{check}</div>{f}</div>)}</div><button onClick={() => i < 2 && navigate('/scan')} className={`lp-price-btn ${i === 1 ? 'primary' : ''}`}>{cta}</button></div>
-          })}
-        </div>
-      </section> */}
-
       <div className="lp-cta-band reveal">
         <div><div className="lp-cta-title">Stop guessing.<br />Start securing.</div><div className="lp-cta-sub">Scan your first project — no account required.</div></div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}><button onClick={() => navigate('/scan')} className="lp-btn-hero">→ Scan Now for Free</button></div>
@@ -305,11 +251,9 @@ const landingCss = `
 .lp-showcase{background:linear-gradient(180deg,var(--bg) 0%,var(--bg-panel) 50%,var(--bg) 100%);padding:96px 48px}.lp-showcase-inner{max-width:1200px;margin:0 auto}.lp-showcase-header,.lp-two-col{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;margin-bottom:64px}.lp-check{width:20px;height:20px;border-radius:5px;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}.lp-showcase-screen{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 1px var(--border);position:relative}.lp-showcase-screen:before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}.lp-screen-bar,.lp-terminal-bar{height:40px;background:var(--bg-elevated);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px}.lp-screen-bar span,.lp-terminal-bar span{width:10px;height:10px;border-radius:50%}.lp-screen-bar div,.lp-terminal-bar div{flex:1;text-align:center;font-family:var(--font-m);font-size:11px;color:var(--text-muted)}.lp-screen-body{padding:20px}.lp-mini-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}.lp-mini-stats div{background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}.lp-mini-stats strong{font-family:var(--font-d);font-size:22px;font-weight:800;display:block}.lp-mini-stats span{font-size:10px;color:var(--text-secondary)}.lp-vuln-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:8px 10px;border-radius:6px;margin-bottom:6px;background:var(--bg-elevated)}.lp-vuln-row.critical{background:var(--vuln-bg);border-left:2px solid var(--critical)}.lp-vuln-row.high{background:var(--warn-bg)}.lp-vuln-row b{display:block;font-family:var(--font-m);font-size:12px;color:var(--text-secondary)}.lp-vuln-row small{font-size:10px;color:var(--text-muted)}.lp-vuln-row em{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;font-style:normal;color:var(--high);border:1px solid rgba(255,140,66,.3);background:rgba(255,140,66,.15)}.lp-vuln-row.critical em{color:var(--critical);border-color:rgba(255,59,92,.3);background:rgba(255,59,92,.15)}.lp-vuln-row.medium em{color:var(--medium);border-color:rgba(245,200,66,.3);background:rgba(245,200,66,.15)}.lp-vuln-row span{font-family:var(--font-m);font-size:10px;color:var(--text-muted)}
 .lp-terminal{background:var(--code-bg);border:1px solid var(--border-mid);border-radius:12px;overflow:hidden;font-family:var(--font-m);box-shadow:0 20px 60px var(--overlay-bg)}.lp-terminal-body{padding:18px 20px;font-size:12.5px;line-height:1.9;color:var(--text)}.lp-terminal-body i{color:var(--text-muted);font-style:normal}.lp-terminal-body strong{color:var(--green)}.lp-terminal-body b{color:var(--accent)}.lp-terminal-body mark{background:transparent;color:var(--critical)}.lp-terminal-body u{color:var(--high);text-decoration:none}
 .lp-hiw-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:64px;position:relative}.lp-hiw-steps:before{content:'';position:absolute;top:28px;left:12.5%;right:12.5%;height:1px;background:linear-gradient(90deg,transparent,var(--border-mid) 20%,var(--border-mid) 80%,transparent)}.lp-hiw-step{display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 20px}.lp-hiw-num{width:56px;height:56px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border-mid);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--accent);margin-bottom:24px;position:relative;z-index:1;flex-shrink:0}.lp-hiw-title{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px}.lp-hiw-text{font-size:13px;color:var(--text-2);line-height:1.7}
-.lp-integrations-bg{background:var(--bg-card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:80px 48px}.lp-integrations-inner{max-width:1200px;margin:0 auto}.lp-integration-logos{display:flex;gap:12px;flex-wrap:wrap;margin-top:40px}.lp-integration-badge{display:flex;align-items:center;gap:10px;padding:12px 20px;border-radius:10px;background:var(--bg-elevated);border:1px solid var(--border-mid);font-size:13.5px;font-weight:500;color:var(--text-2);transition:all .2s}.lp-integration-badge:hover{border-color:var(--border-strong);color:var(--text);background:var(--bg-hover)}.lp-integration-badge span{width:10px;height:10px;border-radius:50%;background:var(--accent)}.lp-code-card{margin-top:24px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:9px;padding:14px 16px;font-family:var(--font-m);font-size:12px;line-height:1.9;color:var(--text-muted)}.lp-code-card div{color:var(--text-muted)}.lp-code-card b{color:var(--accent2)}.lp-code-card span{color:var(--accent)}.lp-code-card em{color:var(--green);font-style:normal}
-.lp-testimonials,.lp-pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:56px}.lp-testi-card,.lp-price-card{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:28px;display:flex;flex-direction:column;gap:20px;transition:border-color .2s}.lp-testi-card:hover,.lp-price-card:hover{border-color:var(--border-mid)}.lp-testi-quote{font-size:14.5px;color:var(--text-2);line-height:1.8;font-style:italic}.lp-testi-author{display:flex;align-items:center;gap:12px}.lp-testi-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:14px;font-weight:700;flex-shrink:0;background:var(--accent-dim);color:var(--accent)}.lp-testi-name{font-size:13.5px;font-weight:600;color:var(--text)}.lp-testi-role{font-size:12px;color:var(--text-muted)}
-.lp-price-card{border-radius:16px;padding:32px;position:relative;overflow:hidden}.lp-price-card.featured{border-color:var(--accent)}.lp-price-card.featured:before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}.lp-price-badge{position:absolute;top:16px;right:16px;padding:3px 10px;border-radius:5px;background:var(--accent-dim);border:1px solid var(--accent);font-size:11px;font-weight:600;color:var(--accent)}.lp-price-tier{font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--text-2)}.lp-price-val{font-family:var(--font-d);font-size:40px;font-weight:800;letter-spacing:-1.5px;color:var(--text);line-height:1;margin-top:8px}.lp-price-val span{font-size:16px;font-weight:400;color:var(--text-2)}.lp-price-desc{font-size:13.5px;color:var(--text-2);line-height:1.6;margin-top:10px}.lp-price-features{display:flex;flex-direction:column;gap:10px;flex:1}.lp-price-feat{display:flex;align-items:flex-start;gap:9px;font-size:13.5px;color:var(--text-2)}.lp-price-feat div{width:16px;height:16px;border-radius:4px;background:var(--green-dim);border:1px solid var(--fix-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}.lp-price-btn{width:100%;padding:11px;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-b);transition:all .2s;border:1px solid var(--border-mid);background:transparent;color:var(--text-2)}.lp-price-btn:hover{background:var(--bg-elevated);color:var(--text)}.lp-price-btn.primary{background:var(--accent);border-color:transparent;color:var(--white)}.lp-price-btn.primary:hover{background:var(--accent)}
+
 .lp-cta-band{margin:0 48px 96px;border-radius:20px;background:linear-gradient(135deg,var(--accent-dim) 0%,var(--purple-dim) 100%);border:1px solid var(--accent);padding:72px 64px;display:flex;align-items:center;justify-content:space-between;gap:40px;position:relative;overflow:hidden}.lp-cta-band:before{content:'';position:absolute;top:-60px;right:-60px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,var(--accent-dim) 0%,transparent 70%);pointer-events:none}.lp-cta-title{font-family:var(--font-d);font-size:36px;font-weight:800;letter-spacing:-1px;line-height:1.2;color:var(--text)}.lp-cta-sub{font-size:15px;color:var(--text-2);margin-top:10px}
-.lp-footer{border-top:1px solid var(--border);padding:48px 48px 40px;display:grid;grid-template-columns:1.5fr repeat(3,1fr);gap:48px;max-width:1200px;margin:0 auto}.lp-footer-desc{font-size:13px;color:var(--text-2);line-height:1.7;max-width:240px}.lp-footer-col-title{font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text-3);margin-bottom:14px}.lp-footer-links{display:flex;flex-direction:column;gap:10px}.lp-footer-links button{font-size:13.5px;color:var(--text-2);text-decoration:none;transition:color .15s;background:none;border:0;text-align:left;cursor:pointer}.lp-footer-links button:hover{color:var(--text)}.lp-footer-bottom{border-top:1px solid var(--border);padding:24px 48px;max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--text-3)}
+.lp-footer{border-top:1px solid var(--border);padding:48px 48px 40px;display:grid;grid-template-columns:1.5fr repeat(2,1fr);gap:48px;max-width:1200px;margin:0 auto}.lp-footer-desc{font-size:13px;color:var(--text-2);line-height:1.7;max-width:240px}.lp-footer-col-title{font-size:12px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--text-3);margin-bottom:14px}.lp-footer-links{display:flex;flex-direction:column;gap:10px}.lp-footer-links button{font-size:13.5px;color:var(--text-2);text-decoration:none;transition:color .15s;background:none;border:0;text-align:left;cursor:pointer}.lp-footer-links button:hover{color:var(--text)}.lp-footer-bottom{border-top:1px solid var(--border);padding:24px 48px;max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--text-3)}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}@keyframes pulse-node{0%,100%{opacity:.6}50%{opacity:1}}@keyframes dash{to{stroke-dashoffset:-40}}
-@media(max-width:900px){.lp-mini-stats{grid-template-columns:repeat(2,1fr)!important}.lp-nav{padding:0 18px}.lp-nav-links{display:none}.lp-showcase-header,.lp-two-col,.lp-problem-grid,.lp-features-grid,.lp-testimonials,.lp-pricing-grid,.lp-footer{grid-template-columns:1fr}.lp-hiw-steps{grid-template-columns:1fr;gap:28px}.lp-hiw-steps:before{display:none}.lp-cta-band{margin:0 20px 72px;padding:42px 28px;flex-direction:column;align-items:flex-start}.lp-section,.lp-showcase,.lp-integrations-bg{padding-left:24px;padding-right:24px}.lp-hero{padding-left:24px;padding-right:24px}.lp-footer-bottom{flex-direction:column;gap:10px;align-items:flex-start}.lp-nav-cta .lp-btn-ghost{display:none}}
+@media(max-width:900px){.lp-mini-stats{grid-template-columns:repeat(2,1fr)!important}.lp-nav{padding:0 18px}.lp-nav-links{display:none}.lp-showcase-header,.lp-two-col,.lp-problem-grid,.lp-features-grid,.lp-footer{grid-template-columns:1fr}.lp-hiw-steps{grid-template-columns:1fr;gap:28px}.lp-hiw-steps:before{display:none}.lp-cta-band{margin:0 20px 72px;padding:42px 28px;flex-direction:column;align-items:flex-start}.lp-section,.lp-showcase,.lp-hero{padding-left:24px;padding-right:24px}.lp-footer-bottom{flex-direction:column;gap:10px;align-items:flex-start}.lp-nav-cta .lp-btn-ghost{display:none}}
 `
