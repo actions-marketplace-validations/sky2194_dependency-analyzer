@@ -196,7 +196,7 @@ export default function Landing() {
             ['⚡','Actionable Fix Commands','Exact install commands, safe version ranges, and dependency override strategies — ready to copy-paste or automate.'],
             ['🗺️','Visual Dependency Graph','See your full dependency tree visualized with vulnerability highlighting. Instantly understand which packages are the source of transitive CVEs.'],
             // ['🔁','CI/CD Gate Integration','Block builds on critical CVEs. Integrate with GitHub Actions, GitLab CI, Jenkins, or CircleCI in minutes.'],
-            ['📋','SBOM-Ready Output','Export scan results in structured formats. Every component, version, and vulnerability mapped for compliance and audit workflows.'],
+            ['📋','Export Reports','Download scan results as PDF, CSV, or JSON. Share findings with your team or attach to compliance documentation.'],
           ].map(([icon, title, text], i) => <div className={`lp-feat-card reveal reveal-delay-${(i % 3) + 1}`} key={title}><div className="lp-feat-icon">{icon}</div><div className="lp-feat-title">{title}</div><div className="lp-feat-text">{text}</div></div>)}
         </div>
       </section>
@@ -274,9 +274,9 @@ export default function Landing() {
       <footer>
         <div className="lp-footer">
           <div><div className="lp-nav-logo" style={{ marginBottom: 14 }}><div className="lp-nav-logo-icon">{shield}</div>DepAnalyzer</div><p className="lp-footer-desc">Real-time dependency vulnerability intelligence for modern engineering teams.</p></div>
-          {['Product|Scanner|Knowledge Base','Databases|NVD|OSV','Resources|GitHub'].map(col => {
+          {['Product|Scanner|Knowledge Base','Databases|NVD|OSV'].map(col => {
             const [title, ...links] = col.split('|')
-            return <div key={title}><div className="lp-footer-col-title">{title}</div><div className="lp-footer-links">{links.filter(l => l).map(l => <button key={l} onClick={() => l === 'Scanner' ? navigate('/scan') : l === 'Knowledge Base' ? navigate('/learn') : l === 'GitHub' ? window.open('https://github.com/sky2194/dependency-analyzer', '_blank') : l === 'NVD' ? window.open('https://nvd.nist.gov', '_blank') : l === 'OSV' ? window.open('https://osv.dev', '_blank') : null}>{l}</button>)}</div></div>
+            return <div key={title}><div className="lp-footer-col-title">{title}</div><div className="lp-footer-links">{links.filter(l => l).map(l => <button key={l} onClick={() => l === 'Scanner' ? navigate('/scan') : l === 'Knowledge Base' ? navigate('/learn') : l === 'NVD' ? window.open('https://nvd.nist.gov', '_blank') : l === 'OSV' ? window.open('https://osv.dev', '_blank') : null}>{l}</button>)}</div></div>
           })}
         </div>
         <div className="lp-footer-bottom"><div>© 2026 DepAnalyzer. All rights reserved.</div><div>Powered by NVD + OSV · Updated continuously</div></div>
