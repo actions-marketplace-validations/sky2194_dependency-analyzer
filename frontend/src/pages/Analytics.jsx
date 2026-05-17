@@ -1,10 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import API_BASE from '../config'
 import DependencyGraph from '../components/DependencyGraph'
 import validateContract from '../utils/validateSnapshot'
 import normalizeSnapshot from '../utils/normalizeSnapshot'
-import tokens from '../theme/tokens'
 
 const SEV_COLOR = { CRITICAL: 'var(--critical)', HIGH: 'var(--high)', MEDIUM: 'var(--medium)', LOW: 'var(--low)' }
 const SEV_DIM = { CRITICAL: 'var(--red-dim)', HIGH: 'var(--yellow-dim)', MEDIUM: 'var(--blue-dim)', LOW: 'var(--green-dim)' }
@@ -103,7 +102,7 @@ export default function Analytics() {
       const res = await fetch(`${API_BASE}/api/export/${type}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(result) })
       if (!res.ok) throw new Error(`Export failed: ${res.status}`)
       const blob = await res.blob(); const url = URL.createObjectURL(blob)
-      Object.assign(document.createElement('a'), { href: url, download: `sca-report.${type === 'pdf' ? 'html' : type}` }).click()
+      Object.assign(document.createElement('a'), { href: url, download: `sca-report.${type}` }).click()
       URL.revokeObjectURL(url); setShowExportMenu(false); setExportStatus('success')
       setTimeout(() => setExportStatus(null), 2000)
     } catch {
@@ -118,8 +117,8 @@ export default function Analytics() {
       <div className="a-paginator">
         <span className="a-page-info">{(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, total)} of {total} {label}</span>
         <div style={{ display: 'flex', gap: 4 }}>
-          <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1} className="a-page-btn">Prev</button>
-          <button onClick={() => setPage(Math.min(pages, page + 1))} disabled={page === pages} className="a-page-btn">Next</button>
+          <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1} className="a-page-btn" aria-label="Previous page">Prev</button>
+          <button onClick={() => setPage(Math.min(pages, page + 1))} disabled={page === pages} className="a-page-btn" aria-label="Next page">Next</button>
         </div>
       </div>
     )
@@ -134,35 +133,18 @@ export default function Analytics() {
           <div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, letterSpacing: -0.4, marginBottom: 4 }}>
               Security Report
-              <span style={{ marginLeft: 10, fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: 'var(--green-dim)', border: '1px solid var(--fix-border)', color: 'var(--green)', verticalAlign: 'middle' }}>LIVE</span>
+              <span style={{ marginLeft: 10, fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: 'var(--green-dim)', border: '1px solid var(--fix-border)', color: 'var(--green)', verticalAlign: 'middle' }}>COMPLETED</span>
             </h1>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{snapshot.project_name || 'Scanned project'} &middot; {directDeps} direct + {transitiveDeps} transitive dependencies</div>
           </div>
           <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             <div ref={exportRef} style={{ position: 'relative' }}>
-              <button onClick={() => setShowExportMenu(!showExportMenu)} className="a-btn">
+              <button onClick={() => setShowExportMenu(!showExportMenu)} className="a-btn" aria-label="Export report">
                 {exportStatus === 'loading' ? 'Exporting...' : exportStatus === 'error' ? 'Failed' : exportStatus === 'success' ? 'Done!' : 'Export'}
               </button>
               {showExportMenu && <div className="a-dropdown">{['pdf', 'csv', 'json'].map(t => <div key={t} onClick={() => exportReport(t)} className="a-dropdown-item">{t.toUpperCase()}</div>)}</div>}
             </div>
             <button onClick={() => navigate('/scan')} className="a-btn-primary">New Scan</button>
-          </div>
-        </div>
-
-        {/* Quick explanation */}
-        <div style={{ background: 'var(--bg-panel)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '16px', marginBottom: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-            <span style={{ fontSize: 20 }}>💡</span>
-            <div>
-              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, color: 'var(--text-primary)' }}>Understanding Your Results</h3>
-              <ul style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.7, margin: 0, paddingLeft: 16 }}>
-                <li><strong style={{ color: 'var(--text-primary)' }}>Total Packages:</strong> All dependencies in your project (direct + transitive)</li>
-                <li><strong style={{ color: 'var(--text-primary)' }}>Direct vs Transitive:</strong> Direct = you installed it. Transitive = brought in by other packages.</li>
-                <li><strong style={{ color: 'var(--text-primary)' }}>Vulnerabilities:</strong> Known security issues found in your dependencies</li>
-                <li><strong style={{ color: 'var(--text-primary)' }}>Severity Levels:</strong> CRITICAL (urgent fix), HIGH (fix soon), MEDIUM (plan fix), LOW (monitor)</li>
-                <li><strong style={{ color: 'var(--text-primary)' }}>Risk Score:</strong> Calculated based on severity counts × severity weights (CRITICAL=9, HIGH=7, MEDIUM=4, LOW=1)</li>
-              </ul>
-            </div>
           </div>
         </div>
 
@@ -176,7 +158,7 @@ export default function Analytics() {
               <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Risk Score</div>
               <div data-testid="risk-score" style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 700, color: riskColor }}>{riskScore}<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>/100</span></div>
               <span className="a-risk-label" style={{ background: riskDim, color: riskColor }}>{riskLabel}</span>
-              <div style={{ fontSize: 9, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 4, lineHeight: 1.4 }}>Logarithmic scale based on severity counts</div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 4, lineHeight: 1.4 }}>Logarithmic scale based on severity counts</div>
             </div>
           </div>
           <div className="a-risk-divider" />
@@ -263,7 +245,7 @@ export default function Analytics() {
         {/* TAB: ALL PACKAGES */}
         {tab === 'all-pkgs' && (
           <div>
-            <input type="text" placeholder="Search packages..." value={pkgSearch} onChange={e => { setPkgSearch(e.target.value); setPkgPage(1) }} className="a-search" />
+            <input type="text" placeholder="Search packages..." aria-label="Search packages" value={pkgSearch} onChange={e => { setPkgSearch(e.target.value); setPkgPage(1) }} className="a-search" />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {pagedPkgs.map((g, i) => {
                 const has = g.vulnerabilities && g.vulnerabilities.length > 0
@@ -313,7 +295,7 @@ export default function Analytics() {
           <div className="a-panel-hdr">
             <span>CVE Details</span>
             {selectedVuln && <span className="sev-badge" style={{ background: SEV_DIM[selectedVuln.severity], color: SEV_COLOR[selectedVuln.severity] }}>{selectedVuln.severity}</span>}
-            {selectedVuln && <span onClick={() => setSelected(null)} style={{ cursor: 'pointer', color: 'var(--text-muted)', marginLeft: 'auto', fontSize: 14 }}>x</span>}
+            {selectedVuln && <span onClick={() => setSelected(null)} style={{ cursor: 'pointer', color: 'var(--text-muted)', marginLeft: 'auto', fontSize: 14 }} aria-label="Close details">x</span>}
           </div>
           <div style={{ padding: 14 }}>
             {!selectedVuln
