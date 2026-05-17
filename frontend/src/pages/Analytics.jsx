@@ -136,6 +136,9 @@ export default function Analytics() {
               <span style={{ marginLeft: 10, fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-mono)', padding: '2px 8px', borderRadius: 4, background: 'var(--green-dim)', border: '1px solid var(--fix-border)', color: 'var(--green)', verticalAlign: 'middle' }}>COMPLETED</span>
             </h1>
             <div style={{ fontSize: 12, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{snapshot.project_name || 'Scanned project'} &middot; {directDeps} direct + {transitiveDeps} transitive dependencies</div>
+            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 6, lineHeight: 1.6 }}>
+              Scanned <strong style={{ color: 'var(--text)' }}>{directDeps} {directDeps === 1 ? 'package' : 'packages'}</strong> you declared{transitiveDeps > 0 && <>, resolved <strong style={{ color: 'var(--text)' }}>{transitiveDeps} transitive {transitiveDeps === 1 ? 'dependency' : 'dependencies'}</strong> they pull in</>}{vulnPackages.length > 0 ? <> — <strong style={{ color: 'var(--critical)' }}>{vulnPackages.length} {vulnPackages.length === 1 ? 'has' : 'have'} known vulnerabilities</strong></> : <> — <strong style={{ color: 'var(--green)' }}>all clean</strong></>}.
+            </div>
           </div>
           <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             <div ref={exportRef} style={{ position: 'relative' }}>
