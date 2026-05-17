@@ -225,7 +225,7 @@ export default function Landing() {
             return <div key={title}><div className="lp-footer-col-title">{title}</div><div className="lp-footer-links">{links.filter(l => l).map(l => <button key={l} onClick={() => l === 'Scanner' ? navigate('/scan') : l === 'Knowledge Base' ? navigate('/learn') : l === 'NVD' ? window.open('https://nvd.nist.gov', '_blank') : l === 'OSV' ? window.open('https://osv.dev', '_blank') : null}>{l}</button>)}</div></div>
           })}
         </div>
-        <div className="lp-footer-bottom"><div>© 2026 DepAnalyzer. All rights reserved.</div><div>Powered by NVD + OSV · Updated continuously</div></div>
+        <div className="lp-footer-bottom"><div>© 2026 DepAnalyzer. All rights reserved.</div><div>Powered by OSV · NVD fallback</div></div>
       </footer>
     </div>
   )

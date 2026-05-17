@@ -67,7 +67,7 @@ function RightPanel({ eco }) {
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, marginBottom: 12, color: 'var(--accent)' }}>DEPENDENCY TYPES</div>
         {[
           { label: 'Direct', key: 'direct', color: 'var(--green)', desc: "You added this. It's in your config file." },
-          { label: 'Transitive', key: 'transitive', color: 'var(--yellow)', desc: 'Pulled in automatically. Most CVEs hide here.' },
+          { label: 'Transitive', key: 'transitive', color: 'var(--yellow)', desc: 'Pulled in automatically. Most vulnerabilities are found here.' },
         ].map(d => (
           <div key={d.label} style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
             <div style={{ width: 8, height: 8, borderRadius: 2, background: d.color, flexShrink: 0, marginTop: 4 }} />

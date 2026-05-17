@@ -75,12 +75,12 @@ export default function Analytics() {
   const totalVulns = sm.vulnerabilities
   const counts = { CRITICAL: sm.critical, HIGH: sm.high, MEDIUM: sm.medium, LOW: sm.low }
 
-  const vulnPackages = groupedPackages.filter(g => g.vulnerabilities && g.vulnerabilities.length > 0)
-  const safePackages = groupedPackages.filter(g => !g.vulnerabilities || g.vulnerabilities.length === 0)
+  const vulnPackages = (groupedPackages || []).filter(g => g.vulnerabilities && g.vulnerabilities.length > 0)
+  const safePackages = (groupedPackages || []).filter(g => !g.vulnerabilities || g.vulnerabilities.length === 0)
   const filteredVulnPkgs = sevFilter === 'ALL' ? vulnPackages : vulnPackages.filter(g => g.vulnerabilities.some(v => v.severity === sevFilter))
   const selectedVuln = vulns.find(v => v.cve_id === selected)
 
-  const searchedPkgs = pkgSearch ? groupedPackages.filter(g => g.package?.toLowerCase().includes(pkgSearch.toLowerCase())) : groupedPackages
+  const searchedPkgs = pkgSearch ? (groupedPackages || []).filter(g => g.package?.toLowerCase().includes(pkgSearch.toLowerCase())) : (groupedPackages || [])
   const pkgPages = Math.ceil(searchedPkgs.length / PAGE_SIZE)
   const pagedPkgs = searchedPkgs.slice((pkgPage - 1) * PAGE_SIZE, pkgPage * PAGE_SIZE)
 
@@ -380,12 +380,15 @@ export default function Analytics() {
                 </div>
               </div>
             )}
-            {(() => { const directVuln = vulnPackages.filter(p => p.is_direct).length; const transitiveVuln = vulnPackages.length - directVuln; return (
+            {(() => { 
+              const directVuln = sm.vulnerable_direct_count || 0
+              const transitiveVuln = sm.vulnerable_transitive_count || 0
+              return (
               <div style={{ marginBottom: 8 }}>
                 {directVuln > 0 && <div style={{ padding: '4px 0', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Vulnerable direct deps</span><span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--critical)' }}>{directVuln} of {directDeps}</span></div>}
                 {transitiveVuln > 0 && <div style={{ padding: '4px 0', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Vulnerable transitive deps</span><span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--high)' }}>{transitiveVuln} of {transitiveDeps}</span></div>}
                 <div style={{ padding: '4px 0', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Fixable vulnerabilities</span><span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--green)' }}>{fixes.length > 0 ? `${fixes.length} packages` : 'None'}</span></div>
-                <div style={{ padding: '4px 0', display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Sources</span><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600 }}>NVD + OSV</span></div>
+                <div style={{ padding: '4px 0', display: 'flex', justifyContent: 'space-between' }}><span style={{ color: 'var(--text-muted)' }}>Sources</span><span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 600 }}>OSV</span></div>
               </div>
             )})()}
           </div>

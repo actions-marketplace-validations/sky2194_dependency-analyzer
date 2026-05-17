@@ -8,7 +8,7 @@ const STEPS = [
   { icon: '📄', label: 'Parsing manifest structure' },
   { icon: '🌳', label: 'Resolving transitive dependencies' },
   { icon: '🔗', label: 'Building dependency graph' },
-  { icon: '🔍', label: 'Querying NVD database' },
+  { icon: '🔍', label: 'Checking vulnerability databases' },
   { icon: '🛡️', label: 'Querying OSV database' },
   { icon: '📊', label: 'Calculating risk score' },
 ]

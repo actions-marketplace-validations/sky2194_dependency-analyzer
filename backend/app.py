@@ -400,6 +400,11 @@ def run_analysis(body):
     # Calculate vulnerable package count
     vulnerable_package_count = len(grouped_vulns)
 
+    # Calculate vulnerable package counts by type
+    all_packages = _build_all_packages(graph_deps, grouped_vulns)
+    vulnerable_direct_count = len([p for p in all_packages if p.get('vulnerabilities') and len(p['vulnerabilities']) > 0 and p.get('is_direct')])
+    vulnerable_transitive_count = len([p for p in all_packages if p.get('vulnerabilities') and len(p['vulnerabilities']) > 0 and not p.get('is_direct')])
+
     # Build immutable transaction snapshot with canonical data contract
     scan_result = {
         'transaction_id': transaction_id,
@@ -420,9 +425,11 @@ def run_analysis(body):
             'low': counts['LOW'],
             'secure_package_count': total_packages - len(grouped_vulns),
             'vulnerable_package_count': len(grouped_vulns),
+            'vulnerable_direct_count': vulnerable_direct_count,
+            'vulnerable_transitive_count': vulnerable_transitive_count,
             'priority_fix_count': counts['CRITICAL'] + counts['HIGH'],
         },
-        'grouped_packages': _build_all_packages(graph_deps, grouped_vulns),
+        'grouped_packages': all_packages,
         'fixes': [v for v in vulnerabilities if v.get('fix_version')],
         'vulnerabilities': copy.deepcopy(vulnerabilities),
         'graph': copy.deepcopy(graph),
