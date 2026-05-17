@@ -15,7 +15,7 @@ function MediationPanel({ eco }) {
   if (!eco || !eco.mediationExample) return null
   const ex = eco.mediationExample
   return (
-    <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
+    <div className="scanner-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, marginBottom: 6, color: 'var(--accent)' }}>
         ⚖️ <Tooltip termKey="mediation">DEPENDENCY MEDIATION</Tooltip>
         <span style={{ marginLeft: 8, fontSize: 10, color: eco.color, fontWeight: 400 }}>{eco.icon} {eco.label} rules</span>
@@ -49,7 +49,7 @@ function MediationPanel({ eco }) {
 function RightPanel({ eco }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 68, maxHeight: 'calc(100vh - 90px)', overflowY: 'auto', paddingRight: 4 }}>
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
+      <div className="scanner-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, marginBottom: 12, color: 'var(--accent)' }}><Tooltip termKey="severity">SEVERITY GUIDE</Tooltip></div>
         {SEVS.map(s => (
           <div key={s.level} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
@@ -63,7 +63,7 @@ function RightPanel({ eco }) {
           Scores are <Tooltip termKey="cvss">CVSS</Tooltip> ratings from <Tooltip termKey="nvd">NVD</Tooltip> + <Tooltip termKey="osv">OSV</Tooltip>.
         </div>
       </div>
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
+      <div className="scanner-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, marginBottom: 12, color: 'var(--accent)' }}>DEPENDENCY TYPES</div>
         {[
           { label: 'Direct', key: 'direct', color: 'var(--green)', desc: "You added this. It's in your config file." },
@@ -79,7 +79,7 @@ function RightPanel({ eco }) {
         ))}
       </div>
       <MediationPanel eco={eco} />
-      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
+      <div className="scanner-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, marginBottom: 10, color: 'var(--accent)' }}>CVE PATH EXAMPLE</div>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, lineHeight: 2 }}>
           {['my-app', 'express', 'body-parser', 'lodash ⚠️'].map((p, i) => (
