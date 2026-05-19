@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import API_BASE from '../config'
 import DependencyGraph from '../components/DependencyGraph'
 import validateContract from '../utils/validateSnapshot'
+import { generateFixAllScript } from '../utils/fixAll'
+import { saveProjectScan } from '../utils/projectStore'
 import normalizeSnapshot from '../utils/normalizeSnapshot'
 
 const SEV_COLOR = { CRITICAL: 'var(--critical)', HIGH: 'var(--high)', MEDIUM: 'var(--medium)', LOW: 'var(--low)' }
@@ -281,6 +283,45 @@ export default function Analytics() {
         {/* TAB: FIX SUGGESTIONS */}
         {tab === 'fixes' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {fixes.length > 0 && (
+              <div style={{ marginBottom: 16, padding: 16, background: 'var(--fix-bg)', border: '1px solid var(--fix-border)', borderRadius: 'var(--radius)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                  <span style={{ fontSize: 18 }}>🔧</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 4 }}>
+                      Fix All Vulnerabilities
+                    </div>
+                    <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                      Apply {fixes.length} {fixes.length === 1 ? 'fix' : 'fixes'} with a single command
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      const script = generateFixAllScript(fixes, snapshot.ecosystem)
+                      if (script) {
+                        navigator.clipboard?.writeText(script)
+                        alert('✅ Fix-all command copied to clipboard!')
+                      }
+                    }}
+                    style={{
+                      padding: '8px 16px',
+                      background: 'var(--green)',
+                      color: 'var(--white)',
+                      border: 'none',
+                      borderRadius: 'var(--radius)',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontSize: 13
+                    }}
+                  >
+                    Copy Command
+                  </button>
+                </div>
+                <div className="a-code-block" style={{ fontSize: 12 }}>
+                  <span>{generateFixAllScript(fixes, snapshot.ecosystem)}</span>
+                </div>
+              </div>
+            )}
             {fixes.length === 0
               ? <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>No fixes available</div>
               : fixes.map((v, i) => (
