@@ -28,15 +28,15 @@ const SECTIONS = [
     id: 'sca', icon: '🔍', title: 'What is SCA?',
     subtitle: 'Software Composition Analysis — the foundation of dependency security.',
     content: [
-      { type: 'keypoint', label: 'Definition', text: 'Software Composition Analysis (SCA) is a security practice that automatically identifies all open-source libraries in your codebase and checks them against known vulnerability databases.' },
-      { type: 'keypoint', label: 'Why it matters', text: 'Modern applications are built on hundreds of third-party packages. Each package is a potential attack surface. SCA tools give you complete visibility into every component you are shipping.' },
-      { type: 'keypoint', label: 'How this tool works', text: 'You upload a dependency manifest (package.json, requirements.txt, or pom.xml). We resolve the full dependency tree — including all transitive dependencies — then scan the OSV vulnerability database in real time.' },
+      { type: 'keypoint', label: 'Definition', text: 'Software Composition Analysis (SCA) is a security practice that automatically identifies all open-source libraries in a codebase and checks them against known vulnerability databases.' },
+      { type: 'keypoint', label: 'Why it matters', text: 'Modern applications are built on hundreds of third-party packages. Each package is a potential attack surface. SCA tools provide complete visibility into every component being shipped to production.' },
+      { type: 'keypoint', label: 'How it works', text: 'SCA tools parse dependency manifests (package.json, requirements.txt, pom.xml), resolve the full dependency tree including all transitive dependencies, then cross-reference each package@version against vulnerability databases like OSV and NVD.' },
       { type: 'callout', color: 'info', text: '📌 Over 75% of modern application code comes from open-source packages — making SCA a critical first line of defence.' },
-      { type: 'heading', text: 'Supported Ecosystems' },
-      { type: 'table', headers: ['Ecosystem', 'Language', 'Manifest File'], rows: [
-        ['npm', 'JavaScript / Node.js', 'package.json or package-lock.json'],
-        ['PyPI', 'Python', 'requirements.txt'],
-        ['Maven', 'Java', 'pom.xml'],
+      { type: 'heading', text: 'Common Ecosystems' },
+      { type: 'table', headers: ['Ecosystem', 'Language', 'Manifest File', 'Package Manager'], rows: [
+        ['npm', 'JavaScript / Node.js', 'package.json, package-lock.json', 'npm, yarn, pnpm'],
+        ['PyPI', 'Python', 'requirements.txt, Pipfile', 'pip, pipenv, poetry'],
+        ['Maven', 'Java', 'pom.xml', 'mvn'],
       ]},
     ]
   },
@@ -122,14 +122,17 @@ const SECTIONS = [
     id: 'databases', icon: '💾', title: 'Vulnerability Databases',
     subtitle: 'Where vulnerability data comes from.',
     content: [
-      { type: 'keypoint', label: 'OSV (Open Source Vulnerabilities)', text: 'Maintained by Google and the open-source community. Provides ecosystem-specific version ranges with real-time updates from package registry advisories. Primary data source for this tool.' },
-      { type: 'keypoint', label: 'NVD (National Vulnerability Database)', text: 'Maintained by NIST (US Government). Broadest coverage including proprietary software. Standardised CVSS scoring. Updates can lag 3–7 days behind initial disclosure.' },
+      { type: 'keypoint', label: 'OSV (Open Source Vulnerabilities)', text: 'Maintained by Google and the open-source community. Provides ecosystem-specific version ranges with real-time updates from package registry advisories. Optimized for npm, PyPI, Maven, and other open-source ecosystems.' },
+      { type: 'keypoint', label: 'NVD (National Vulnerability Database)', text: 'Maintained by NIST (US Government). Broadest coverage including proprietary software. Standardized CVSS scoring and comprehensive historical records. Updates can lag 3–7 days behind initial disclosure.' },
+      { type: 'keypoint', label: 'GHSA (GitHub Security Advisory)', text: 'Integrated directly into GitHub repositories. Automatically detects vulnerable dependencies in repos and generates Dependabot alerts. Real-time updates for GitHub-hosted projects.' },
       { type: 'table', headers: ['Database', 'Maintained By', 'Strengths', 'Update Speed'], rows: [
-        ['OSV', 'Google + community', 'Open-source focus, ecosystem-specific ranges, purl matching', 'Real-time from advisories'],
-        ['NVD', 'NIST (US Gov)', 'Broadest coverage, CVSS standardisation, historical depth', 'Daily, can lag 3–7 days'],
-        ['GHSA', 'GitHub', 'Integrated with npm/pip/maven, auto-detects in repos', 'Real-time for GitHub ecosystems'],
+        ['OSV', 'Google + community', 'Open-source focus, ecosystem-specific ranges', 'Real-time from advisories'],
+        ['NVD', 'NIST (US Gov)', 'Broadest coverage, CVSS standardization', 'Daily, can lag 3–7 days'],
+        ['GHSA', 'GitHub', 'Integrated with repos, auto-detects', 'Real-time for GitHub ecosystems'],
       ]},
-      { type: 'callout', color: 'info', text: '🔍 This tool uses OSV as the primary data source because it provides faster, more accurate updates for open-source dependencies. NVD is used as a fallback for additional coverage.' },
+      { type: 'heading', text: 'Why Multiple Databases?' },
+      { type: 'text', text: 'Different databases have different strengths. OSV provides faster updates for open-source packages, NVD offers broader coverage, and GHSA integrates directly into development workflows. Enterprise SCA tools often query multiple sources to ensure comprehensive coverage.' },
+      { type: 'callout', color: 'info', text: '🔍 Best practice: Use tools that aggregate data from multiple sources rather than relying on a single database. This ensures you catch vulnerabilities that may appear in one database before another.' },
     ]
   },
   {
@@ -166,17 +169,25 @@ const SECTIONS = [
     id: 'pipeline', icon: '🔄', title: 'SCA in CI/CD Pipeline',
     subtitle: 'Shift left — catch vulnerabilities before they reach production.',
     content: [
-      { type: 'keypoint', label: 'Key principle', text: 'SCA is most effective when embedded directly into your CI/CD pipeline, catching vulnerable dependencies before they ship.' },
-      { type: 'heading', text: 'Pipeline Workflow' },
+      { type: 'keypoint', label: 'Key principle', text: 'SCA is most effective when embedded directly into CI/CD pipelines. Catching vulnerable dependencies during the build process prevents them from reaching production and reduces remediation costs.' },
+      { type: 'keypoint', label: 'Shift-left security', text: 'Identifying vulnerabilities early in the development lifecycle (during commit or pull request) is significantly cheaper than discovering them in production. Automated gates can block deployments with critical vulnerabilities.' },
+      { type: 'heading', text: 'Industry-Standard Workflow' },
       { type: 'diagram', steps: [
         { num: 1, title: 'Developer Commits', desc: 'Developer pushes code with dependency manifest (package.json, requirements.txt, pom.xml) to version control.' },
         { num: 2, title: 'Dependency Resolution', desc: 'CI system runs the package manager (npm install, pip install, mvn package) — resolving all direct and transitive dependencies.' },
-        { num: 3, title: 'SBOM Generation', desc: 'Tools like Syft or CycloneDX generate a Software Bill of Materials — a machine-readable inventory of every component, version, and licence.' },
-        { num: 4, title: 'Vulnerability Scan', desc: 'Scanners query vulnerability databases (OSV, NVD) to match each package@version against known CVEs.' },
-        { num: 5, title: 'Policy Gate', desc: 'If CRITICAL or HIGH CVEs are found, the pipeline fails — blocking the deployment. Teams configure severity thresholds.' },
-        { num: 6, title: 'Remediation & Re-scan', desc: 'Developer upgrades the affected package, commits the fix, and the pipeline re-runs to verify resolution.' },
+        { num: 3, title: 'SBOM Generation', desc: 'Tools like Syft or CycloneDX generate a Software Bill of Materials — a machine-readable inventory of every component, version, and license.' },
+        { num: 4, title: 'Vulnerability Scan', desc: 'Scanners query vulnerability databases (OSV, NVD, GHSA) to match each package@version against known CVEs.' },
+        { num: 5, title: 'Policy Gate', desc: 'If CRITICAL or HIGH CVEs are found, the pipeline fails — blocking the deployment. Teams configure severity thresholds based on risk tolerance.' },
+        { num: 6, title: 'Remediation & Re-scan', desc: 'Developer upgrades the affected package, commits the fix, and the pipeline re-runs to verify the vulnerability is resolved.' },
       ]},
-      { type: 'callout', color: 'info', text: '💡 This tool performs steps 2–4: you upload a manifest, we resolve the full dependency tree and scan the OSV database in real time.' },
+      { type: 'heading', text: 'Popular CI/CD Integration Tools' },
+      { type: 'table', headers: ['Tool', 'Type', 'Integration'], rows: [
+        ['Snyk', 'Commercial SCA', 'GitHub Actions, GitLab CI, Jenkins plugins'],
+        ['Dependabot', 'GitHub native', 'Automatic PR generation for vulnerable dependencies'],
+        ['Grype + Syft', 'Open-source', 'CLI-based, integrates with any CI system'],
+        ['npm audit', 'Built-in', 'Native npm command, runs in any Node.js CI pipeline'],
+      ]},
+      { type: 'callout', color: 'ok', text: '✅ Best practice: Run SCA on every commit and pull request, not just releases. This catches vulnerabilities before they merge into main branches.' },
     ]
   },
   {
