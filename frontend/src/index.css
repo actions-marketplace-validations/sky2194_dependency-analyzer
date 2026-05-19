@@ -149,21 +149,6 @@
   --card-shadow-hover: 0 4px 12px rgba(0,0,0,0.10), 0 2px 4px rgba(0,0,0,0.06);
   --nav-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
-  --card-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
-  --card-shadow-hover: 0 4px 12px rgba(0,0,0,0.10), 0 1px 3px rgba(0,0,0,0.06);
-  --safe-border: rgba(34,197,94,0.3);
-  --danger-bg: rgba(239,68,68,0.04);
-  --danger-border: rgba(239,68,68,0.15);
-  --overlay-bg: rgba(0,0,0,0.5);
-  --overlay-blur: 8px;
-  --radius: 8px;
-  --radius-sm: 5px;
-  --radius-lg: 12px;
-  --font-display: 'Syne', sans-serif;
-  --font-body: 'DM Sans', sans-serif;
-  --font-mono: 'DM Mono', monospace;
-  --font-ui: 'DM Sans', sans-serif;
-}
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
