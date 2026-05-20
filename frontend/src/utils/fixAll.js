@@ -3,7 +3,6 @@
 export const generateFixAllScript = (fixes, ecosystem) => {
   if (!fixes || fixes.length === 0) return null
   
-  const commands = []
   const packages = fixes
     .filter(f => f.fix_version)
     .map(f => {
@@ -13,7 +12,10 @@ export const generateFixAllScript = (fixes, ecosystem) => {
       if (ecosystem === 'pypi') {
         return `${pkg}==${ver}`
       } else if (ecosystem === 'maven') {
-        return `${pkg} -> ${ver}`
+        // Extract artifactId from full coordinate
+        const parts = pkg.split(':')
+        const artifactId = parts.length > 1 ? parts[1] : pkg
+        return `    <artifactId>${artifactId}</artifactId>\n    <version>${ver}</version>`
       } else {
         return `${pkg}@${ver}`
       }
@@ -24,7 +26,7 @@ export const generateFixAllScript = (fixes, ecosystem) => {
   if (ecosystem === 'pypi') {
     return `pip install ${packages.join(' ')}`
   } else if (ecosystem === 'maven') {
-    return `Update pom.xml with:\n${packages.join('\n')}`
+    return `Update versions in pom.xml:\n\n${packages.join('\n\n')}`
   } else {
     return `npm install ${packages.join(' ')}`
   }

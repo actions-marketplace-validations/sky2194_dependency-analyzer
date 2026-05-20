@@ -171,8 +171,10 @@ export default function Analytics() {
               <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Risk Score</div>
               <div data-testid="risk-score" style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 700, color: riskColor }}>{riskScore}<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>/100</span></div>
               <span className="a-risk-label" style={{ background: riskDim, color: riskColor }}>{riskLabel}</span>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 4, lineHeight: 1.4 }}>Logarithmic scale based on severity counts</div>
             </div>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 4, lineHeight: 1.4, cursor: 'help' }} title="Formula: min(100, 10×Critical + 7×High + 4×Medium + 1×Low) with logarithmic scaling for 50+ vulnerabilities. Score ranges: 0-24 (Low), 25-49 (Medium), 50-74 (High), 75-100 (Critical)">
+                Logarithmic scale based on severity counts
+              </div>
           </div>
           <div className="a-risk-divider" />
           <div className="a-risk-stats">
@@ -300,7 +302,7 @@ export default function Analytics() {
                       const script = generateFixAllScript(fixes, snapshot.ecosystem)
                       if (script) {
                         navigator.clipboard?.writeText(script)
-                        alert('✅ Fix-all command copied to clipboard!')
+                        setCopied('fix-all-btn'); setTimeout(() => setCopied(null), 2000)
                       }
                     }}
                     style={{
@@ -314,7 +316,7 @@ export default function Analytics() {
                       fontSize: 13
                     }}
                   >
-                    Copy Command
+                    copied === 'fix-all-btn' ? '✓ Copied!' : 'Copy Command'
                   </button>
                 </div>
                 <div className="a-code-block" style={{ fontSize: 12 }}>
