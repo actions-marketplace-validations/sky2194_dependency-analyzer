@@ -8,7 +8,20 @@ import { saveProjectScan } from '../utils/projectStore'
 import normalizeSnapshot from '../utils/normalizeSnapshot'
 
 const SEV_COLOR = { CRITICAL: 'var(--critical)', HIGH: 'var(--high)', MEDIUM: 'var(--medium)', LOW: 'var(--low)' }
-const SEV_DIM = { CRITICAL: 'var(--red-dim)', HIGH: 'var(--yellow-dim)', MEDIUM: 'var(--blue-dim)', LOW: 'var(--green-dim)' }
+const SEV_DIM   = { CRITICAL: 'var(--red-dim)', HIGH: 'var(--yellow-dim)', MEDIUM: 'var(--blue-dim)', LOW: 'var(--green-dim)' }
+const SEV_ICON  = { CRITICAL: '🔴', HIGH: '🟠', MEDIUM: '🟡', LOW: '🟢' }
+
+// Accessible severity badge — icon + label, never color alone
+const SevBadge = ({ sev, style = {} }) => {
+  if (!sev) return null
+  const s = sev.toUpperCase()
+  return (
+    <span className="sev-badge" style={{ background: SEV_DIM[s], color: SEV_COLOR[s], display: 'inline-flex', alignItems: 'center', gap: 4, ...style }}>
+      <span role="img" aria-hidden="true">{SEV_ICON[s]}</span>
+      {s}
+    </span>
+  )
+}
 
 const pkgName = v => v?.package_name || v?.package || ''
 const pkgVersion = v => v?.installed_version || v?.version || ''
@@ -341,7 +354,10 @@ export default function Analytics() {
             <div style={{ display: 'flex', gap: 6, marginBottom: 16, flexWrap: 'wrap' }}>
               {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map(sv => (
                 <button key={sv} onClick={() => setSevFilter(sv)} className={`a-pill ${sevFilter === sv ? 'active' : ''}`}>
-                  {sv === 'ALL' ? `All (${vulnPackages.length})` : `${sv} (${counts[sv] || 0})`}
+                  {sv === 'ALL'
+                    ? `All (${vulnPackages.length})`
+                    : <>{SEV_ICON[sv]} {sv} ({counts[sv] || 0})</>
+                  }
                 </button>
               ))}
             </div>
@@ -368,7 +384,7 @@ export default function Analytics() {
                               </div>
                             )}
                           </div>
-                          <span className="sev-badge" style={{ background: SEV_DIM[topSev], color: SEV_COLOR[topSev] }}>{topSev}</span>
+                          <SevBadge sev={topSev} />
                           <span className="a-muted-mono">{cves.length} CVE{cves.length !== 1 ? 's' : ''}</span>
                           {pkg.recommended_fix && <span style={{ fontSize: 10, color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>Fix available</span>}
                         </div>
@@ -378,7 +394,7 @@ export default function Analytics() {
                               <div key={v.cve_id} data-testid="vulnerability-row" onClick={() => setSelected(selected === v.cve_id ? null : v.cve_id)} className={`a-cve-row ${selected === v.cve_id ? 'selected' : ''}`}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--blue)', fontWeight: 600 }}>{v.cve_id}</span>
-                                  <span data-severity={v.severity} className="sev-badge" style={{ background: SEV_DIM[v.severity], color: SEV_COLOR[v.severity] }}>{v.severity}</span>
+                                  <span data-severity={v.severity}><SevBadge sev={v.severity} /></span>
                                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 700, color: SEV_COLOR[v.severity] }}>CVSS {v.cvss_score}</span>
                                   <span style={{ flex: 1 }} />
                                   {v.fix_version && <span style={{ fontSize: 10, color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>Fix: v{v.fix_version}</span>}
@@ -405,9 +421,10 @@ export default function Analytics() {
                 const has = g.vulnerabilities && g.vulnerabilities.length > 0
                 return (
                   <div key={i} className="a-pkg-row" style={{ borderLeftColor: has ? SEV_COLOR[g.highestSeverity] : 'var(--green)' }}>
-                    <span className="sev-badge" style={{ background: has ? SEV_DIM[g.highestSeverity] : 'var(--green-dim)', color: has ? SEV_COLOR[g.highestSeverity] : 'var(--green)' }}>
-                      {has ? `${g.vulnerabilities.length} CVE${g.vulnerabilities.length > 1 ? 's' : ''}` : 'Secure'}
-                    </span>
+                    {has
+                      ? <SevBadge sev={g.highestSeverity} style={{ fontSize: 10 }} />
+                      : <span className="sev-badge" style={{ background: 'var(--green-dim)', color: 'var(--green)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><span role="img" aria-hidden="true">🟢</span> Secure</span>
+                    }
                     <span className="a-mono-bold">{g.package}</span>
                     <span className="a-muted-mono">v{g.version}</span>
                     <span className={`a-dep-tag ${g.is_direct ? 'direct' : ''}`}>{g.is_direct ? 'DIRECT' : 'TRANSITIVE'}</span>
@@ -491,7 +508,7 @@ export default function Analytics() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
                     <div className="a-fix-num">{i + 1}</div>
                     <span className="a-mono-bold" style={{ flex: 1 }}>{pkgName(v)}</span>
-                    <span className="sev-badge" style={{ background: SEV_DIM[v.severity], color: SEV_COLOR[v.severity] }}>{v.severity}</span>
+                    <SevBadge sev={v.severity} />
                     {v.fix_version && <span style={{ fontSize: 11, color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>v{pkgVersion(v)} &#8594; v{v.fix_version}</span>}
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 8 }}>{v.description}</div>
@@ -508,7 +525,7 @@ export default function Analytics() {
         <div className="a-panel">
           <div className="a-panel-hdr">
             <span>CVE Details</span>
-            {selectedVuln && <span className="sev-badge" style={{ background: SEV_DIM[selectedVuln.severity], color: SEV_COLOR[selectedVuln.severity] }}>{selectedVuln.severity}</span>}
+            {selectedVuln && <SevBadge sev={selectedVuln.severity} />}
             {selectedVuln && <span onClick={() => setSelected(null)} style={{ cursor: 'pointer', color: 'var(--text-muted)', marginLeft: 'auto', fontSize: 14 }} aria-label="Close details">x</span>}
           </div>
           <div style={{ padding: 14 }}>
@@ -561,7 +578,9 @@ export default function Analytics() {
           <div style={{ padding: 14 }}>
             {['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map(sv => (
               <div key={sv} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <span style={{ width: 55, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: 10 }}>{sv}</span>
+                <span style={{ width: 66, color: SEV_COLOR[sv], fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <span role="img" aria-hidden="true">{SEV_ICON[sv]}</span>{sv}
+                </span>
                 <div style={{ flex: 1, height: 6, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${totalVulns > 0 ? ((counts[sv] || 0) / totalVulns) * 100 : 0}%`, background: SEV_COLOR[sv], borderRadius: 3 }} />
                 </div>
