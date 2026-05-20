@@ -12,10 +12,16 @@ export const generateFixAllScript = (fixes, ecosystem) => {
       if (ecosystem === 'pypi') {
         return `${pkg}==${ver}`
       } else if (ecosystem === 'maven') {
-        // Extract artifactId from full coordinate
+        // Extract groupId and artifactId from full coordinate
         const parts = pkg.split(':')
+        const groupId = parts[0] || 'UNKNOWN'
         const artifactId = parts.length > 1 ? parts[1] : pkg
-        return `    <artifactId>${artifactId}</artifactId>\n    <version>${ver}</version>`
+        
+        return `<dependency>
+    <groupId>${groupId}</groupId>
+    <artifactId>${artifactId}</artifactId>
+    <version>${ver}</version>
+</dependency>`
       } else {
         return `${pkg}@${ver}`
       }
@@ -24,11 +30,16 @@ export const generateFixAllScript = (fixes, ecosystem) => {
   if (packages.length === 0) return null
   
   if (ecosystem === 'pypi') {
-    return `pip install ${packages.join(' ')}`
+    return `# ⚠️ Security fixes - test before production deployment
+pip install ${packages.join(' ')}`
   } else if (ecosystem === 'maven') {
-    return `Update versions in pom.xml:\n\n${packages.join('\n\n')}`
+    return `<!-- ⚠️ Security fixes - test before production deployment -->
+<!-- Update these dependencies in your pom.xml -->
+
+${packages.join('\n\n')}`
   } else {
-    return `npm install ${packages.join(' ')}`
+    return `# ⚠️ Security fixes - test before production deployment
+npm install ${packages.join(' ')}`
   }
 }
 

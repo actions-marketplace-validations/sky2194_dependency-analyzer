@@ -297,41 +297,62 @@ export default function Analytics() {
         {tab === 'fixes' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {fixes.length > 0 && (
-              <div style={{ marginBottom: 16, padding: 16, background: 'var(--fix-bg)', border: '1px solid var(--fix-border)', borderRadius: 'var(--radius)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                  <span style={{ fontSize: 18 }}>🔧</span>
+              <div style={{ marginBottom: 16, border: '1px solid var(--fix-border)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+                {/* Header */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'var(--fix-bg)', borderBottom: '1px solid var(--fix-border)' }}>
+                  <span style={{ fontSize: 16 }}>🔧</span>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 4 }}>
-                      Fix All Vulnerabilities
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                      Apply {fixes.length} {fixes.length === 1 ? 'fix' : 'fixes'} with a single command
+                    <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', marginBottom: 2 }}>Fix All Vulnerabilities</div>
+                    <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                      {fixes.length} {fixes.length === 1 ? 'fix' : 'fixes'} available · Run this command in your project root
                     </div>
                   </div>
-                  <button 
+                  <button
                     onClick={() => {
                       const script = generateFixAllScript(fixes, snapshot.ecosystem)
                       if (script) {
                         navigator.clipboard?.writeText(script)
-                        setCopied('fix-all-btn'); setTimeout(() => setCopied(null), 2000)
+                        setCopied('fix-all-btn')
+                        setTimeout(() => setCopied(null), 2000)
                       }
                     }}
                     style={{
-                      padding: '8px 16px',
-                      background: 'var(--green)',
-                      color: 'var(--white)',
-                      border: 'none',
-                      borderRadius: 'var(--radius)',
+                      padding: '6px 14px',
+                      background: copied === 'fix-all-btn' ? 'var(--green)' : 'var(--bg-card)',
+                      color: copied === 'fix-all-btn' ? 'var(--white)' : 'var(--text)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-sm)',
                       fontWeight: 600,
                       cursor: 'pointer',
-                      fontSize: 13
+                      fontSize: 12,
+                      fontFamily: 'var(--font-ui)',
+                      transition: 'all 0.15s ease',
+                      whiteSpace: 'nowrap'
                     }}
                   >
-                    copied === 'fix-all-btn' ? '✓ Copied!' : 'Copy Command'
+                    {copied === 'fix-all-btn' ? '✓ Copied!' : 'Copy Command'}
                   </button>
                 </div>
-                <div className="a-code-block" style={{ fontSize: 12 }}>
-                  <span>{generateFixAllScript(fixes, snapshot.ecosystem)}</span>
+                {/* Warning */}
+                <div style={{ padding: '6px 16px', background: 'var(--warn-bg)', borderBottom: '1px solid var(--warn-border)', fontSize: 11, color: 'var(--yellow)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>⚠️</span>
+                  <span>These are minimum-safe versions. Test in a staging environment before deploying to production — version upgrades may introduce breaking changes.</span>
+                </div>
+                {/* Terminal block */}
+                <div style={{
+                  background: 'var(--code-bg)',
+                  padding: '14px 16px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 12,
+                  lineHeight: 1.8,
+                  color: 'var(--text)',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  overflowX: 'auto',
+                  maxHeight: 200,
+                  overflowY: 'auto'
+                }}>
+                  {generateFixAllScript(fixes, snapshot.ecosystem)}
                 </div>
               </div>
             )}
@@ -425,10 +446,26 @@ export default function Analytics() {
         <div className="a-panel">
           <div className="a-panel-hdr"><span>Risk Insights</span></div>
           <div style={{ padding: '10px 14px', fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.7 }}>
-            <div style={{ marginBottom: 12, padding: '8px 10px', background: 'var(--code-bg)', borderRadius: 6, border: '1px solid var(--border)' }}>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', marginBottom: 4 }}>How Risk Score is Calculated</div>
-              <div style={{ fontSize: 11, lineHeight: 1.6 }}>
-                Uses logarithmic weighting: <span style={{ color: 'var(--critical)' }}>Critical</span> (max 40pts), <span style={{ color: 'var(--high)' }}>High</span> (max 30pts), <span style={{ color: 'var(--medium)' }}>Medium</span> (max 20pts), <span style={{ color: 'var(--low)' }}>Low</span> (max 10pts). More vulnerabilities increase score with diminishing returns to avoid immediate cap.
+            <div style={{ marginBottom: 12, padding: '10px 12px', background: 'var(--code-bg)', borderRadius: 6, border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>How Risk Score is Calculated</div>
+              {/* Severity weight bars */}
+              {[
+                { label: 'Critical', color: 'var(--critical)', pts: 40, weight: '10 pts each', count: counts.CRITICAL },
+                { label: 'High',     color: 'var(--high)',     pts: 30, weight: '7 pts each',  count: counts.HIGH },
+                { label: 'Medium',   color: 'var(--medium)',   pts: 20, weight: '4 pts each',  count: counts.MEDIUM },
+                { label: 'Low',      color: 'var(--low)',      pts: 10, weight: '1 pt each',   count: counts.LOW },
+              ].map(({ label, color, pts, weight, count }) => (
+                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
+                  <span style={{ width: 52, fontSize: 10, color, fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{label}</span>
+                  <div style={{ flex: 1, height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${pts}%`, background: color, borderRadius: 2, opacity: 0.85 }} />
+                  </div>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', width: 62, textAlign: 'right' }}>{weight}</span>
+                  <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', fontWeight: 700, color, width: 16, textAlign: 'right' }}>{count}</span>
+                </div>
+              ))}
+              <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)', fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.6 }}>
+                Score uses <strong style={{ color: 'var(--text-secondary)' }}>diminishing returns</strong> — adding more CVEs increases score but never instantly reaches 100. A score of {riskScore}/100 means your project has significant exposure and should be prioritised.
               </div>
             </div>
             {vulnPackages.length > 0 && (
