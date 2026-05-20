@@ -43,6 +43,17 @@ export default function Analytics() {
   
   const result = locationState?.result
 
+
+  // Auto-save scan to project history
+  useEffect(() => {
+    if (result?.summary && result?.project_name) {
+      try {
+        saveProjectScan(result.project_name, result)
+      } catch (error) {
+        console.error('Failed to save scan to history:', error)
+      }
+    }
+  }, [result])
   useEffect(() => {
     const h = e => { if (exportRef.current && !exportRef.current.contains(e.target)) setShowExportMenu(false) }
     document.addEventListener('mousedown', h)
