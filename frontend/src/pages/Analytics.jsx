@@ -47,6 +47,7 @@ export default function Analytics() {
   const [pkgPage, setPkgPage] = useState(1)
   const [pkgSearch, setPkgSearch] = useState('')
   const [showRiskModal, setShowRiskModal] = useState(false)
+  const [exportStatus, setExportStatus] = useState(null) // 'loading' | 'error' | 'success'
   const exportRef = useRef(null)
   
   const handleCopy = (text, id) => {
@@ -83,10 +84,8 @@ export default function Analytics() {
     )
   }
 
-  const [activeTransactionId] = useState(result.transaction_id)
   let snapshot
   try {
-    if (result.transaction_id !== activeTransactionId) throw new Error('STALE TRANSACTION')
     validateContract(Object.freeze(result))
     snapshot = normalizeSnapshot(result)
   } catch (error) {
@@ -128,8 +127,6 @@ export default function Analytics() {
   const toggleExpand = pkg => { const n = new Set(expanded); n.has(pkg) ? n.delete(pkg) : n.add(pkg); setExpanded(n) }
   const riskColor = SEV_COLOR[riskLabel?.toUpperCase()] || 'var(--critical)'
   const riskDim = SEV_DIM[riskLabel?.toUpperCase()] || 'var(--red-dim)'
-
-  const [exportStatus, setExportStatus] = useState(null) // 'loading' | 'error' | 'success'
 
   const exportReport = async (type) => {
     setExportStatus('loading')
