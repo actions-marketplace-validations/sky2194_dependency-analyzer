@@ -47,7 +47,6 @@ export default function Analytics() {
   const [pkgPage, setPkgPage] = useState(1)
   const [pkgSearch, setPkgSearch] = useState('')
   const [showRiskModal, setShowRiskModal] = useState(false)
-  const [exportStatus, setExportStatus] = useState(null) // 'loading' | 'error' | 'success'
   const exportRef = useRef(null)
   
   const handleCopy = (text, id) => {
@@ -74,6 +73,9 @@ export default function Analytics() {
     document.addEventListener('mousedown', h)
     return () => document.removeEventListener('mousedown', h)
   }, [])
+
+  // exportStatus must be above all conditional returns (React hook rules)
+  const [exportStatus, setExportStatus] = useState(null) // 'loading' | 'error' | 'success'
 
   if (!result) {
     return (

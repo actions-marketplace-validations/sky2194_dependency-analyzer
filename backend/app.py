@@ -498,35 +498,46 @@ def scan_package_deep():
         
         log.info(f"Deep scan complete: {package_name} ({ecosystem}) — {len(vulnerabilities)} vulns in {_count_packages(graph_deps)} packages")
         
-        # Calculate risk score
+        # Calculate risk score using same logarithmic model as /api/scan
+        import math
         counts = {'CRITICAL': 0, 'HIGH': 0, 'MEDIUM': 0, 'LOW': 0}
         for v in vulnerabilities:
             sev = v.get('severity', 'LOW')
             if sev in counts:
                 counts[sev] += 1
-        import math as _math
-        crit_impact = 40 * (1 - _math.exp(-counts['CRITICAL'] / 3)) if counts['CRITICAL'] > 0 else 0
-        high_impact = 30 * (1 - _math.exp(-counts['HIGH'] / 5)) if counts['HIGH'] > 0 else 0
-        med_impact  = 20 * (1 - _math.exp(-counts['MEDIUM'] / 8)) if counts['MEDIUM'] > 0 else 0
-        low_impact  = 10 * (1 - _math.exp(-counts['LOW'] / 10)) if counts['LOW'] > 0 else 0
+        crit_impact = 40 * (1 - math.exp(-counts['CRITICAL'] / 3)) if counts['CRITICAL'] > 0 else 0
+        high_impact = 30 * (1 - math.exp(-counts['HIGH']     / 5)) if counts['HIGH']     > 0 else 0
+        med_impact  = 20 * (1 - math.exp(-counts['MEDIUM']   / 8)) if counts['MEDIUM']   > 0 else 0
+        low_impact  = 10 * (1 - math.exp(-counts['LOW']      /10)) if counts['LOW']      > 0 else 0
         risk_score  = min(100, round(crit_impact + high_impact + med_impact + low_impact))
-        if risk_score >= 90:
-            risk_label = 'Critical'
-        elif risk_score >= 70:
-            risk_label = 'High'
-        elif risk_score >= 40:
-            risk_label = 'Medium'
-        elif risk_score >= 1:
-            risk_label = 'Low'
-        else:
-            risk_label = 'Secure'
+        risk_label  = 'Critical' if risk_score >= 90 else 'High' if risk_score >= 70 else 'Medium' if risk_score >= 40 else 'Low'
 
-        # Group vulnerabilities by package for frontend display
+        # Build grouped_packages to satisfy frontend contract
         grouped_vulns = group_vulns_by_package(vulnerabilities)
-        total_packages = _count_packages(graph_deps)
-        all_packages = _build_all_packages(graph_deps, grouped_vulns)
-        vulnerable_direct_count = len([p for p in all_packages if p.get('vulnerabilities') and p.get('is_direct')])
-        vulnerable_transitive_count = len([p for p in all_packages if p.get('vulnerabilities') and not p.get('is_direct')])
+        grouped_packages = []
+        for pkg_name_key, pkg_vulns in grouped_vulns.items():
+            sevs = [v.get('severity', 'LOW') for v in pkg_vulns]
+            highest = next((s for s in ['CRITICAL','HIGH','MEDIUM','LOW'] if s in sevs), 'LOW')
+            grouped_packages.append({
+                'package': pkg_name_key,
+                'version': pkg_vulns[0].get('installed_version', ''),
+                'is_direct': True,
+                'vulnerabilities': pkg_vulns,
+                'highestSeverity': highest,
+                'recommended_fix': next((v.get('fix_version') for v in pkg_vulns if v.get('fix_version')), None),
+            })
+
+        # Build fixes list
+        fixes = []
+        seen_fix = set()
+        for v in vulnerabilities:
+            p = v.get('package_name', v.get('package', ''))
+            if v.get('fix_version') and p not in seen_fix:
+                seen_fix.add(p)
+                fixes.append(v)
+
+        vuln_direct     = len(grouped_vulns)
+        vuln_transitive = 0
 
         return jsonify({
             'transaction_id': str(uuid.uuid4()),
@@ -537,22 +548,22 @@ def scan_package_deep():
             'summary': {
                 'risk_score': risk_score,
                 'risk_label': risk_label,
-                'total_packages': total_packages,
+                'total_packages': _count_packages(graph_deps),
                 'direct_dependencies': len([d for d in direct_deps if d.get('type') != 'transitive']),
-                'transitive_dependencies': total_packages - len([d for d in direct_deps if d.get('type') != 'transitive']),
+                'transitive_dependencies': _count_packages(graph_deps) - len([d for d in direct_deps if d.get('type') != 'transitive']),
                 'vulnerabilities': len(vulnerabilities),
                 'critical': counts['CRITICAL'],
                 'high': counts['HIGH'],
                 'medium': counts['MEDIUM'],
                 'low': counts['LOW'],
-                'secure_package_count': total_packages - len(grouped_vulns),
+                'secure_package_count': _count_packages(graph_deps) - len(grouped_vulns),
                 'vulnerable_package_count': len(grouped_vulns),
-                'vulnerable_direct_count': vulnerable_direct_count,
-                'vulnerable_transitive_count': vulnerable_transitive_count,
+                'vulnerable_direct_count': vuln_direct,
+                'vulnerable_transitive_count': vuln_transitive,
                 'priority_fix_count': counts['CRITICAL'] + counts['HIGH'],
             },
-            'grouped_packages': all_packages,
-            'fixes': [v for v in vulnerabilities if v.get('fix_version')],
+            'grouped_packages': grouped_packages,
+            'fixes': fixes,
             'vulnerabilities': vulnerabilities,
             'graph': graph,
             'dependency_tree': graph,

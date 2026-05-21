@@ -44,7 +44,7 @@ def parse(content):
         # Reject lines with obvious XSS attempts before matching
         if any(char in line.lower() for char in ['<script', '</script>', 'javascript:', 'onerror', 'onload']):
             continue
-        # Reject lines with shell metacharacters (> and < are valid PEP 440 version specifiers, so excluded)
+        # Reject lines with shell metacharacters (not > or < — valid PEP 440 version specifiers)
         if any(char in line for char in ['|', '`', '$', ';', '&']):
             continue
         match = re.match(r'^([A-Za-z0-9_\-\.]+)\s*[=><~!]+\s*([A-Za-z0-9_\.\-]+)', line)
