@@ -4,7 +4,7 @@ import API_BASE from '../config'
 import DependencyGraph from '../components/DependencyGraph'
 import validateContract from '../utils/validateSnapshot'
 import { generateFixAllScript } from '../utils/fixAll'
-import { saveProjectScan } from '../utils/projectStore'
+import { saveProjectScan, getProjectScans } from '../utils/projectStore'
 import normalizeSnapshot from '../utils/normalizeSnapshot'
 
 const SEV_COLOR = { CRITICAL: 'var(--critical)', HIGH: 'var(--high)', MEDIUM: 'var(--medium)', LOW: 'var(--low)' }
@@ -34,6 +34,111 @@ const installCmd = (v, eco = 'npm') => {
 }
 
 const PAGE_SIZE = 20
+
+function AllClearHero({ snapshot, totalPkgs, directDeps, transitiveDeps, navigate }) {
+  const [copied, setCopied] = useState(false)
+
+  const history = getProjectScans(snapshot.project_name || '')
+  const lastDirtyScan = history.find(s => (s.summary?.vulnerabilities || 0) > 0)
+  const cleanDays = lastDirtyScan
+    ? Math.floor((Date.now() - lastDirtyScan.timestamp) / 86400000)
+    : null
+
+  const badgeMd = `![Security: All Clear](https://img.shields.io/badge/security-all%20clear%20%E2%9C%93-brightgreen?style=flat-square)`
+
+  const copyBadge = () => {
+    navigator.clipboard?.writeText(badgeMd)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2500)
+  }
+
+  return (
+    <div style={{ height: 'calc(100vh - 52px)', overflowY: 'auto', padding: '40px 20px' }}>
+      <div style={{ maxWidth: 660, margin: '0 auto' }}>
+
+        {/* Hero card */}
+        <div style={{
+          background: 'linear-gradient(145deg, var(--fix-bg) 0%, var(--bg-card) 70%)',
+          border: '1px solid var(--fix-border)', borderRadius: 20,
+          padding: '52px 40px 44px', textAlign: 'center', marginBottom: 16,
+          position: 'relative', overflow: 'hidden',
+          animation: 'fadeIn 0.4s ease forwards',
+        }}>
+          <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, borderRadius: '50%', border: '1px solid var(--fix-border)', opacity: 0.3, pointerEvents: 'none' }} />
+          <div style={{ position: 'absolute', top: -24, right: -24, width: 120, height: 120, borderRadius: '50%', border: '1px solid var(--fix-border)', opacity: 0.3, pointerEvents: 'none' }} />
+
+          <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--fix-bg)', border: '2px solid var(--fix-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 22px', fontSize: 34 }}>
+            🛡️
+          </div>
+
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 42, fontWeight: 800, color: 'var(--green)', marginBottom: 10, letterSpacing: -0.8 }}>
+            All Clear!
+          </h1>
+
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: '0 auto 32px', lineHeight: 1.7, maxWidth: 460 }}>
+            <strong style={{ color: 'var(--text)' }}>{totalPkgs} packages</strong> scanned
+            {transitiveDeps > 0 && <> ({directDeps} direct + {transitiveDeps} transitive)</>}
+            {' '}— <strong style={{ color: 'var(--green)' }}>no known vulnerabilities</strong>.
+          </p>
+
+          {/* Stats */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 36, marginBottom: 28 }}>
+            {[
+              { value: totalPkgs, label: 'Packages', color: 'var(--blue)' },
+              { value: '0',       label: 'CVEs',     color: 'var(--green)' },
+              { value: '0/100',   label: 'Risk',     color: 'var(--green)' },
+            ].map(({ value, label, color }) => (
+              <div key={label}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 30, fontWeight: 700, color, lineHeight: 1 }}>{value}</div>
+                <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 5 }}>{label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Clean-for-X-days — only shown when project has prior scan history */}
+          {cleanDays !== null && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'var(--bg-elevated)', border: '1px solid var(--fix-border)', borderRadius: 20, padding: '5px 16px', marginBottom: 28, fontSize: 12, color: 'var(--text-secondary)' }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)', display: 'inline-block', boxShadow: '0 0 6px var(--green)' }} />
+              Clean for{' '}
+              <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700, color: 'var(--green)' }}>
+                {cleanDays === 0 ? 'less than a day' : `${cleanDays} ${cleanDays === 1 ? 'day' : 'days'}`}
+              </span>
+              {cleanDays > 0 && ` — last CVE found ${cleanDays === 1 ? 'yesterday' : `${cleanDays} days ago`}`}
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+            <button onClick={() => navigate('/scan')} className="a-btn-primary">Scan Another →</button>
+            <button onClick={() => navigate('/history')} className="a-btn">View History</button>
+          </div>
+        </div>
+
+        {/* Brag badge */}
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '20px 24px', animation: 'fadeIn 0.4s ease 0.15s both' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, color: 'var(--text-primary)', marginBottom: 4 }}>
+            Brag about it
+          </div>
+          <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginBottom: 14, lineHeight: 1.6 }}>
+            Drop this badge in your README — show the world your project is clean.
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '10px 14px', marginBottom: 12 }}>
+            <span style={{ flexShrink: 0, background: '#238636', color: '#fff', borderRadius: 4, padding: '2px 8px', fontFamily: 'var(--font-mono)', fontSize: 11, whiteSpace: 'nowrap' }}>
+              security: all clear ✓
+            </span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
+              {badgeMd}
+            </span>
+          </div>
+
+          <button onClick={copyBadge} style={{ padding: '8px 18px', fontWeight: 600, fontSize: 12, background: copied ? 'var(--green)' : 'var(--bg-elevated)', color: copied ? 'var(--white)' : 'var(--text)', border: `1px solid ${copied ? 'var(--green)' : 'var(--border)'}`, borderRadius: 'var(--radius)', cursor: 'pointer', transition: 'all 0.2s ease', fontFamily: 'var(--font-ui)' }}>
+            {copied ? '✓ Copied to clipboard!' : 'Copy Badge Markdown'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function Analytics() {
   const { state: locationState } = useLocation()
@@ -154,6 +259,18 @@ export default function Analytics() {
       setExportStatus('error')
       setTimeout(() => setExportStatus(null), 3000)
     }
+  }
+
+  if (totalPkgs > 0 && vulnPackages.length === 0) {
+    return (
+      <AllClearHero
+        snapshot={snapshot}
+        totalPkgs={totalPkgs}
+        directDeps={directDeps}
+        transitiveDeps={transitiveDeps}
+        navigate={navigate}
+      />
+    )
   }
 
   const Paginator = ({ page, pages, setPage, total, label }) => {
