@@ -73,6 +73,5 @@ playwright/.auth/
 *.trace
 *.webm
 
-
-.txt
+*.txt
 *txt*
