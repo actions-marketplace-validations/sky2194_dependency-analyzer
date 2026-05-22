@@ -72,3 +72,7 @@ playwright/.cache/
 playwright/.auth/
 *.trace
 *.webm
+
+
+.txt
+*txt*
