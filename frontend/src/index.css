@@ -810,3 +810,13 @@ body {
   .a-tabs { gap: 4px; overflow-x: auto; padding-bottom: 2px; }
   .a-tab { font-size: 11px; padding: 6px 10px; white-space: nowrap; }
 }
+
+/* ── Font size tokens ────────────────────────────────────────────────────── */
+:root {
+  --t-h1: 28px;
+  --t-h2: 20px;
+  --t-h3: 15px;
+  --t-body: 14px;
+  --t-sm: 12px;
+  --t-xs: 11px;
+}
