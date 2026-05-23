@@ -24,7 +24,7 @@ export default function Compare() {
       
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 28 }}>
         <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 20, textAlign: 'center' }}>
-          🚧 Compare view coming soon
+          Compare view coming soon
         </div>
         <div style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center' }}>
           This feature will show side-by-side comparison of:

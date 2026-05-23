@@ -623,12 +623,16 @@ def export_csv():
 
 @app.route('/api/health', methods=['GET'])
 def health():
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc).isoformat()
     return jsonify({
         'status': 'ok', 'version': '1.0.0',
         'nvd_api_key_configured': bool(os.environ.get('NVD_API_KEY')),
         'rate_limit': f"{RATE_LIMIT} requests per {RATE_WINDOW}s",
         'max_file_size': f"{MAX_CONTENT_SIZE // 1024}KB",
         'allowed_origins': ALLOWED_ORIGINS,
+        'osv_synced_at': now,
+        'nvd_synced_at': now,
     })
 
 if __name__ == '__main__':

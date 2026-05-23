@@ -1,6 +1,6 @@
 const ECOSYSTEMS = {
   npm: {
-    label: 'npm', lang: 'JavaScript / Node.js', color: '#cc3700', icon: '📦',
+    label: 'npm', lang: 'JavaScript / Node.js', color: '#cc3700',
     file: 'package.json',
     mediationRule: 'Nearest depth wins — the version closest to the root of the dependency tree is selected. Equal depth = first declaration wins.',
     mediationFix: 'Add the safe version directly to package.json (overrides transitive). Or use npm overrides field.',
@@ -13,6 +13,7 @@ const ECOSYSTEMS = {
       winner: '4.17.4', winReason: 'depth 1 beats depth 3',
       danger: 'The safe version (4.17.21) lost because it was deeper in the tree. The vulnerable version was declared directly.'
     },
+    cvePathExample: ['my-app', 'express', 'body-parser', 'lodash (CVE)'],
     sampleContent: `{
   "dependencies": {
     "express": "4.17.1",
@@ -23,7 +24,7 @@ const ECOSYSTEMS = {
 }`
   },
   pypi: {
-    label: 'PyPI', lang: 'Python', color: '#3572a5', icon: '🐍',
+    label: 'PyPI', lang: 'Python', color: '#3572a5',
     file: 'requirements.txt',
     mediationRule: 'pip uses the first matching version found in the resolution order. Conflicts raise errors unless you use pip-compile or poetry.',
     mediationFix: 'Pin the safe version explicitly in requirements.txt. Use pip-compile (pip-tools) or poetry to resolve conflicts deterministically.',
@@ -36,6 +37,7 @@ const ECOSYSTEMS = {
       winner: '1.26.2', winReason: 'requests declared first in requirements.txt',
       danger: 'urllib3@1.26.2 has CVE-2021-33503. boto3 needed 1.26.18 (safe) but requests was listed first.'
     },
+    cvePathExample: ['my-app', 'requests', 'urllib3', 'pyyaml (CVE)'],
     sampleContent: `Django==3.0.0
 requests==2.25.0
 boto3==1.17.0
@@ -43,7 +45,7 @@ Pillow==8.0.0
 urllib3==1.26.2`
   },
   maven: {
-    label: 'Maven', lang: 'Java', color: '#b07219', icon: '☕',
+    label: 'Maven', lang: 'Java', color: '#b07219',
     file: 'pom.xml',
     mediationRule: 'First declaration wins — whichever dependency is declared first in pom.xml (or closest to root in the tree) wins. Depth is secondary to declaration order.',
     mediationFix: 'Use <dependencyManagement> section to explicitly lock the safe version. This overrides all transitive version requests.',
@@ -56,6 +58,7 @@ urllib3==1.26.2`
       winner: '2.9.8', winReason: 'first declaration at equal depth wins',
       danger: 'jackson-databind@2.9.8 has CVE-2019-14379. spring-boot needed 2.11.0 (safe) but some-library was declared first in pom.xml so its version won.'
     },
+    cvePathExample: ['my-app', 'spring-boot', 'spring-web', 'jackson-databind (CVE)'],
     sampleContent: `<dependencies>
   <dependency>
     <groupId>org.springframework.boot</groupId>
@@ -72,7 +75,7 @@ urllib3==1.26.2`
 }
 
 export const LOCKFILE_ECO = {
-  label: 'Lock File', lang: 'npm (exact versions)', color: '#6366f1', icon: '🔒',
+  label: 'Lock File', lang: 'npm (exact versions)', color: '#6366f1',
   file: 'package-lock.json',
   mediationRule: 'No mediation needed — lock files contain already-resolved exact versions. Fastest and most accurate scan.',
   mediationFix: 'Lock files are the source of truth. No conflicts to resolve.',

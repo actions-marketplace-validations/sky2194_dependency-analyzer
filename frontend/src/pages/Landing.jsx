@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { DATA_SOURCE_SHORT, DATA_SOURCE_DETAIL, DATA_SOURCE_FOOTER } from '../data/dataSources'
 
 const shield = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--white)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -124,11 +125,11 @@ export default function Landing() {
           {/* Prompt 2: Trust strip */}
           <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap', marginTop:28 }}>
             {[
-              '🛡 Powered by OSV · NVD fallback',
-              '🔒 No data stored',
-              '✓ OWASP-aligned',
-              '⚡ Rate-limited API',
-              '🔓 Open source',
+              DATA_SOURCE_FOOTER,
+              'No data stored',
+              'OWASP-aligned',
+              'Rate-limited API',
+              'Open source',
             ].map(t => (
               <span key={t} style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, color:'var(--text-secondary)', background:'var(--bg-elevated)', border:'1px solid var(--border)', borderRadius:999, padding:'4px 12px', fontWeight:500 }}>
                 {t}
@@ -152,9 +153,9 @@ export default function Landing() {
         </div>
         <div className="lp-problem-grid">
           {[
-            ['80%+', 'Of CVEs in transitive deps', 'Packages you never installed directly carry the most risk. Most security tools only scan your direct dependencies, missing the real attack surface.'],
-            ['60d', 'Average time-to-patch for teams', 'Without clear fix guidance — just CVSS scores and CVE IDs — teams lack the context to prioritize. Alerts pile up. Critical issues get buried.'],
-            ['245k+', 'Malicious packages detected in 2024', 'Log4Shell affected 70%+ of JVM applications — most teams didn\'t even know they shipped log4j. It hid as a transitive dependency, invisible to standard audits. (Source: Sonatype SSSC Report 2024)'],
+            ['80%+', 'Of CVEs in transitive deps', 'Packages you never installed directly carry the most risk. Most security tools only scan your direct dependencies, missing the real attack surface. (Source: Sonatype SSSC Report 2024)'],
+            ['60d', 'Average time-to-patch for teams', 'Without clear fix guidance — just CVSS scores and CVE IDs — teams lack the context to prioritize. Alerts pile up. Critical issues get buried. (Source: industry analysis)'],
+            ['245k+', 'Malicious packages detected in 2024', 'Log4Shell hid as a transitive dependency in 70%+ of affected JVM applications — most teams didn\'t even know they shipped log4j. It was invisible to standard audits. (Source: Sonatype SSSC Report 2024)'],
           ].map(([num, title, text], i) => (
             <div className={`lp-problem-card reveal reveal-delay-${i + 1}`} key={num}>
               <div className="lp-problem-num">{num}</div>
@@ -231,13 +232,13 @@ export default function Landing() {
         </div>
         <div className="lp-features-grid">
           {[
-            ['🗺️','Dependency Graph Intelligence','Visualize your full dependency tree with blast radius encoding — node size shows how many downstream CVEs are reachable through each package. The graph most scanners never show you.'],
-            ['🔬','Transitive Risk Tracing','Traverses the full dependency tree to catch CVEs in packages you never explicitly installed — where 80%+ of real-world vulnerabilities hide.'],
-            ['⚖️','Dependency Mediation Explainer','See exactly why a vulnerable version was selected — which parent pulled it in, and which version bump removes it. Unique to DepAnalyzer.'],
-            ['🧠','Logarithmic Risk Scoring','Weighs severity counts with diminishing returns into a transparent 0–100 risk score. Click to see the exact calculation for your scan.'],
-            ['⚡','Actionable Fix Commands','Per-CVE install commands and batch fix-all commands in the correct format for each ecosystem — ready to run.'],
-            ['📋','PDF + CSV Export','Download scan results as structured reports. Share with your team or attach to security reviews.'],
-          ].map(([icon, title, text], i) => <div className={`lp-feat-card reveal reveal-delay-${(i % 3) + 1}`} key={title}><div className="lp-feat-icon">{icon}</div><div className="lp-feat-title">{title}</div><div className="lp-feat-text">{text}</div></div>)}
+            ['Dependency Graph Intelligence','Visualize your full dependency tree with blast radius encoding — node size shows how many downstream CVEs are reachable through each package. The graph most scanners never show you.'],
+            ['Transitive Risk Tracing','Traverses the full dependency tree to catch CVEs in packages you never explicitly installed — where 80%+ of real-world vulnerabilities hide.'],
+            ['Dependency Mediation Explainer','See exactly why a vulnerable version was selected — which parent pulled it in, and which version bump removes it. Unique to DepAnalyzer.'],
+            ['Logarithmic Risk Scoring','Weighs severity counts with diminishing returns into a transparent 0–100 risk score. Click to see the exact calculation for your scan.'],
+            ['Actionable Fix Commands','Per-CVE install commands and batch fix-all commands in the correct format for each ecosystem — ready to run.'],
+            ['PDF + CSV Export','Download scan results as structured reports. Share with your team or attach to security reviews.'],
+          ].map(([title, text], i) => <div className={`lp-feat-card reveal reveal-delay-${(i % 3) + 1}`} key={title}><div className="lp-feat-title">{title}</div><div className="lp-feat-text">{text}</div></div>)}
         </div>
       </section>
 
@@ -251,15 +252,14 @@ export default function Landing() {
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))', gap:12 }}>
           {[
-            ['🔒','No data stored','Your manifest is parsed in-memory and discarded. Package names, filenames, and registry URLs are never persisted.'],
-            ['🛡','Powered by OSV · NVD fallback','CVE data sourced from OSV on every scan. NVD queried as fallback when OSV data is incomplete.'],
-            ['⚡','Rate-limited API','All endpoints are rate-limited and input-validated. No request data is logged.'],
-            ['🔍','OWASP-aligned','Input sanitisation follows OWASP validation standards. XSS and injection protections on all user inputs.'],
-            ['📦','3 ecosystems','npm, PyPI, and Maven — with automatic ecosystem detection from filename.'],
-            ['🔓','Open source','Full source available on GitHub. Audit the code yourself.'],
-          ].map(([icon,title,text]) => (
+            ['No data stored','Your manifest is parsed in-memory and discarded. Package names, filenames, and registry URLs are never persisted.'],
+            ['Powered by OSV · NVD fallback','CVE data sourced from OSV on every scan. NVD queried as fallback when OSV data is incomplete.'],
+            ['Rate-limited API','All endpoints are rate-limited and input-validated. No request data is logged.'],
+            ['OWASP-aligned','Input sanitisation follows OWASP validation standards. XSS and injection protections on all user inputs.'],
+            ['3 ecosystems','npm, PyPI, and Maven — with automatic ecosystem detection from filename.'],
+            ['Open source','Full source available on GitHub. Audit the code yourself.'],
+          ].map(([title,text]) => (
             <div key={title} style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:10, padding:'14px 16px' }}>
-              <div style={{ fontSize:18, marginBottom:6 }}>{icon}</div>
               <div style={{ fontWeight:700, fontSize:12, color:'var(--text-primary)', marginBottom:4 }}>{title}</div>
               <div style={{ fontSize:11, color:'var(--text-muted)', lineHeight:1.5 }}>{text}</div>
             </div>

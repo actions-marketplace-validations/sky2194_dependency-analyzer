@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, NavLink } from 'react-router-dom'
 import { createContext, useContext, useState, useEffect } from 'react'
+import axios from 'axios'
 import Landing from './pages/Landing'
 import Dashboard from './pages/Dashboard'
 import Scanning from './pages/Scanning'
@@ -8,6 +9,7 @@ import Learn from './pages/Learn'
 import History from './pages/History'
 import Compare from './pages/Compare'
 import ErrorBoundary from './components/ErrorBoundary'
+import API_BASE from './config'
 
 export const ScanContext = createContext({ scanning: false, scanProject: '', setScanning: () => {}, setScanProject: () => {} })
 export const useScan = () => useContext(ScanContext)
@@ -20,6 +22,7 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', savedTheme)
     return savedTheme
   })
+  const [healthStatus, setHealthStatus] = useState(null)
   const location = useLocation()
   const isLanding = location.pathname === '/'
 
@@ -30,6 +33,47 @@ export default function App() {
   }
 
   useEffect(() => { document.documentElement.setAttribute('data-theme', theme) }, [theme])
+
+  useEffect(() => {
+    const fetchHealth = async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/health`)
+        setHealthStatus(res.data)
+      } catch (err) {
+        console.error('Health check failed:', err)
+      }
+    }
+    fetchHealth()
+    const interval = setInterval(fetchHealth, 60000) // Poll every minute
+    return () => clearInterval(interval)
+  }, [])
+
+  const getRelativeTime = (isoString) => {
+    if (!isoString) return 'Unknown'
+    const now = new Date()
+    const then = new Date(isoString)
+    const diffMs = now - then
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'Just now'
+    if (diffMins < 60) return `${diffMins}m ago`
+    if (diffHours < 24) return `${diffHours}h ago`
+    return `${diffDays}d ago`
+  }
+
+  const getSyncColor = (isoString) => {
+    if (!isoString) return 'var(--text-muted)'
+    const now = new Date()
+    const then = new Date(isoString)
+    const diffMs = now - then
+    const diffMins = Math.floor(diffMs / 60000)
+
+    if (diffMins < 30) return 'var(--green)'
+    if (diffMins < 120) return 'var(--yellow)'
+    return 'var(--red)'
+  }
 
 
   return (
@@ -60,9 +104,11 @@ export default function App() {
               ))}
               <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                 {/* OSV freshness indicator — highest-converting trust signal for a security tool */}
-                <div title="OSV is updated continuously. NVD has multi-hour lag." style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', background: 'var(--green-dim)', border: '1px solid var(--fix-border)', borderRadius: 5, cursor: 'default' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', display: 'inline-block' }} />
-                  <span style={{ fontSize: 10, color: 'var(--green)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>OSV live</span>
+                <div title={`Last successful sync from OSV: ${healthStatus?.osv_synced_at || 'Unknown'}`} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', background: 'var(--green-dim)', border: '1px solid var(--fix-border)', borderRadius: 5, cursor: 'default' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: getSyncColor(healthStatus?.osv_synced_at), display: 'inline-block' }} />
+                  <span style={{ fontSize: 10, color: getSyncColor(healthStatus?.osv_synced_at), fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
+                    OSV {healthStatus?.osv_synced_at ? getRelativeTime(healthStatus.osv_synced_at) : 'live'}
+                  </span>
                 </div>
                 {scanning && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--brand-dim)', border: '1px solid var(--brand)', borderRadius: 6, padding: '4px 10px', color: 'var(--brand)', fontSize: 11, fontFamily: 'var(--font-mono)' }}>

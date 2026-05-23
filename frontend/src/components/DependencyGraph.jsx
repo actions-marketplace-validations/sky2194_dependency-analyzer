@@ -303,7 +303,7 @@ export default function DependencyGraph({ data }) {
             <div style={{ display:'flex', gap:6 }}>
               {!isolatedNode && (
                 <button onClick={() => { setIsolatedNode(selData.name) }}
-                  style={{ padding:'5px 11px', background:'var(--orange-dim)', border:'1px solid var(--accent)', borderRadius:6, color:'var(--accent)', cursor:'pointer', fontSize:11, fontWeight:600 }}>
+                  style={{ padding:'5px 11px', background:'var(--brand-dim)', border:'1px solid var(--accent)', borderRadius:6, color:'var(--accent)', cursor:'pointer', fontSize:11, fontWeight:600 }}>
                   ⬡ Isolate Subtree
                 </button>
               )}
@@ -355,7 +355,7 @@ export default function DependencyGraph({ data }) {
 
           {/* Root node */}
           <g style={{ cursor:'pointer' }} onClick={e => handleClick(root.name, e)}>
-            <circle cx={root.x} cy={root.y} r={NODE_R+4} fill="var(--orange-dim)" stroke="var(--accent)" strokeWidth={selectedNode===root.name?3:2} opacity={isLit(root.name)?1:0.15} />
+            <circle cx={root.x} cy={root.y} r={NODE_R+4} fill="var(--brand-dim)" stroke="var(--accent)" strokeWidth={selectedNode===root.name?3:2} opacity={isLit(root.name)?1:0.15} />
             <text x={root.x} y={root.y+4} fontSize="10" fill="var(--accent)" textAnchor="middle" fontWeight="700">ROOT</text>
             <text x={root.x} y={root.y+NODE_R+18} fontSize="12" fill="var(--text-primary)" textAnchor="middle" fontWeight="700">{root.name}</text>
             <text x={root.x} y={root.y+NODE_R+30} fontSize="10" fill="var(--text-muted)" textAnchor="middle">{root.version}</text>

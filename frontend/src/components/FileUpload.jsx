@@ -40,7 +40,7 @@ export default function FileUpload({ onAnalyze, loading, onEcosystemChange }) {
 
   return (
     <div>
-      <StepBanner icon="📂" title="Upload your dependency file"
+      <StepBanner title="Upload your dependency file"
         text={<>Your <Tooltip termKey="dependency">dependency</Tooltip> file lists every package your project uses. We parse it, build the full <Tooltip termKey="graph">dependency graph</Tooltip> including <Tooltip termKey="transitive">transitive dependencies</Tooltip>, then check each against the <Tooltip termKey="osv">OSV</Tooltip> vulnerability database.</>}
       />
 
@@ -51,7 +51,7 @@ export default function FileUpload({ onAnalyze, loading, onEcosystemChange }) {
           return (
             <button key={key} onClick={() => { setActiveEco(key); setContent(''); onEcosystemChange?.(e) }}
               style={{ flex: 1, padding: '10px 0', border: 'none', borderRight: key !== 'maven' ? '1px solid var(--border)' : 'none', background: active ? 'var(--surface2)' : 'var(--surface)', color: active ? e.color : 'var(--muted)', cursor: 'pointer', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 12, borderBottom: active ? `2px solid ${e.color}` : '2px solid transparent', transition: 'all 0.15s' }}>
-              {e.icon} {e.label}
+              {e.label}
               <div style={{ fontSize: 10, fontWeight: 400, color: 'var(--muted)', marginTop: 2 }}>{e.file}</div>
             </button>
           )
@@ -64,7 +64,6 @@ export default function FileUpload({ onAnalyze, loading, onEcosystemChange }) {
         onDragOver={e => { e.preventDefault(); setDrag(true) }}
         onDragLeave={() => setDrag(false)}
         style={{ border: `2px dashed ${drag ? 'var(--accent)' : 'var(--border)'}`, borderRadius: 'var(--radius)', padding: '16px', textAlign: 'center', cursor: 'pointer', background: drag ? 'var(--vuln-bg)' : 'var(--surface)', marginBottom: 10, transition: 'all 0.2s' }}>
-        <div style={{ fontSize: 20, marginBottom: 4 }}>📁</div>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Drop file or click to browse</div>
         <div style={{ color: 'var(--muted)', fontSize: 11, marginTop: 2 }}>package.json / package-lock.json · requirements.txt · pom.xml</div>
         <input ref={ref} type="file" hidden accept=".json,.txt,.xml" onChange={e => handleFile(e.target.files[0])} />
@@ -79,7 +78,7 @@ export default function FileUpload({ onAnalyze, loading, onEcosystemChange }) {
         </button>
       </div>
 
-      <div style={{ fontSize: 12, color: eco.color, marginBottom: 8, fontWeight: 600 }}>{eco.icon} {eco.lang} detected</div>
+      <div style={{ fontSize: 12, color: eco.color, marginBottom: 8, fontWeight: 600 }}>{eco.lang} detected</div>
 
       <textarea
         value={content}
@@ -91,12 +90,12 @@ export default function FileUpload({ onAnalyze, loading, onEcosystemChange }) {
 
       {content.trim() && content.length > 512000 && (
         <div style={{ marginTop: 10, padding: '8px 12px', background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 6, fontSize: 12, color: 'var(--red)' }}>
-          ⚠️ File too large ({Math.round(content.length/1024)}KB). Maximum is 512KB.
+          File too large ({Math.round(content.length/1024)}KB). Maximum is 512KB.
         </div>
       )}
       <button onClick={() => onAnalyze(content, eco.file)} disabled={!content.trim() || loading || content.length > 512000}
         style={{ marginTop: 14, padding: '11px 28px', background: content.trim() ? 'var(--accent)' : 'var(--border)', color: 'var(--white)', border: 'none', borderRadius: 'var(--radius)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, cursor: content.trim() ? 'pointer' : 'not-allowed' }}>
-        {loading ? '⏳ Scanning...' : '🔍 Scan & Detect Vulnerabilities'}
+        {loading ? 'Scanning...' : 'Scan & Detect Vulnerabilities'}
       </button>
     </div>
   )

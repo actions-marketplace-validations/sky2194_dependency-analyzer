@@ -3,13 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import API_BASE from '../config'
 import { useScan } from '../App'
+import { DATA_SOURCE_SHORT } from '../data/dataSources'
 
 const STEPS = [
-  { label: 'Parsing manifest structure' },
-  { label: 'Resolving transitive dependencies' },
-  { label: 'Building dependency graph' },
-  { label: 'Querying OSV · NVD fallback' },
-  { label: 'Calculating risk score' },
+  { label: 'Detecting ecosystem' },
+  { label: 'Parsing manifest file' },
+  { label: 'Resolving dependency tree' },
+  { label: 'Querying vulnerability databases' },
+  { label: 'Calculating risk metrics' },
 ]
 
 export default function Scanning() {
@@ -147,11 +148,6 @@ export default function Scanning() {
       <div style={{ width: '90%', maxWidth: 480, padding: 'clamp(24px, 5vw, 40px)', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, boxShadow: '0 24px 64px var(--overlay-bg)' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-          </div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Scanning Dependencies</h2>
           <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             {locationState?.ecosystem?.toUpperCase() || 'npm'} · Analyzing your project...
@@ -177,7 +173,7 @@ export default function Scanning() {
                   fontSize: 11, fontWeight: 700, color: isPast ? 'var(--white)' : isCurrent ? 'var(--brand)' : 'var(--text-muted)',
                   transition: 'all 0.3s'
                 }}>
-                  {isPast ? '✓' : isCurrent ? '●' : ''}
+                  {isPast ? (i + 1) : isCurrent ? (i + 1) : ''}
                 </div>
                 <span style={{
                   fontSize: 13,
