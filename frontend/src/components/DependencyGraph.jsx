@@ -208,6 +208,8 @@ export default function DependencyGraph({ data }) {
   const isLit    = name => !highlightedPaths || name === selectedNode || highlightedPaths.anc.has(name) || highlightedPaths.desc.has(name)
   const edgeLit  = (a, b) => !highlightedPaths || isLit(a) && isLit(b)
 
+  const selData  = selectedNode ? [...directs, ...transitives, root].find(n => n.name === selectedNode) : null
+
   // Blast radius: count transitive CVEs reachable through each node
   const blastRadius = useMemo(() => {
     const map = {}
