@@ -114,14 +114,29 @@ export default function Landing() {
           ))}
         </svg>
         <div className="lp-hero-content">
-          <div className="lp-hero-badge"><div className="lp-hero-badge-dot" />Dependency vulnerability scanner for development teams</div>
-          <h1 className="lp-hero-title">Your Dependencies<br />Have <span>Hidden Vulnerabilities</span></h1>
-          <p className="lp-hero-sub">DepAnalyzer scans your full dependency tree — direct <em>and</em> transitive — against <strong>OSV</strong> database with NVD fallback and delivers <strong>actionable fix commands</strong> so you can resolve issues before they become incidents.</p>
+          <div className="lp-hero-badge"><div className="lp-hero-badge-dot" />Software Supply Chain Security · Open Source · No Signup</div>
+          <h1 className="lp-hero-title">See Every Dependency.<br /><span>Catch Every Risk.</span></h1>
+          <p className="lp-hero-sub">DepAnalyzer maps your full dependency tree — direct <em>and</em> transitive — traces every CVE to its source package, and explains <strong>why the vulnerable version exists</strong> so you can fix it at the root.</p>
           <div className="lp-hero-actions">
-            <button onClick={() => navigate('/scan')} className="lp-btn-hero" aria-label="Start scanning your project">{shield}Start Scanning</button>
+            <button onClick={() => navigate('/scan')} className="lp-btn-hero" aria-label="Start scanning your project">{shield}Scan Your Dependencies</button>
+            <button onClick={() => navigate('/learn')} className="lp-btn-hero-ghost" aria-label="Learn how it works">How it works →</button>
+          </div>
+          {/* Prompt 2: Trust strip */}
+          <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap', marginTop:28 }}>
+            {[
+              'OSV + NVD powered',
+              'No data stored',
+              'OWASP-aligned',
+              'Rate-limited API',
+              'Open source',
+            ].map(t => (
+              <span key={t} style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, color:'var(--text-muted)', background:'var(--bg-elevated)', border:'1px solid var(--border)', borderRadius:999, padding:'3px 10px' }}>
+                <span style={{ width:5, height:5, borderRadius:'50%', background:'var(--green)', display:'inline-block' }} />{t}
+              </span>
+            ))}
           </div>
           <div className="lp-hero-stats">
-            {['2 CVE DBs|OSV · NVD fallback','3 Ecosystems|npm · PyPI · Maven','Full Tree|Direct + Transitive','On-demand|Latest CVE data'].map(item => {
+            {['2 CVE DBs|OSV · NVD fallback','3 Ecosystems|npm · PyPI · Maven','Full Tree|Direct + Transitive','Graph View|Blast radius + paths'].map(item => {
               const [val, label] = item.split('|')
               return <div className="lp-hero-stat" key={item}><div className="lp-hero-stat-val">{val}</div><div className="lp-hero-stat-label">{label}</div></div>
             })}
@@ -131,9 +146,9 @@ export default function Landing() {
 
       <section className="lp-section reveal" id="problem">
         <div style={{ textAlign: 'center' }}>
-          <div className="lp-section-label">The Problem</div>
-          <h2 className="lp-section-title" style={{ maxWidth: 600, margin: '0 auto 16px' }}>Most CVEs hide where you're not looking</h2>
-          <p className="lp-section-sub" style={{ margin: '0 auto' }}>Every modern project carries hundreds of transitive dependencies you never explicitly chose — and attackers know it.</p>
+          <div className="lp-section-label">Supply Chain Risk</div>
+          <h2 className="lp-section-title" style={{ maxWidth: 600, margin: '0 auto 16px' }}>The attack surface you can't see</h2>
+          <p className="lp-section-sub" style={{ margin: '0 auto' }}>Modern applications ship with hundreds of transitive dependencies — packages you never chose, never reviewed, and may never have heard of. That's where attackers look first.</p>
         </div>
         <div className="lp-problem-grid">
           {[
@@ -156,12 +171,12 @@ export default function Landing() {
         <div className="lp-showcase-inner">
           <div className="lp-showcase-header">
             <div>
-              <div className="lp-section-label">The Solution</div>
-              <h2 className="lp-section-title">Risk intelligence,<br />not just raw alerts</h2>
-              <p className="lp-section-sub" style={{ marginBottom: 28 }}>DepAnalyzer doesn't just list CVEs. It groups vulnerabilities by package, scores risk with logarithmic weighting, and gives you exact commands to resolve each issue.</p>
+              <div className="lp-section-label">Dependency Intelligence</div>
+              <h2 className="lp-section-title">Not just CVEs —<br />why they exist</h2>
+              <p className="lp-section-sub" style={{ marginBottom: 28 }}>Most scanners tell you a package is vulnerable. DepAnalyzer tells you <strong>which dependency dragged it in</strong>, why that version was selected over a safe one, and the minimum bump that removes it. That's dependency mediation — and no other free tool visualizes it.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <CheckRow title="Full transitive tree analysis" text="Maps every nested dependency, not just what's in your manifest" />
-                <CheckRow title="Logarithmic risk scoring" text="Weighs critical, high, medium, and low vulnerabilities with diminishing returns into a single prioritized risk score" />
+                <CheckRow title="Dependency mediation explainer" text="See exactly which parent pulled in the vulnerable version and why" />
+                <CheckRow title="Blast radius visualization" text="Node size encodes how many downstream CVEs are reachable through each package" />
                 <CheckRow title="One-command fix suggestions" text="Exact npm/pip/mvn commands with safe upgrade paths, ready to copy" />
               </div>
             </div>
@@ -211,18 +226,44 @@ export default function Landing() {
       <section className="lp-section" id="features2">
         <div style={{ textAlign: 'center' }} className="reveal">
           <div className="lp-section-label">Features</div>
-          <h2 className="lp-section-title">Everything your security team needs</h2>
-          <p className="lp-section-sub" style={{ margin: '0 auto' }}>Built for engineers who ship fast and security teams who can't afford to slow them down.</p>
+          <h2 className="lp-section-title">Dependency intelligence, not just scanning</h2>
+          <p className="lp-section-sub" style={{ margin: '0 auto' }}>Purpose-built for security-conscious engineering teams who need signal, not noise.</p>
         </div>
         <div className="lp-features-grid">
           {[
-            ['🔬','Deep Transitive Analysis','Traverses the full dependency tree — not just your direct installs. Catches CVEs that hide in nested packages your team never explicitly installed.'],
-            ['🧠','Intelligent Risk Scoring','Uses logarithmic weighting of CVSS severity counts to produce a single prioritized risk score from 0 to 100.'],
-            ['⚡','Actionable Fix Commands','Exact install commands, safe version ranges, and dependency override strategies — ready to copy-paste into your terminal.'],
-            ['🗺️','Visual Dependency Graph','See your full dependency tree visualized with vulnerability highlighting. Instantly understand which packages are the source of transitive CVEs.'],
-            ['📋','Export Reports','Download scan results as PDF or CSV. Share findings with your team or attach to compliance documentation.'],
-            ['🔗','Direct vs Transitive','Every package is tagged as direct or transitive. See exactly which dependency introduced each vulnerability via the full dependency path.'],
+            ['🗺️','Dependency Graph Intelligence','Visualize your full dependency tree with blast radius encoding — node size shows how many downstream CVEs are reachable through each package. The graph most scanners never show you.'],
+            ['🔬','Transitive Risk Tracing','Traverses the full dependency tree to catch CVEs in packages you never explicitly installed — where 80%+ of real-world vulnerabilities hide.'],
+            ['⚖️','Dependency Mediation Explainer','See exactly why a vulnerable version was selected — which parent pulled it in, and which version bump removes it. Unique to DepAnalyzer.'],
+            ['🧠','Logarithmic Risk Scoring','Weighs severity counts with diminishing returns into a transparent 0–100 risk score. Click to see the exact calculation for your scan.'],
+            ['⚡','Actionable Fix Commands','Per-CVE install commands and batch fix-all commands in the correct format for each ecosystem — ready to run.'],
+            ['📋','PDF + CSV Export','Download scan results as structured reports. Share with your team or attach to security reviews.'],
           ].map(([icon, title, text], i) => <div className={`lp-feat-card reveal reveal-delay-${(i % 3) + 1}`} key={title}><div className="lp-feat-icon">{icon}</div><div className="lp-feat-title">{title}</div><div className="lp-feat-text">{text}</div></div>)}
+        </div>
+      </section>
+
+      <div className="lp-section-divider" />
+
+      {/* Prompt 2: Enterprise trust section */}
+      <section className="lp-section reveal" style={{ paddingTop: 48, paddingBottom: 48 }}>
+        <div style={{ textAlign:'center', marginBottom: 28 }}>
+          <div className="lp-section-label">Security Transparency</div>
+          <h2 className="lp-section-title" style={{ fontSize:'clamp(22px,2.5vw,32px)' }}>Built for security teams. Transparent by design.</h2>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))', gap:12 }}>
+          {[
+            ['🔒','No data stored','Your manifest is parsed in-memory and discarded. Package names, filenames, and registry URLs are never persisted.'],
+            ['🛡','OSV + NVD powered','CVE data sourced directly from Open Source Vulnerabilities (OSV) and National Vulnerability Database (NVD).'],
+            ['⚡','Rate-limited API','All endpoints are rate-limited and input-validated. No request data is logged.'],
+            ['🔍','OWASP-aligned','Input sanitisation follows OWASP validation standards. XSS and injection protections on all user inputs.'],
+            ['📦','3 ecosystems','npm, PyPI, and Maven — with automatic ecosystem detection from filename.'],
+            ['🔓','Open source','Full source available on GitHub. Audit the code yourself.'],
+          ].map(([icon,title,text]) => (
+            <div key={title} style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:10, padding:'14px 16px' }}>
+              <div style={{ fontSize:18, marginBottom:6 }}>{icon}</div>
+              <div style={{ fontWeight:700, fontSize:12, color:'var(--text-primary)', marginBottom:4 }}>{title}</div>
+              <div style={{ fontSize:11, color:'var(--text-muted)', lineHeight:1.5 }}>{text}</div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -245,13 +286,13 @@ export default function Landing() {
       <div className="lp-section-divider" />
 
       <div className="lp-cta-band reveal">
-        <div><div className="lp-cta-title">Stop guessing.<br />Start securing.</div><div className="lp-cta-sub">Scan your first project — no account required.</div></div>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}><button onClick={() => navigate('/scan')} className="lp-btn-hero" aria-label="Start scanning now">→ Scan Now</button></div>
+        <div><div className="lp-cta-title">Find vulnerabilities<br />before they ship.</div><div className="lp-cta-sub">No account. No agents. Just upload your manifest and get results in seconds.</div></div>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}><button onClick={() => navigate('/scan')} className="lp-btn-hero" aria-label="Start scanning now">{shield} Scan Now — Free</button></div>
       </div>
 
       <footer>
         <div className="lp-footer">
-          <div><div className="lp-nav-logo" style={{ marginBottom: 14 }}><div className="lp-nav-logo-icon">{shield}</div>DepAnalyzer</div><p className="lp-footer-desc">On-demand dependency vulnerability scanning for modern engineering teams.</p></div>
+          <div><div className="lp-nav-logo" style={{ marginBottom: 14 }}><div className="lp-nav-logo-icon">{shield}</div>DepAnalyzer</div><p className="lp-footer-desc">Dependency intelligence and software supply chain security for modern engineering teams. Open source. No signup required.</p></div>
           {['Product|Scanner|Knowledge Base','Databases|NVD|OSV'].map(col => {
             const [title, ...links] = col.split('|')
             return <div key={title}><div className="lp-footer-col-title">{title}</div><div className="lp-footer-links">{links.filter(l => l).map(l => <button key={l} onClick={() => l === 'Scanner' ? navigate('/scan') : l === 'Knowledge Base' ? navigate('/learn') : l === 'NVD' ? window.open('https://nvd.nist.gov', '_blank') : l === 'OSV' ? window.open('https://osv.dev', '_blank') : null}>{l}</button>)}</div></div>
