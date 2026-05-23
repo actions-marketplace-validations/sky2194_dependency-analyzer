@@ -59,7 +59,6 @@ export default function DependencyGraph({ data }) {
   const [zoom,         setZoom]         = useState(1)
   const [pan,          setPan]          = useState({ x: 0, y: 0 })
   const [isPanning,    setIsPanning]    = useState(false)
-  const [pinnedNode,   setPinnedNode]   = useState(null) // tap-to-pin tooltip on touch
   const panStart   = useRef(null)
   const pinchStart = useRef(null)
   const containerRef = useRef(null)
@@ -329,7 +328,7 @@ export default function DependencyGraph({ data }) {
         onMouseLeave={onMouseUp}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
-        onClick={() => { setSelectedNode(null); setPinnedNode(null) }}
+        onClick={() => { setSelectedNode(null) }}
         style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', height:'62vh', cursor:isPanning?'grabbing':'grab', position:'relative', userSelect:'none', touchAction:'none' }}
       >
         <svg
@@ -378,7 +377,7 @@ export default function DependencyGraph({ data }) {
 
             return (
               <g key={`n${i}`} style={{ cursor:'pointer' }}
-                onClick={e => { handleClick(n.name, e); setPinnedNode(n.name) }}
+                onClick={e => handleClick(n.name, e)}
                 opacity={lit ? 1 : 0.12}>
                 {/* Glow */}
                 {sev && lit && <circle cx={n.x} cy={n.y} r={r+10} fill={col} opacity="0.1" style={{ filter:'blur(6px)' }} />}
@@ -406,27 +405,6 @@ export default function DependencyGraph({ data }) {
           })}
         </svg>
 
-        {/* Tap-to-pin tooltip (touch devices) */}
-        {pinnedNode && (() => {
-          const n = [...(layout?.directs||[]), ...(layout?.transitives||[]), layout?.root].find(x => x?.name === pinnedNode)
-          const sev = n ? topSev(n.vulns) : null
-          if (!n) return null
-          return (
-            <div onClick={e => { e.stopPropagation(); setPinnedNode(null) }}
-              style={{ position:'absolute', top:10, left:10, right:10, background:'var(--bg-card)', border:`1px solid ${sev ? SEV_COLOR[sev.sev] : 'var(--border)'}`, borderRadius:8, padding:'10px 12px', zIndex:10, boxShadow:'0 4px 16px rgba(0,0,0,0.3)' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
-                <span style={{ fontFamily:'var(--font-mono)', fontWeight:700, fontSize:12, color:'var(--text-primary)' }}>{n.name}</span>
-                <span style={{ fontSize:10, color:'var(--text-muted)' }}>tap to dismiss</span>
-              </div>
-              <div style={{ fontSize:11, color:'var(--text-muted)', display:'flex', gap:12 }}>
-                <span>v{n.version}</span>
-                {sev && <span style={{ color: SEV_COLOR[sev.sev], fontWeight:700 }}>{sev.sev} {sev.cvss && `CVSS ${sev.cvss}`}</span>}
-                {sev?.fix && <span style={{ color:'var(--green)' }}>Fix: v{sev.fix}</span>}
-                <span>{blastRadius[n.name] > 0 ? `${blastRadius[n.name]} downstream CVEs` : 'No downstream CVEs'}</span>
-              </div>
-            </div>
-          )
-        })()}
         {/* Zoom hint */}
         {zoom !== 1 && <div style={{ position:'absolute', bottom:10, right:14, fontSize:10, color:'var(--text-muted)', fontFamily:'var(--font-mono)', pointerEvents:'none' }}>{Math.round(zoom*100)}%</div>}
         {/* Large tree hint */}

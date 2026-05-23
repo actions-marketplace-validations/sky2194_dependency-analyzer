@@ -820,3 +820,31 @@ body {
   --t-sm: 12px;
   --t-xs: 11px;
 }
+
+/* ── Mobile: triage-first layout (<640px) ───────────────────────────────── */
+@media (max-width: 640px) {
+  /* Risk card: stack vertically */
+  .a-risk-card { flex-direction: column !important; gap: 12px !important; padding: 14px !important; }
+  .a-risk-divider { display: none !important; }
+  /* Severity counts: 2-col grid */
+  .a-risk-stats { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; width: 100% !important; }
+  .analytics-stat-card { padding: 10px !important; }
+  /* Tabs: scroll horizontally */
+  .a-tabs { overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; padding-bottom: 4px !important; }
+  .a-tab { font-size: 11px !important; padding: 6px 10px !important; white-space: nowrap !important; }
+  /* Graph: reduce height on mobile for quick triage */
+  .a-layout > div[style*="height:62vh"],
+  .a-layout > div > div[style*="height:62vh"] { height: 40vh !important; }
+  /* Right panel hidden on mobile — show as bottom sheet via existing CSS */
+  .a-main { padding: 12px !important; }
+  /* Fix cards: full width */
+  .a-fix-card { padding: 12px !important; }
+  /* Page header */
+  .page-container { padding: 16px !important; }
+}
+
+/* ── Scanner: hide right panel on mobile, show only upload ──────────────── */
+@media (max-width: 768px) {
+  .scanner-right { display: none !important; }
+  .scanner-layout { grid-template-columns: 1fr !important; }
+}
