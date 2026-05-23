@@ -400,6 +400,11 @@ def run_analysis(body):
     # Calculate vulnerable package count
     vulnerable_package_count = len(grouped_vulns)
 
+    # Calculate vulnerable package counts by type
+    all_packages = _build_all_packages(graph_deps, grouped_vulns)
+    vulnerable_direct_count = len([p for p in all_packages if p.get('vulnerabilities') and len(p['vulnerabilities']) > 0 and p.get('is_direct')])
+    vulnerable_transitive_count = len([p for p in all_packages if p.get('vulnerabilities') and len(p['vulnerabilities']) > 0 and not p.get('is_direct')])
+
     # Build immutable transaction snapshot with canonical data contract
     scan_result = {
         'transaction_id': transaction_id,
@@ -420,9 +425,11 @@ def run_analysis(body):
             'low': counts['LOW'],
             'secure_package_count': total_packages - len(grouped_vulns),
             'vulnerable_package_count': len(grouped_vulns),
+            'vulnerable_direct_count': vulnerable_direct_count,
+            'vulnerable_transitive_count': vulnerable_transitive_count,
             'priority_fix_count': counts['CRITICAL'] + counts['HIGH'],
         },
-        'grouped_packages': _build_all_packages(graph_deps, grouped_vulns),
+        'grouped_packages': all_packages,
         'fixes': [v for v in vulnerabilities if v.get('fix_version')],
         'vulnerabilities': copy.deepcopy(vulnerabilities),
         'graph': copy.deepcopy(graph),
@@ -435,35 +442,9 @@ def run_analysis(body):
 @app.route('/api/scan', methods=['POST'])
 @rate_limited
 def scan():
-    content_type = request.content_type or ''
-
-    # multipart/form-data: curl -F "file=@package.json" or browser file upload
-    if 'multipart/form-data' in content_type:
-        if 'file' not in request.files:
-            return jsonify({'error': 'No file provided'}), 400
-        f = request.files['file']
-        if not f or f.filename == '':
-            return jsonify({'error': 'Empty filename'}), 400
-        try:
-            raw = f.read()
-        except Exception:
-            return jsonify({'error': 'Failed to read uploaded file'}), 400
-        if len(raw) == 0:
-            return jsonify({'error': 'Uploaded file is empty'}), 400
-        if len(raw) > MAX_CONTENT_SIZE:
-            return jsonify({'error': f'File too large ({len(raw)//1024}KB). Max 512KB.'}), 413
-        try:
-            content = raw.decode('utf-8')
-        except UnicodeDecodeError:
-            return jsonify({'error': 'File must be UTF-8 encoded text'}), 400
-        filename = f.filename
-        ecosystem = request.form.get('ecosystem') or detect_ecosystem(filename)
-        return run_analysis({'content': content, 'filename': filename, 'ecosystem': ecosystem})
-
-    # application/json: existing frontend and API consumers
     body = request.get_json(silent=True)
     if not body:
-        return jsonify({'error': 'Request must be multipart/form-data or application/json'}), 400
+        return jsonify({'error': 'Invalid JSON body'}), 400
     return run_analysis(body)
 
 @app.route('/api/scan-package', methods=['POST'])
@@ -517,17 +498,47 @@ def scan_package_deep():
         
         log.info(f"Deep scan complete: {package_name} ({ecosystem}) — {len(vulnerabilities)} vulns in {_count_packages(graph_deps)} packages")
         
-        # Calculate risk score
+        # Calculate risk score using same logarithmic model as /api/scan
+        import math
         counts = {'CRITICAL': 0, 'HIGH': 0, 'MEDIUM': 0, 'LOW': 0}
         for v in vulnerabilities:
             sev = v.get('severity', 'LOW')
             if sev in counts:
                 counts[sev] += 1
-        risk_score = min(100, round(counts['CRITICAL']*25 + counts['HIGH']*10 + counts['MEDIUM']*4 + counts['LOW']*1))
-        
-        # Group vulnerabilities by package for frontend display
+        crit_impact = 40 * (1 - math.exp(-counts['CRITICAL'] / 3)) if counts['CRITICAL'] > 0 else 0
+        high_impact = 30 * (1 - math.exp(-counts['HIGH']     / 5)) if counts['HIGH']     > 0 else 0
+        med_impact  = 20 * (1 - math.exp(-counts['MEDIUM']   / 8)) if counts['MEDIUM']   > 0 else 0
+        low_impact  = 10 * (1 - math.exp(-counts['LOW']      /10)) if counts['LOW']      > 0 else 0
+        risk_score  = min(100, round(crit_impact + high_impact + med_impact + low_impact))
+        risk_label  = 'Critical' if risk_score >= 90 else 'High' if risk_score >= 70 else 'Medium' if risk_score >= 40 else 'Low'
+
+        # Build grouped_packages to satisfy frontend contract
         grouped_vulns = group_vulns_by_package(vulnerabilities)
-        
+        grouped_packages = []
+        for pkg_name_key, pkg_vulns in grouped_vulns.items():
+            sevs = [v.get('severity', 'LOW') for v in pkg_vulns]
+            highest = next((s for s in ['CRITICAL','HIGH','MEDIUM','LOW'] if s in sevs), 'LOW')
+            grouped_packages.append({
+                'package': pkg_name_key,
+                'version': pkg_vulns[0].get('installed_version', ''),
+                'is_direct': True,
+                'vulnerabilities': pkg_vulns,
+                'highestSeverity': highest,
+                'recommended_fix': next((v.get('fix_version') for v in pkg_vulns if v.get('fix_version')), None),
+            })
+
+        # Build fixes list
+        fixes = []
+        seen_fix = set()
+        for v in vulnerabilities:
+            p = v.get('package_name', v.get('package', ''))
+            if v.get('fix_version') and p not in seen_fix:
+                seen_fix.add(p)
+                fixes.append(v)
+
+        vuln_direct     = len(grouped_vulns)
+        vuln_transitive = 0
+
         return jsonify({
             'transaction_id': str(uuid.uuid4()),
             'snapshot_version': 1,
@@ -536,7 +547,7 @@ def scan_package_deep():
             'project_name': package_name,
             'summary': {
                 'risk_score': risk_score,
-                'risk_label': 'High' if risk_score >= 70 else 'Medium' if risk_score >= 40 else 'Low',
+                'risk_label': risk_label,
                 'total_packages': _count_packages(graph_deps),
                 'direct_dependencies': len([d for d in direct_deps if d.get('type') != 'transitive']),
                 'transitive_dependencies': _count_packages(graph_deps) - len([d for d in direct_deps if d.get('type') != 'transitive']),
@@ -547,9 +558,12 @@ def scan_package_deep():
                 'low': counts['LOW'],
                 'secure_package_count': _count_packages(graph_deps) - len(grouped_vulns),
                 'vulnerable_package_count': len(grouped_vulns),
+                'vulnerable_direct_count': vuln_direct,
+                'vulnerable_transitive_count': vuln_transitive,
                 'priority_fix_count': counts['CRITICAL'] + counts['HIGH'],
             },
-            'grouped_packages': [],
+            'grouped_packages': grouped_packages,
+            'fixes': fixes,
             'vulnerabilities': vulnerabilities,
             'graph': graph,
             'dependency_tree': graph,
@@ -584,9 +598,17 @@ def export_pdf():
     if not data:
         return jsonify({'error': 'No data provided'}), 400
     from flask import Response
-    html = generate_html_report(data)
-    return Response(html, mimetype='text/html',
-        headers={'Content-Disposition': f'attachment; filename=sca-report-{data.get("project_name","report")}.html'})
+    from export.pdf_export import generate_pdf_bytes
+    try:
+        pdf_bytes = generate_pdf_bytes(data)
+        filename  = f"sca-report-{data.get('project_name','report')}.pdf"
+        return Response(pdf_bytes,
+            mimetype='application/pdf',
+            headers={'Content-Disposition': f'attachment; filename="{filename}"',
+                     'Content-Length': len(pdf_bytes)})
+    except Exception as e:
+        log.error(f"PDF export error: {e}")
+        return jsonify({'error': f'PDF generation failed: {str(e)}'}), 500
 
 @app.route('/api/export/csv', methods=['POST'])
 @rate_limited
