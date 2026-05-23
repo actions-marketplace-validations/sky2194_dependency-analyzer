@@ -82,12 +82,12 @@ function RightPanel({ eco }) {
       <div className="scanner-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, marginBottom: 10, color: 'var(--accent)' }}>CVE PATH EXAMPLE</div>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, lineHeight: 2 }}>
-          {['my-app', 'express', 'body-parser', 'lodash ⚠️'].map((p, i) => (
+          {['my-app', 'express', 'body-parser', 'lodash (CVE)'].map((p, i) => (
             <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {i > 0 && <span style={{ color: 'var(--border)', marginLeft: i * 10 }}>└─</span>}
-              <span style={{ marginLeft: i > 0 ? i * 10 : 0, color: p.includes('⚠️') ? 'var(--red)' : 'var(--text)' }}>{p}</span>
+              <span style={{ marginLeft: i > 0 ? i * 10 : 0, color: p.includes('(CVE)') ? 'var(--red)' : 'var(--text)' }}>{p}</span>
               {i === 0 && <span style={{ fontSize: 10, color: 'var(--muted)' }}>← your app</span>}
-              {p.includes('⚠️') && <span style={{ fontSize: 10, color: 'var(--red)' }}>← CVE here</span>}
+              {p.includes('(CVE)') && <span style={{ fontSize: 10, color: 'var(--red)' }}>← CVE here</span>}
             </div>
           ))}
         </div>
@@ -137,7 +137,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {error && <div style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 14px', color: 'var(--red)', fontSize: 12, marginBottom: 16 }}>⚠️ {error}</div>}
+      {error && <div style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 14px', color: 'var(--red)', fontSize: 12, marginBottom: 16 }}>⚠ {error}</div>}
       
       <div className="scanner-layout">
         <FileUpload onAnalyze={analyze} loading={false} onEcosystemChange={setEco} />
