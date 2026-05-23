@@ -122,16 +122,16 @@ export default function Landing() {
             <button onClick={() => navigate('/learn')} className="lp-btn-hero-ghost" aria-label="Learn how it works">How it works →</button>
           </div>
           {/* Prompt 2: Trust strip */}
-          <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap', marginTop:28 }}>
+          <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap', marginTop:28 }}>
             {[
-              'OSV + NVD powered',
-              'No data stored',
-              'OWASP-aligned',
-              'Rate-limited API',
-              'Open source',
+              '🛡 OSV + NVD powered',
+              '🔒 No data stored',
+              '✓ OWASP-aligned',
+              '⚡ Rate-limited API',
+              '🔓 Open source',
             ].map(t => (
-              <span key={t} style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:11, color:'var(--text-muted)', background:'var(--bg-elevated)', border:'1px solid var(--border)', borderRadius:999, padding:'3px 10px' }}>
-                <span style={{ width:5, height:5, borderRadius:'50%', background:'var(--green)', display:'inline-block' }} />{t}
+              <span key={t} style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, color:'var(--text-secondary)', background:'var(--bg-elevated)', border:'1px solid var(--border)', borderRadius:999, padding:'4px 12px', fontWeight:500 }}>
+                {t}
               </span>
             ))}
           </div>
