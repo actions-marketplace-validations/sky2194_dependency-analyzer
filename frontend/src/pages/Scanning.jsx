@@ -5,12 +5,12 @@ import API_BASE from '../config'
 import { useScan } from '../App'
 
 const STEPS = [
-  { icon: '📄', label: 'Parsing manifest structure' },
-  { icon: '🌳', label: 'Resolving transitive dependencies' },
-  { icon: '🔗', label: 'Building dependency graph' },
-  { icon: '🔍', label: 'Checking vulnerability databases' },
-  { icon: '🛡️', label: 'Querying OSV database' },
-  { icon: '📊', label: 'Calculating risk score' },
+  { label: 'Parsing manifest structure' },
+  { label: 'Resolving transitive dependencies' },
+  { label: 'Building dependency graph' },
+  { label: 'Checking vulnerability databases' },
+  { label: 'Querying OSV database' },
+  { label: 'Calculating risk score' },
 ]
 
 export default function Scanning() {
@@ -140,7 +140,11 @@ export default function Scanning() {
       <div style={{ width: '90%', maxWidth: 480, padding: 'clamp(24px, 5vw, 40px)', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, boxShadow: '0 24px 64px var(--overlay-bg)' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🔐</div>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Scanning Dependencies</h2>
           <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             {locationState?.ecosystem?.toUpperCase() || 'npm'} · Analyzing your project...
@@ -173,7 +177,7 @@ export default function Scanning() {
                   color: isPast ? 'var(--green)' : isCurrent ? 'var(--text)' : 'var(--text-muted)',
                   transition: 'color 0.3s'
                 }}>
-                  {s.icon} {s.label}
+                  {s.label}
                 </span>
                 {isCurrent && (
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 3 }}>

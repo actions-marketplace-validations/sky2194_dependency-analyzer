@@ -753,3 +753,42 @@ body {
     padding-top: 24px !important;
   }
 }
+
+/* ── Tablet breakpoint (1024px) ──────────────────────────────────────────── */
+@media (max-width: 1024px) and (min-width: 769px) {
+  /* Scanner layout: right panel drops below on tablet */
+  .scanner-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .scanner-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* Results layout: sidebar collapses on tablet */
+  .a-layout {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .a-right {
+    display: none !important;
+  }
+
+  /* Summary grid: 3 cards on tablet */
+  .a-risk-stats {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+/* ── Mobile: CVE table as cards instead of hidden columns ────────────────── */
+@media (max-width: 768px) {
+  .cve-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cve-table {
+    min-width: 480px;
+  }
+}

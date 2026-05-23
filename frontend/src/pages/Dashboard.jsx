@@ -126,6 +126,15 @@ export default function Dashboard() {
           Upload your dependency manifest to scan all direct and transitive packages for known CVEs.
           Results are sourced from <strong style={{color:'var(--text)'}}>OSV</strong> — the industry-standard open-source vulnerability database.
         </p>
+        {/* Data handling trust statement — critical for security tool credibility */}
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, padding: '5px 10px', background: 'var(--green-dim)', border: '1px solid var(--fix-border)', borderRadius: 6 }}>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <span style={{ fontSize: 11, color: 'var(--green)', fontWeight: 600 }}>
+            Your manifest is parsed in-memory and never stored. CVE lookups go directly to OSV — no telemetry, no third-party data sharing.
+          </span>
+        </div>
       </div>
 
       {error && <div style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 14px', color: 'var(--red)', fontSize: 12, marginBottom: 16 }}>⚠️ {error}</div>}

@@ -53,12 +53,17 @@ export default function App() {
                 </div>
                 DepAnalyzer
               </NavLink>
-              {[{to:'/scan',label:'Scanner'},{to:'/learn',label:'📖 Knowledge Base'},{to:'/history',label:'📚 History'}].map(({to,label}) => (
+              {[{to:'/scan',label:'Scanner'},{to:'/learn',label:'Knowledge Base'},{to:'/history',label:'History'}].map(({to,label}) => (
                 <NavLink key={to} to={to} style={({isActive}) => ({ padding: '6px 12px', fontSize: 13, fontWeight: 600, borderRadius: 6, background: isActive ? 'var(--orange-dim)' : 'none', color: isActive ? 'var(--orange)' : 'var(--text-muted)', transition: 'all 0.15s', whiteSpace: 'nowrap' })}>
                   {label}
                 </NavLink>
               ))}
               <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
+                {/* OSV freshness indicator — highest-converting trust signal for a security tool */}
+                <div title="OSV is updated continuously. NVD has multi-hour lag." style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', background: 'var(--green-dim)', border: '1px solid var(--fix-border)', borderRadius: 5, cursor: 'default' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)', display: 'inline-block' }} />
+                  <span style={{ fontSize: 10, color: 'var(--green)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>OSV live</span>
+                </div>
                 {scanning && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--orange-dim)', border: '1px solid var(--orange)', borderRadius: 6, padding: '4px 10px', color: 'var(--orange)', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--orange)', display: 'inline-block', animation: 'pulse 1s infinite' }} />
