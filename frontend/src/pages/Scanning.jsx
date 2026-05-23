@@ -8,8 +8,7 @@ const STEPS = [
   { label: 'Parsing manifest structure' },
   { label: 'Resolving transitive dependencies' },
   { label: 'Building dependency graph' },
-  { label: 'Checking vulnerability databases' },
-  { label: 'Querying OSV database' },
+  { label: 'Querying OSV · NVD fallback' },
   { label: 'Calculating risk score' },
 ]
 
@@ -108,7 +107,7 @@ export default function Scanning() {
           <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
             This page only renders during a live scan. Start one from the Scanner.
           </p>
-          <button onClick={() => navigate('/scan')} aria-label="Go to scanner" style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--orange)', color: 'var(--white)', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+          <button onClick={() => navigate('/scan')} aria-label="Go to scanner" style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--brand)', color: 'var(--white)', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
             ← Go to Scanner
           </button>
         </div>
@@ -134,7 +133,7 @@ export default function Scanning() {
             <button onClick={() => navigate('/scan')} style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--bg-elevated)', color: 'var(--text)', border: '1px solid var(--border)', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
               ← Back
             </button>
-            <button onClick={() => { setScanError(null); setStep(0); window.location.reload() }} style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--orange)', color: 'var(--white)', border: 'none', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+            <button onClick={() => { setScanError(null); setStep(0); window.location.reload() }} style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--brand)', color: 'var(--white)', border: 'none', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
               Retry
             </button>
           </div>
@@ -167,15 +166,15 @@ export default function Scanning() {
               <div key={i} style={{
                 display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 8,
                 background: isCurrent ? 'var(--bg-elevated)' : 'transparent',
-                border: isCurrent ? '1px solid var(--orange)' : '1px solid transparent',
+                border: isCurrent ? '1px solid var(--brand)' : '1px solid transparent',
                 transition: 'all 0.3s'
               }}>
                 <div style={{
                   width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-                  border: `2px solid ${isPast ? 'var(--green)' : isCurrent ? 'var(--orange)' : 'var(--border-light)'}`,
+                  border: `2px solid ${isPast ? 'var(--green)' : isCurrent ? 'var(--brand)' : 'var(--border-light)'}`,
                   background: isPast ? 'var(--green)' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, fontWeight: 700, color: isPast ? 'var(--white)' : isCurrent ? 'var(--orange)' : 'var(--text-muted)',
+                  fontSize: 11, fontWeight: 700, color: isPast ? 'var(--white)' : isCurrent ? 'var(--brand)' : 'var(--text-muted)',
                   transition: 'all 0.3s'
                 }}>
                   {isPast ? '✓' : isCurrent ? '●' : ''}
@@ -191,7 +190,7 @@ export default function Scanning() {
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 3 }}>
                     {[0, 1, 2].map(d => (
                       <div key={d} style={{
-                        width: 4, height: 4, borderRadius: '50%', background: 'var(--orange)',
+                        width: 4, height: 4, borderRadius: '50%', background: 'var(--brand)',
                         animation: `bounce 0.8s ease-in-out ${d * 0.15}s infinite`
                       }} />
                     ))}
@@ -204,7 +203,7 @@ export default function Scanning() {
 
         <div role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Scan progress" style={{ background: 'var(--bg-elevated)', borderRadius: 8, height: 4, overflow: 'hidden', marginBottom: 10 }}>
           <div style={{
-            height: '100%', background: 'var(--orange)',
+            height: '100%', background: 'var(--brand)',
             width: `${progress}%`, transition: 'width 0.6s ease', borderRadius: 8
           }} />
         </div>

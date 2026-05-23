@@ -39,14 +39,14 @@ export default function App() {
         <div style={{ minHeight: location.pathname === '/results' ? undefined : '100vh', height: location.pathname === '/results' ? '100vh' : undefined, overflow: location.pathname === '/results' ? 'hidden' : undefined, background: 'var(--bg)' }}>
           {isLanding ? (
             <div style={{ position: 'fixed', top: 19, right: 16, zIndex: 1001 }}>
-              <button onClick={toggleTheme} aria-label="Toggle theme" style={{ width: 36, height: 20, borderRadius: 10, border: 'none', background: theme === 'dark' ? 'var(--orange)' : 'var(--border)', cursor: 'pointer', position: 'relative', transition: 'background 0.3s', padding: 0 }}>
+              <button onClick={toggleTheme} aria-label="Toggle theme" style={{ width: 36, height: 20, borderRadius: 10, border: 'none', background: theme === 'dark' ? 'var(--brand)' : 'var(--border)', cursor: 'pointer', position: 'relative', transition: 'background 0.3s', padding: 0 }}>
                 <div style={{ width: 14, height: 14, borderRadius: '50%', background: 'var(--white)', position: 'absolute', top: 3, left: theme === 'dark' ? 19 : 3, transition: 'left 0.3s', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
               </button>
             </div>
           ) : (
             <nav style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', padding: '0 16px', display: 'flex', alignItems: 'center', gap: 4, height: 52, position: 'sticky', top: 0, zIndex: 100 }}>
               <NavLink to="/" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 16, color: 'var(--text)', marginRight: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 26, height: 26, background: 'linear-gradient(135deg, var(--orange), var(--accent2))', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: 26, height: 26, background: 'linear-gradient(135deg, var(--brand), var(--accent2))', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--white)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                   </svg>
@@ -54,7 +54,7 @@ export default function App() {
                 DepAnalyzer
               </NavLink>
               {[{to:'/scan',label:'Scanner'},{to:'/learn',label:'Knowledge Base'},{to:'/history',label:'History'}].map(({to,label}) => (
-                <NavLink key={to} to={to} style={({isActive}) => ({ padding: '6px 12px', fontSize: 13, fontWeight: 600, borderRadius: 6, background: isActive ? 'var(--orange-dim)' : 'none', color: isActive ? 'var(--orange)' : 'var(--text-muted)', transition: 'all 0.15s', whiteSpace: 'nowrap' })}>
+                <NavLink key={to} to={to} style={({isActive}) => ({ padding: '6px 12px', fontSize: 13, fontWeight: 600, borderRadius: 6, background: isActive ? 'var(--brand-dim)' : 'none', color: isActive ? 'var(--brand)' : 'var(--text-muted)', transition: 'all 0.15s', whiteSpace: 'nowrap' })}>
                   {label}
                 </NavLink>
               ))}
@@ -65,12 +65,12 @@ export default function App() {
                   <span style={{ fontSize: 10, color: 'var(--green)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>OSV live</span>
                 </div>
                 {scanning && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--orange-dim)', border: '1px solid var(--orange)', borderRadius: 6, padding: '4px 10px', color: 'var(--orange)', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--orange)', display: 'inline-block', animation: 'pulse 1s infinite' }} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--brand-dim)', border: '1px solid var(--brand)', borderRadius: 6, padding: '4px 10px', color: 'var(--brand)', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--brand)', display: 'inline-block', animation: 'pulse 1s infinite' }} />
                     Scanning...
                   </div>
                 )}
-                <button onClick={toggleTheme} aria-label="Toggle theme" title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} style={{ width: 36, height: 20, borderRadius: 10, border: 'none', background: theme === 'dark' ? 'var(--orange)' : 'var(--border-light)', cursor: 'pointer', position: 'relative', transition: 'background 0.3s', padding: 0, flexShrink: 0 }}>
+                <button onClick={toggleTheme} aria-label="Toggle theme" title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} style={{ width: 36, height: 20, borderRadius: 10, border: 'none', background: theme === 'dark' ? 'var(--brand)' : 'var(--border-light)', cursor: 'pointer', position: 'relative', transition: 'background 0.3s', padding: 0, flexShrink: 0 }}>
                     <div style={{ width: 14, height: 14, borderRadius: '50%', background: 'var(--white)', position: 'absolute', top: 3, left: theme === 'dark' ? 19 : 3, transition: 'left 0.3s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
                   </button>
               </div>

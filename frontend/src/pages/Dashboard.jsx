@@ -124,7 +124,7 @@ export default function Dashboard() {
         </h1>
         <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.7, maxWidth: 600 }}>
           Upload your dependency manifest to scan all direct and transitive packages for known CVEs.
-          Results are sourced from <strong style={{color:'var(--text)'}}>OSV</strong> — the industry-standard open-source vulnerability database.
+          Results are sourced from <strong style={{color:'var(--text)'}}>OSV</strong> on every scan, with <strong style={{color:'var(--text)'}}>NVD</strong> as fallback when OSV data is incomplete.
         </p>
         {/* Data handling trust statement — critical for security tool credibility */}
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, padding: '5px 10px', background: 'var(--green-dim)', border: '1px solid var(--fix-border)', borderRadius: 6 }}>
