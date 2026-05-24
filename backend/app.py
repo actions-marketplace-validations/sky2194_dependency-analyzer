@@ -666,15 +666,15 @@ def health():
             last_sync_time('OSV_npm') or
             last_sync_time('OSV_pypi') or
             last_sync_time('OSV_maven') or
-            now
+            None
         )
-        epss_synced_at = last_sync_time('EPSS') or now
-        kev_synced_at  = last_sync_time('KEV')  or now
+        epss_synced_at = last_sync_time('EPSS') or None
+        kev_synced_at  = last_sync_time('KEV')  or None
         db_ok = True
     except Exception:
-        osv_synced_at  = now
-        epss_synced_at = now
-        kev_synced_at  = now
+        osv_synced_at  = None
+        epss_synced_at = None
+        kev_synced_at  = None
         db_ok = False
 
     return jsonify({

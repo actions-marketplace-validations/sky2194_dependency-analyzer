@@ -158,7 +158,7 @@ export default function Landing() {
             ))}
           </div>
           <div className="lp-hero-stats">
-            {['2 CVE DBs|OSV · NVD fallback','3 Ecosystems|npm · PyPI · Maven','Full Tree|Direct + Transitive','Graph View|Blast radius + paths'].map(item => {
+            {['2 CVE DBs|' + DATA_SOURCE_FOOTER,'3 Ecosystems|npm · PyPI · Maven','Full Tree|Direct + Transitive','Graph View|Blast radius + paths'].map(item => {
               const [val, label] = item.split('|')
               return <div className="lp-hero-stat" key={item}><div className="lp-hero-stat-val">{val}</div><div className="lp-hero-stat-label">{label}</div></div>
             })}
@@ -175,7 +175,7 @@ export default function Landing() {
         <div className="lp-problem-grid">
           {[
             ['80%+', 'Of CVEs in transitive deps', 'Packages you never installed directly carry the most risk. Most security tools only scan your direct dependencies, missing the real attack surface. (Source: Sonatype SSSC Report 2024)'],
-            ['60d', 'Average time-to-patch for teams', 'Without clear fix guidance — just CVSS scores and CVE IDs — teams lack the context to prioritize. Alerts pile up. Critical issues get buried. (Source: industry analysis)'],
+            ['~90d', 'Average time-to-patch for teams', 'Without clear fix guidance — just CVSS scores and CVE IDs — teams lack the context to prioritize. Alerts pile up. Critical issues get buried. (Source: Veracode State of Software Security)'],
             ['245k+', 'Malicious packages detected in 2024', 'Log4Shell hid as a transitive dependency in 70%+ of affected JVM applications — most teams didn\'t even know they shipped log4j. It was invisible to standard audits. (Source: Sonatype SSSC Report 2024)'],
           ].map(([num, title, text], i) => (
             <div className={`lp-problem-card reveal reveal-delay-${i + 1}`} key={num}>
@@ -226,7 +226,7 @@ export default function Landing() {
               <div><i>&gt;</i> <b>Upload</b> package.json</div>
               <br />
               <div><strong>✓</strong> Resolved dependency tree <i>(10 packages, 43 transitive)</i></div>
-              <div><strong>✓</strong> Queried OSV database with NVD fallback</div>
+              <div><strong>✓</strong> {DATA_SOURCE_SHORT}</div>
               <div><strong>✓</strong> Risk scoring complete</div>
               <br />
               <div><mark>✗ CRITICAL</mark> lodash@4.17.15 <i>CVE-2020-28500 · CVSS 7.4</i></div>

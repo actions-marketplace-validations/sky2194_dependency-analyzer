@@ -448,9 +448,6 @@ export default function Analytics() {
               <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Risk Score</div>
               <div data-testid="risk-score" style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 700, color: riskColor }}>{riskScore}<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>/100</span></div>
               <span className="a-risk-label" style={{ background: riskDim, color: riskColor }}>{riskLabel}</span>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 6, lineHeight: 1.5 }}>
-                <span style={{ color: 'var(--critical)' }}>Critical</span> ×10 · <span style={{ color: 'var(--high)' }}>High</span> ×7 · <span style={{ color: 'var(--medium)' }}>Medium</span> ×4 · <span style={{ color: 'var(--low)' }}>Low</span> ×1
-              </div>
               <button onClick={() => setShowRiskModal(true)} style={{ marginTop: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 10, color: 'var(--accent)', fontFamily: 'var(--font-mono)', textDecoration: 'underline' }}>
                 How is this calculated?
               </button>
@@ -551,7 +548,7 @@ export default function Analytics() {
                   <div key={i} className="a-pkg-row" style={{ borderLeftColor: has ? SEV_COLOR[g.highestSeverity] : 'var(--green)' }}>
                     {has
                       ? <SevBadge sev={g.highestSeverity} style={{ fontSize: 10 }} />
-                      : <span className="sev-badge" style={{ background: 'var(--green-dim)', color: 'var(--green)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><span role="img" aria-hidden="true">🟢</span> Secure</span>
+                      : <span className="sev-badge" style={{ background: 'var(--green-dim)', color: 'var(--green)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)' }} /> Secure</span>
                     }
                     <span className="a-mono-bold">{g.package}</span>
                     <span className="a-muted-mono">v{g.version}</span>
@@ -573,7 +570,9 @@ export default function Analytics() {
               <div style={{ marginBottom: 16, border: '1px solid var(--fix-border)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'var(--fix-bg)', borderBottom: '1px solid var(--fix-border)' }}>
-                  <span style={{ fontSize: 16 }}>🔧</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                  </svg>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', marginBottom: 2 }}>Fix All Vulnerabilities</div>
                     <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
@@ -725,10 +724,10 @@ export default function Analytics() {
               <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>How Risk Score is Calculated</div>
               {/* Severity weight bars */}
               {[
-                { label: 'Critical', color: 'var(--critical)', pts: 40, weight: '10 pts each', count: counts.CRITICAL },
-                { label: 'High',     color: 'var(--high)',     pts: 30, weight: '7 pts each',  count: counts.HIGH },
-                { label: 'Medium',   color: 'var(--medium)',   pts: 20, weight: '4 pts each',  count: counts.MEDIUM },
-                { label: 'Low',      color: 'var(--low)',      pts: 10, weight: '1 pt each',   count: counts.LOW },
+                { label: 'Critical', color: 'var(--critical)', pts: 40, weight: 'max 40 pts', count: counts.CRITICAL },
+                { label: 'High',     color: 'var(--high)',     pts: 30, weight: 'max 30 pts', count: counts.HIGH },
+                { label: 'Medium',   color: 'var(--medium)',   pts: 20, weight: 'max 20 pts', count: counts.MEDIUM },
+                { label: 'Low',      color: 'var(--low)',      pts: 10, weight: 'max 10 pts', count: counts.LOW },
               ].map(({ label, color, pts, weight, count }) => (
                 <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
                   <span style={{ width: 52, fontSize: 10, color, fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{label}</span>

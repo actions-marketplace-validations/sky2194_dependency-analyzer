@@ -13,10 +13,11 @@ export default function History() {
   }
   
   const getRiskColor = (score) => {
-    if (score >= 75) return 'var(--critical)'
-    if (score >= 50) return 'var(--high)'
-    if (score >= 25) return 'var(--medium)'
-    return 'var(--low)'
+    if (score >= 90) return 'var(--critical)'
+    if (score >= 70) return 'var(--high)'
+    if (score >= 40) return 'var(--medium)'
+    if (score >= 1) return 'var(--low)'
+    return 'var(--green)'
   }
   
   return (

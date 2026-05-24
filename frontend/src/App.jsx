@@ -7,7 +7,6 @@ import Scanning from './pages/Scanning'
 import Analytics from './pages/Analytics'
 import Learn from './pages/Learn'
 import History from './pages/History'
-import Compare from './pages/Compare'
 import ErrorBoundary from './components/ErrorBoundary'
 import API_BASE from './config'
 
@@ -37,10 +36,11 @@ export default function App() {
   useEffect(() => {
     const fetchHealth = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/health`)
+        const res = await axios.get(`${API_BASE}/api/health`)
         setHealthStatus(res.data)
       } catch (err) {
         console.error('Health check failed:', err)
+        setHealthStatus({ error: true })
       }
     }
     fetchHealth()
@@ -129,7 +129,6 @@ export default function App() {
             <Route path="/results" element={<Analytics />} />
             <Route path="/learn" element={<Learn />} />
             <Route path="/history" element={<History />} />
-            <Route path="/compare" element={<Compare />} />
           </Routes>
         </div>
       </ErrorBoundary>

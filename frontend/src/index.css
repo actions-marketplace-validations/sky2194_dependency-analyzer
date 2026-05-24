@@ -163,8 +163,8 @@ button { font-family: var(--font-ui); -webkit-appearance: none; -moz-appearance:
 .t-body { font-size: 14px; line-height: 1.7; color: var(--text-secondary); }
 .t-sm   { font-size: 12px; line-height: 1.5; color: var(--text-muted); }
 .t-mono { font-family: var(--font-mono); font-size: 12px; }
-::selection { background: rgba(224,92,42,0.3); color: var(--text); }
-::-moz-selection { background: rgba(224,92,42,0.3); color: var(--text); }
+::selection { background: var(--brand-glow); color: var(--text); }
+::-moz-selection { background: var(--brand-glow); color: var(--text); }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
@@ -182,14 +182,14 @@ button { font-family: var(--font-ui); -webkit-appearance: none; -moz-appearance:
 .nav-logo .logo-icon { width: 26px; height: 26px; background: var(--brand); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
 .nav-link { padding: 6px 14px; font-size: 13px; font-weight: 600; border-radius: 6px; color: var(--text-muted); transition: all 0.15s; cursor: pointer; border: none; background: none; }
 .nav-link:hover { color: var(--text); background: rgba(255,255,255,0.04); }
-.nav-link.active { background: rgba(224,92,42,0.1); color: var(--brand); }
-.nav-link.active-orange { color: var(--brand); background: rgba(224,92,42,0.08); }
+.nav-link.active { background: var(--brand-dim); color: var(--brand); }
+.nav-link.active-orange { color: var(--brand); background: var(--brand-dim); }
 
 /* Dots */
 .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
 .dot-critical { background: var(--red); }
 .dot-high { background: var(--yellow); }
-.dot-medium { background: var(--blue); }
+.dot-medium { background: var(--medium); }
 .dot-low { background: var(--green); }
 .section-label { font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; color: var(--text-secondary); }
 
@@ -197,7 +197,7 @@ button { font-family: var(--font-ui); -webkit-appearance: none; -moz-appearance:
 .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; font-family: var(--font-mono); text-transform: uppercase; }
 .badge-critical { background: var(--red-dim); border: 1px solid rgba(239,68,68,0.3); color: var(--red); }
 .badge-high { background: var(--yellow-dim); border: 1px solid rgba(245,158,11,0.3); color: var(--yellow); }
-.badge-medium { background: var(--blue-dim); border: 1px solid rgba(59,130,246,0.3); color: var(--blue); }
+.badge-medium { background: var(--medium-dim); border: 1px solid rgba(245,158,11,0.3); color: var(--medium); }
 .badge-low { background: var(--green-dim); border: 1px solid rgba(34,197,94,0.3); color: var(--green); }
 
 /* Animations */

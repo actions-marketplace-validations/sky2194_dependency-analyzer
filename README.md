@@ -73,7 +73,6 @@ Built for developers who want visibility into their supply chain without enterpr
 ### Scan History
 - localStorage-backed history, grouped by project name
 - Stores up to 20 scans per project with timestamps and summary snapshots
-- Risk score delta between any two scans
 
 ### Knowledge Base
 - Eight learning sections: SCA, dependency types, CVSS, CVEs, supply chain risks, remediation, CI/CD integration, SBOMs
@@ -400,8 +399,7 @@ dependency-analyzer/
 │       │   ├── Scanning.jsx        # Loading state during active scan
 │       │   ├── Analytics.jsx       # Results page (risk score, CVE list, graph)
 │       │   ├── History.jsx         # Scan history browser
-│       │   ├── Learn.jsx           # Knowledge base
-│       │   └── Compare.jsx         # Scan comparison page
+│       │   └── Learn.jsx           # Knowledge base
 │       ├── components/
 │       │   ├── DependencyGraph.jsx # SVG interactive dependency graph
 │       │   ├── FileUpload.jsx      # Upload, paste textarea, ecosystem selector
