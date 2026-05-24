@@ -40,19 +40,52 @@ def _set_cached_scan(name, version, ecosystem, data):
         oldest_key = min(_scan_cache.keys(), key=lambda k: _scan_cache[k]['ts'])
         del _scan_cache[oldest_key]
 
+
+def _enrich_epss_kev(vulns: list):
+    """Add epss_score, epss_percentile, in_kev fields from DB to vuln dicts."""
+    if not vulns:
+        return
+    cve_ids = [v["cve_id"] for v in vulns if v.get("cve_id", "").startswith("CVE-")]
+    if not cve_ids:
+        return
+    try:
+        from db import get_conn, get_cursor
+        with get_conn() as conn:
+            with get_cursor(conn) as cur:
+                placeholders = ",".join(["%s"] * len(cve_ids))
+                cur.execute(f"SELECT cve_id, epss, percentile FROM epss_scores WHERE cve_id IN ({placeholders})", cve_ids)
+                epss = {r["cve_id"]: r for r in cur.fetchall()}
+                cur.execute(f"SELECT cve_id FROM kev_entries WHERE cve_id IN ({placeholders})", cve_ids)
+                kev  = {r["cve_id"] for r in cur.fetchall()}
+        for v in vulns:
+            cid = v.get("cve_id", "")
+            e = epss.get(cid)
+            v["epss_score"]      = round(float(e["epss"]),        4) if e else None
+            v["epss_percentile"] = round(float(e["percentile"]),  4) if e else None
+            v["in_kev"]          = cid in kev
+    except Exception as ex:
+        log.debug(f"EPSS/KEV enrichment skipped: {ex}")
+
 def scan_package(name, version, ecosystem):
     # Check cache first
     cached = _get_cached_scan(name, version, ecosystem)
     if cached:
         return cached
 
-    # ============================================================================
-    # PRIMARY VULNERABILITY SOURCE CONFIGURATION
-    # ============================================================================
-    # To change primary source, swap the blocks below:
-    # - Option 1: OSV as primary (current) - faster, no API key needed
-    # - Option 2: NVD as primary - requires API key, slower but more comprehensive
-    # ============================================================================
+    # ── DB-first lookup ────────────────────────────────────────────────────
+    # Query local PostgreSQL cache (synced hourly from OSV).
+    # Falls back to live OSV API if DB is unavailable or returns no rows.
+    try:
+        from cve.db_scanner import query_db
+        db_result = query_db(name, version, ecosystem)
+        if db_result is not None:
+            # DB hit — enrich EPSS/KEV inline then return
+            _enrich_epss_kev(db_result)
+            _set_cached_scan(name, version, ecosystem, db_result)
+            return db_result
+    except Exception as e:
+        log.warning(f"DB lookup error for {name}@{version}: {e} — using live API")
+    # ── Live OSV fallback ──────────────────────────────────────────────────
 
     try:
         # OSV as primary source

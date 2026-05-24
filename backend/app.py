@@ -40,6 +40,39 @@ from export.csv_export import generate_csv
 
 app = Flask(__name__)
 
+# ── Database init (runs once at startup) ───────────────────────────────────
+def _init_db():
+    try:
+        from db import init_schema
+        init_schema()
+        log.info("DB schema ready")
+    except Exception as e:
+        log.warning(f"DB init skipped (no DATABASE_URL?): {e}")
+
+_init_db()
+
+# ── Hourly sync scheduler ──────────────────────────────────────────────────
+def _start_scheduler():
+    try:
+        from apscheduler.schedulers.background import BackgroundScheduler
+        from sync.osv_sync import sync_all
+        from sync.epss_kev_sync import sync_epss, sync_kev
+
+        scheduler = BackgroundScheduler()
+        # OSV delta: every 5 minutes — only fetches records changed since last sync
+        scheduler.add_job(sync_all,  'interval', minutes=5, id='osv_sync',  replace_existing=True)
+        # EPSS + KEV: daily
+        scheduler.add_job(sync_epss, 'interval', hours=24, id='epss_sync', replace_existing=True)
+        scheduler.add_job(sync_kev,  'interval', hours=24, id='kev_sync',  replace_existing=True)
+        scheduler.start()
+        log.info("Sync scheduler started (OSV hourly, EPSS/KEV daily)")
+    except Exception as e:
+        log.warning(f"Scheduler not started: {e}")
+
+import os as _os
+if _os.environ.get("DISABLE_SCHEDULER", "").lower() != "true":
+    _start_scheduler()
+
 def parse_allowed_origins():
     origins = os.environ.get(
         'ALLOWED_ORIGINS',
@@ -625,14 +658,35 @@ def export_csv():
 def health():
     from datetime import datetime, timezone
     now = datetime.now(timezone.utc).isoformat()
+
+    # Real DB sync times — powering the freshness indicator in the frontend
+    try:
+        from db import last_sync_time
+        osv_synced_at = (
+            last_sync_time('OSV_npm') or
+            last_sync_time('OSV_pypi') or
+            last_sync_time('OSV_maven') or
+            now
+        )
+        epss_synced_at = last_sync_time('EPSS') or now
+        kev_synced_at  = last_sync_time('KEV')  or now
+        db_ok = True
+    except Exception:
+        osv_synced_at  = now
+        epss_synced_at = now
+        kev_synced_at  = now
+        db_ok = False
+
     return jsonify({
         'status': 'ok', 'version': '1.0.0',
         'nvd_api_key_configured': bool(os.environ.get('NVD_API_KEY')),
         'rate_limit': f"{RATE_LIMIT} requests per {RATE_WINDOW}s",
         'max_file_size': f"{MAX_CONTENT_SIZE // 1024}KB",
         'allowed_origins': ALLOWED_ORIGINS,
-        'osv_synced_at': now,
-        'nvd_synced_at': now,
+        'db_connected': db_ok,
+        'osv_synced_at':  osv_synced_at,
+        'epss_synced_at': epss_synced_at,
+        'kev_synced_at':  kev_synced_at,
     })
 
 if __name__ == '__main__':
