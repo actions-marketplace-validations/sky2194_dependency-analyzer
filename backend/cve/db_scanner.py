@@ -1,6 +1,6 @@
 """
 db_scanner.py — DB-first CVE lookup with live OSV fallback.
-Drop-in replacement for the live osv_client calls in scanner.py.
+raw_osv column was dropped — version matching uses affected_versions list.
 """
 import logging
 import json
@@ -21,67 +21,45 @@ def _parse_ver(v):
         except InvalidVersion:
             return None
 
-def _is_version_affected(installed_ver, affected_versions_json, raw_osv):
-    """Check if installed version is in the affected range."""
-    # Fast path: check flat version list from DB
-    if installed_ver in (affected_versions_json or []):
+def _is_version_affected(installed_ver, affected_versions):
+    """
+    Check if installed version is in the affected list stored at seed time.
+    Conservative: if affected_versions is empty, assume affected.
+    """
+    if not affected_versions:
         return True
-    # Slow path: parse ranges from raw OSV
-    if not raw_osv:
-        return True  # conservative: assume affected
-    affected = raw_osv.get("affected", [])
-    installed = _parse_ver(installed_ver)
-    if not installed:
-        return True
-    for a in affected:
-        for r in a.get("ranges", []):
-            if r.get("type") not in ("SEMVER", "ECOSYSTEM"):
-                continue
-            introduced = fixed = None
-            for ev in r.get("events", []):
-                if "introduced" in ev:
-                    introduced = _parse_ver(ev["introduced"])
-                if "fixed" in ev:
-                    fixed = _parse_ver(ev["fixed"])
-            if introduced is not None and installed >= introduced:
-                if fixed is None or installed < fixed:
-                    return True
-    return False
+    return installed_ver in affected_versions
 
 def query_db(name: str, version: str, ecosystem: str) -> list:
     """
-    Query local DB for vulnerabilities affecting name@version in ecosystem.
-    Returns list of formatted vuln dicts (same shape as osv_client.format_vuln).
-    Returns None if DB is unavailable (caller should fall back to live API).
+    Query local DB for vulnerabilities affecting name@version.
+    Returns list of vuln dicts, or None if DB unavailable (caller falls back to live API).
     """
-    eco_map = {"npm": "npm", "pypi": "PyPI", "maven": "Maven",
-               "lockfile": "npm", "npm-lock": "npm"}
+    eco_map = {
+        "npm": "npm", "pypi": "PyPI", "maven": "Maven",
+        "lockfile": "npm", "npm-lock": "npm"
+    }
     eco = eco_map.get(ecosystem, ecosystem)
 
     try:
         from db import get_conn, get_cursor
         with get_conn() as conn:
             with get_cursor(conn) as cur:
-                cur.execute(
-                    """
+                cur.execute("""
                     SELECT osv_id, cve_id, severity, cvss_score, description,
-                           fixed_version, osv_url, nvd_url,
-                           affected_versions, raw_osv
+                           fixed_version, osv_url, nvd_url, affected_versions
                     FROM vulnerabilities
                     WHERE ecosystem = %s AND package_name = %s
-                    """,
-                    (eco, name)
-                )
+                """, (eco, name))
                 rows = cur.fetchall()
     except Exception as e:
         log.warning(f"DB query failed for {name}@{version}: {e} — falling back to live API")
-        return None  # signal fallback
+        return None
 
     results = []
     for row in rows:
         affected_versions = row["affected_versions"] or []
-        raw_osv = row["raw_osv"] or {}
-        if not _is_version_affected(version, affected_versions, raw_osv):
+        if not _is_version_affected(version, affected_versions):
             continue
         results.append({
             "cve_id":      row["cve_id"] or row["osv_id"],

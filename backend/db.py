@@ -47,7 +47,6 @@ CREATE TABLE IF NOT EXISTS vulnerabilities (
     fixed_version TEXT,
     osv_url       TEXT,
     nvd_url       TEXT,
-    raw_osv       JSONB,
     created_at    TIMESTAMPTZ DEFAULT NOW(),
     updated_at    TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(osv_id, ecosystem, package_name)
