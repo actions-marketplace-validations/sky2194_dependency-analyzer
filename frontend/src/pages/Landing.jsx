@@ -8,6 +8,27 @@ const shield = (
   </svg>
 )
 
+// Lucide-style monoline icons for feature cards
+const Icon = ({ d, d2 }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d={d} />{d2 && <path d={d2} />}
+  </svg>
+)
+const FEAT_ICONS = [
+  // Network / dependency graph
+  <Icon d="M12 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM19 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" d2="M12 5v14M12 19l-7 0M12 19l7 0" />,
+  // Microscope / transitive tracing
+  <Icon d="M6 18L17.94 6M9 6h8v8" d2="M2 22l4-4M22 2l-4 4M14 10l4-4" />,
+  // Scale / mediation explainer
+  <Icon d="M12 3v18M3 9l9-6 9 6M5 21h14" d2="M7 12l5 3 5-3" />,
+  // Calculator / risk scoring
+  <Icon d="M4 2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" d2="M8 7h2m6 0h-2M8 12h2m2 0h2m-8 5h2m6 0h-2" />,
+  // Terminal / fix commands
+  <Icon d="M4 17l6-6-6-6" d2="M12 19h8" />,
+  // FileText / PDF+CSV export
+  <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" d2="M14 2v6h6M8 13h8M8 17h5" />,
+]
+
 const check = (
   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="3">
     <polyline points="20 6 9 17 4 12" />
@@ -238,7 +259,7 @@ export default function Landing() {
             ['Logarithmic Risk Scoring','Weighs severity counts with diminishing returns into a transparent 0–100 risk score. Click to see the exact calculation for your scan.'],
             ['Actionable Fix Commands','Per-CVE install commands and batch fix-all commands in the correct format for each ecosystem — ready to run.'],
             ['PDF + CSV Export','Download scan results as structured reports. Share with your team or attach to security reviews.'],
-          ].map(([title, text], i) => <div className={`lp-feat-card reveal reveal-delay-${(i % 3) + 1}`} key={title}><div className="lp-feat-title">{title}</div><div className="lp-feat-text">{text}</div></div>)}
+          ].map(([title, text], i) => <div className={`lp-feat-card reveal reveal-delay-${(i % 3) + 1}`} key={title}><div className="lp-feat-icon">{FEAT_ICONS[i]}</div><div className="lp-feat-title">{title}</div><div className="lp-feat-text">{text}</div></div>)}
         </div>
       </section>
 
