@@ -119,29 +119,31 @@ export default function Dashboard() {
 
   return (
     <div className="page-container">
-      <div style={{ marginBottom: 28 }}>
-        <h1 className="t-h1" style={{ marginBottom: 6 }}>
-          Dependency Vulnerability Scanner
-        </h1>
-        <p className="t-body" style={{ color: 'var(--muted)', maxWidth: 600 }}>
-          Upload your dependency manifest to scan all direct and transitive packages for known CVEs.
-          {DATA_SOURCE_DETAIL}
-        </p>
-        {/* Data handling trust statement — critical for security tool credibility */}
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 10, padding: '5px 10px', background: 'var(--green-dim)', border: '1px solid var(--fix-border)', borderRadius: 6 }}>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
-          <span className="t-sm" style={{ color: 'var(--green)', fontWeight: 600 }}>
-            Your manifest is parsed in-memory and never stored. CVE lookups go directly to OSV — no telemetry, no third-party data sharing.
-          </span>
-        </div>
-      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
+        <div>
+          <div style={{ marginBottom: 20 }}>
+            <h1 className="t-h1" style={{ marginBottom: 4 }}>
+              Dependency Vulnerability Scanner
+            </h1>
+            <p className="t-body" style={{ color: 'var(--muted)', maxWidth: 600 }}>
+              Upload your dependency manifest to scan all direct and transitive packages for known CVEs.
+              {DATA_SOURCE_DETAIL}
+            </p>
+            {/* Data handling trust statement — critical for security tool credibility */}
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '5px 10px', background: 'var(--green-dim)', border: '1px solid var(--fix-border)', borderRadius: 6 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <span className="t-sm" style={{ color: 'var(--green)', fontWeight: 600 }}>
+                Your manifest is parsed in-memory and never stored. CVE lookups go directly to OSV — no telemetry, no third-party data sharing.
+              </span>
+            </div>
+          </div>
 
-      {error && <div className="t-sm" style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 14px', color: 'var(--red)', marginBottom: 16 }}>ERROR: {error}</div>}
-      
-      <div className="scanner-layout">
-        <FileUpload onAnalyze={analyze} loading={false} onEcosystemChange={setEco} />
+          {error && <div className="t-sm" style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 14px', color: 'var(--red)', marginBottom: 12 }}>ERROR: {error}</div>}
+          
+          <FileUpload onAnalyze={analyze} loading={false} onEcosystemChange={setEco} />
+        </div>
         <RightPanel eco={eco} />
       </div>
     </div>

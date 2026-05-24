@@ -317,16 +317,16 @@ export default function Learn() {
   }
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 20px' }}>
+    <div style={{ maxWidth: 3200, margin: '0 auto', padding: '32px 16px' }}>
       <button onClick={() => navigate(-1)}
-        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 13, marginBottom: 20, fontFamily: 'var(--font-ui)' }}>
+        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 13, marginBottom: 16, fontFamily: 'var(--font-ui)' }}>
         ← Back
       </button>
 
       <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 800, marginBottom: 4, letterSpacing: -0.4, color: 'var(--text-primary)' }}>
         Security Knowledge Base
       </h1>
-      <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 28, lineHeight: 1.6 }}>
+      <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 20, lineHeight: 1.6 }}>
         Reference guide to SCA concepts, vulnerability scoring, and secure dependency management.
       </p>
 
@@ -342,11 +342,11 @@ export default function Learn() {
         </select>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 28 }} className="learn-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 16 }} className="learn-grid">
         {/* Sidebar — grouped + sticky */}
         <div className="learn-sidebar" style={{ position: 'sticky', top: 80, alignSelf: 'start', maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
           {NAV.map((g, gi) => (
-            <div key={g.group} style={{ marginBottom: 20 }}>
+            <div key={g.group} style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', padding: '0 14px', marginBottom: 6, fontFamily: 'var(--font-mono)' }}>
                 {g.group}
               </div>
@@ -380,7 +380,7 @@ export default function Learn() {
         </div>
 
         {/* Content */}
-        <div ref={contentRef} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '28px 28px', minHeight: 400 }}>
+        <div ref={contentRef} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '20px 20px', minHeight: 400 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
             <span style={{ fontSize: 22 }}>{section.icon}</span>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -388,9 +388,9 @@ export default function Learn() {
             </h2>
           </div>
           {section.subtitle && (
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20, lineHeight: 1.6 }}>{section.subtitle}</p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.6 }}>{section.subtitle}</p>
           )}
-          <div style={{ width: 40, height: 3, background: 'var(--accent)', borderRadius: 2, marginBottom: 24 }} />
+          <div style={{ width: 40, height: 3, background: 'var(--accent)', borderRadius: 2, marginBottom: 20 }} />
 
           {section.content.map(renderBlock)}
         </div>
