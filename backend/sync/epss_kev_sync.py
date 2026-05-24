@@ -1,13 +1,11 @@
 """
 epss_kev_sync.py — Sync EPSS scores and CISA KEV list into PostgreSQL.
-Both are free, public, and small (~100KB each).
 EPSS: https://epss.cyentia.com/epss_scores-current.csv.gz
 KEV:  https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
 """
 import csv
 import gzip
 import io
-import json
 import logging
 import requests
 
@@ -17,9 +15,7 @@ EPSS_URL = "https://epss.cyentia.com/epss_scores-current.csv.gz"
 KEV_URL  = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 
 def sync_epss():
-    """Download current EPSS scores and upsert into epss_scores table."""
     from db import get_conn, get_cursor
-
     log.info("Downloading EPSS scores...")
     try:
         resp = requests.get(EPSS_URL, timeout=60)
@@ -31,40 +27,68 @@ def sync_epss():
 
     try:
         content = gzip.decompress(resp.content).decode("utf-8")
-        reader  = csv.DictReader(io.StringIO(content))
+        lines   = content.splitlines()
+
+        # Cyentia format: first line is a comment (#model_version,...), second is header
+        # Skip comment lines starting with #
+        data_lines = [l for l in lines if not l.startswith("#")]
+        reader = csv.DictReader(iter(data_lines))
+
         inserted = 0
-        with get_conn() as conn:
-            with get_cursor(conn) as cur:
-                for row in reader:
-                    cve_id = row.get("cve") or row.get("#cve") or ""
-                    if not cve_id.startswith("CVE-"):
-                        continue
-                    try:
-                        cur.execute("""
-                            INSERT INTO epss_scores (cve_id, epss, percentile, updated_at)
-                            VALUES (%s, %s, %s, NOW())
-                            ON CONFLICT (cve_id) DO UPDATE SET
-                                epss       = EXCLUDED.epss,
-                                percentile = EXCLUDED.percentile,
-                                updated_at = NOW()
-                        """, (cve_id, float(row.get("epss", 0)),
-                              float(row.get("percentile", 0))))
-                        inserted += 1
-                    except Exception:
-                        continue
+        batch    = []
+
+        for row in reader:
+            # Header fields: cve, epss, percentile
+            cve_id = row.get("cve") or row.get("CVE") or ""
+            if not cve_id.startswith("CVE-"):
+                continue
+            try:
+                batch.append((
+                    cve_id,
+                    float(row.get("epss", 0) or 0),
+                    float(row.get("percentile", 0) or 0),
+                ))
+            except (ValueError, TypeError):
+                continue
+
+            if len(batch) >= 1000:
+                inserted += _flush_epss(batch)
+                batch = []
+
+        if batch:
+            inserted += _flush_epss(batch)
 
         log.info(f"EPSS sync complete: {inserted} records")
         _log_sync("EPSS", "ok", inserted, None)
         return inserted
+
     except Exception as e:
         log.error(f"EPSS parse error: {e}")
         _log_sync("EPSS", "error", 0, str(e))
         return 0
 
-def sync_kev():
-    """Download CISA KEV list and upsert into kev_entries table."""
-    from db import get_conn, get_cursor
+def _flush_epss(batch):
+    import psycopg2, psycopg2.extras, os
+    try:
+        conn = psycopg2.connect(os.environ["DATABASE_URL"], sslmode="require", connect_timeout=30)
+        cur  = conn.cursor()
+        psycopg2.extras.execute_values(cur, """
+            INSERT INTO epss_scores (cve_id, epss, percentile)
+            VALUES %s
+            ON CONFLICT (cve_id) DO UPDATE SET
+                epss       = EXCLUDED.epss,
+                percentile = EXCLUDED.percentile,
+                updated_at = NOW()
+        """, batch)
+        conn.commit()
+        conn.close()
+        return len(batch)
+    except Exception as e:
+        log.warning(f"EPSS batch error: {e}")
+        return 0
 
+def sync_kev():
+    from db import get_conn, get_cursor
     log.info("Downloading CISA KEV list...")
     try:
         resp = requests.get(KEV_URL, timeout=30)
@@ -90,11 +114,11 @@ def sync_kev():
                                  vulnerability_name, date_added, updated_at)
                             VALUES (%s,%s,%s,%s,%s::date, NOW())
                             ON CONFLICT (cve_id) DO UPDATE SET
-                                vendor_project    = EXCLUDED.vendor_project,
-                                product           = EXCLUDED.product,
-                                vulnerability_name= EXCLUDED.vulnerability_name,
-                                date_added        = EXCLUDED.date_added,
-                                updated_at        = NOW()
+                                vendor_project     = EXCLUDED.vendor_project,
+                                product            = EXCLUDED.product,
+                                vulnerability_name = EXCLUDED.vulnerability_name,
+                                date_added         = EXCLUDED.date_added,
+                                updated_at         = NOW()
                         """, (
                             cve_id,
                             entry.get("vendorProject", ""),
