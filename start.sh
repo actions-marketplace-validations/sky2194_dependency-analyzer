@@ -98,6 +98,9 @@ start_backend() {
   elif [ -f "venv/bin/activate" ];     then source venv/bin/activate        # macOS / Linux
   else err "Virtual environment broken — delete backend/venv and retry"; exit 1; fi
 
+  # Upgrade pip to avoid old resolver bugs
+  pip install --upgrade pip -q 2>/dev/null || true
+
   # Install deps silently — only show on failure
   local out
   if ! out=$(pip install -q -r requirements.txt 2>&1); then

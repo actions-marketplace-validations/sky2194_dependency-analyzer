@@ -238,7 +238,7 @@ export default function DependencyGraph({ data }) {
   return (
     <div>
       {/* ── Controls ── */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="graph-controls" style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         {/* View */}
         <div style={{ display: 'flex', gap: 3, background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 7, padding: 3 }}>
           {[['all','◉ All'],['vulnerable','⚠ Vulnerable'],['direct','▲ Direct']].map(([id,label]) => (
@@ -270,7 +270,7 @@ export default function DependencyGraph({ data }) {
       </div>
 
       {/* ── Legend ── */}
-      <div style={{ display:'flex', gap:14, marginBottom:10, fontSize:10, color:'var(--text-muted)', fontFamily:'var(--font-mono)', flexWrap:'wrap', alignItems:'center' }}>
+      <div className="graph-legend" style={{ display:'flex', gap:14, marginBottom:10, fontSize:10, color:'var(--text-muted)', fontFamily:'var(--font-mono)', flexWrap:'wrap', alignItems:'center' }}>
         {[['var(--critical)','Critical'],['var(--high)','High'],['var(--medium)','Medium'],['var(--green)','Safe']].map(([c,l]) => (
           <span key={l} style={{ display:'flex', alignItems:'center', gap:5 }}>
             <span style={{ width:9, height:9, borderRadius:'50%', background:c, display:'inline-block' }} />{l}

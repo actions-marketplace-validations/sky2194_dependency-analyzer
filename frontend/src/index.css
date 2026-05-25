@@ -257,132 +257,7 @@ button { font-family: var(--font-ui); -webkit-appearance: none; -moz-appearance:
   border-radius: 4px;
 }
 
-/* RESPONSIVE BASE */
-* {
-  box-sizing: border-box;
-}
-
-body {
-  margin: 0;
-  padding: 0;
-  font-size: 16px;
-}
-
-.app-container {
-  padding: 16px;
-}
-
-/* FLEXIBLE NAV + LAYOUT */
-.nav {
-  flex-wrap: wrap;
-}
-
-/* MOBILE */
-@media (max-width: 768px) {
-  body {
-    font-size: 14px;
-  }
-
-  .app-container {
-    padding: 10px;
-  }
-
-  .nav {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-/* DEVICE RESPONSIVENESS */
-
-/* Large Desktop */
-@media (min-width: 1440px) {
-  body { font-size: 17px; }
-  .app-container { max-width: 1200px; margin: auto; }
-}
-
-/* Laptop */
-@media (max-width: 1440px) {
-  body { font-size: 16px; }
-}
-
-/* Tablet */
-@media (max-width: 1024px) {
-  .nav { flex-wrap: wrap; }
-  .app-container { padding: 12px; }
-  
-  
-  
-  /* Remove attribute selectors that might conflict */
-  [style*="gridTemplateColumns"] {
-    grid-template-columns: inherit !important;
-  }
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-  body { font-size: 14px; }
-  .nav { flex-direction: column; }
-  .app-container { padding: 10px; }
-  .page-container, .page-container-md { padding: 16px !important; }
-  
-  /* Stack grid layouts */
-  .scanner-layout,
-  
-  
-  /* Remove attribute selectors that might conflict */
-  [style*="gridTemplateColumns"] {
-    grid-template-columns: 1fr !important;
-    height: auto !important;
-  }
-  
-  /* Stack right panel below main content on mobile */
-  .scanner-layout > div:nth-child(2) {
-    grid-column: 1 !important;
-    grid-row: auto !important;
-    margin-top: 20px;
-    border-left: none !important;
-    border-top: 1px solid var(--border) !important;
-    padding-top: 20px !important;
-  }
-  
-  /* Make header buttons stack on mobile */
-  [style*="justifyContent: 'space-between'"] {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-  }
-  
-  /* Make risk strip stack on mobile */
-  [style*="gridTemplateColumns: 'auto 1px 1fr auto auto auto auto'"] {
-    grid-template-columns: 1fr !important;
-    gap: 12px !important;
-  }
-  
-  /* Adjust nav for mobile */
-  .nav {
-    padding: 0 16px !important;
-    height: auto !important;
-    flex-wrap: wrap !important;
-    padding: 12px 16px !important;
-  }
-  
-  .nav > div:last-child {
-    margin-left: 0 !important;
-    margin-top: 8px !important;
-  }
-}
-
-/* FLUID SYSTEM (no manual breakpoints needed in most cases) */
-
-body {
-  font-size: clamp(14px, 1.2vw, 18px);
-}
-
-.app-container {
-  padding: clamp(10px, 2vw, 24px);
-  max-width: 1200px;
-  margin: auto;
-}
+/* RESPONSIVE BASE — consolidated rules */
 
 /* Cross-browser flexbox gap support */
 @supports not (gap: 1px) {
@@ -392,16 +267,79 @@ body {
 
 /* Safari-specific fixes */
 @supports (-webkit-touch-callout: none) {
-  /* iOS Safari specific adjustments */
-  body {
-    -webkit-tap-highlight-color: transparent;
+  body { -webkit-tap-highlight-color: transparent; }
+  button { -webkit-tap-highlight-color: transparent; }
+}
+
+/* ── Desktop-first: base is desktop, scale down ─────────────────── */
+
+/* Tablet (769px – 1024px) */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .page-container, .page-container-md { padding: 24px 28px !important; }
+  .nav { flex-wrap: wrap; }
+}
+
+/* Mobile (< 769px) */
+@media (max-width: 768px) {
+  body { font-size: 14px; }
+  .page-container, .page-container-md { padding: 16px !important; }
+  
+  /* Nav: stack on mobile */
+  .nav {
+    flex-wrap: wrap;
+    height: auto !important;
+    min-height: 52px;
+    padding: 10px 16px !important;
+    gap: 6px;
+  }
+  .nav > div:last-child {
+    margin-left: 0 !important;
+    margin-top: 4px !important;
   }
   
-  button {
-    -webkit-tap-highlight-color: transparent;
+  /* Scanner layout: stack */
+  .scanner-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .scanner-layout > div:nth-child(2) {
+    margin-top: 20px;
+    border-left: none !important;
+    border-top: 1px solid var(--border) !important;
+    padding-top: 20px !important;
+  }
+  .scanner-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  /* Dashboard grid: stack */
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .dashboard-right {
+    margin-top: 20px;
+  }
+  
+  /* Textarea */
+  textarea {
+    font-size: 11px !important;
+    min-height: 120px;
   }
 }
 
+/* Small mobile (< 481px) */
+@media (max-width: 480px) {
+  nav {
+    gap: 2px !important;
+    padding: 0 8px !important;
+  }
+  /* Override inline NavLink styles via !important */
+  nav a, nav button.nav-link-btn {
+    font-size: 11px !important;
+    padding: 4px 8px !important;
+  }
+  .page-container, .page-container-md { padding: 12px !important; }
+}
 /* Shared UI Utility Classes */
 .scanner-layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
 .page-container { max-width: 1400px; margin: 0 auto; padding: 36px 40px; }
@@ -511,25 +449,6 @@ body {
   --font-b: var(--font-body);
   --accent-dim: var(--brand-dim);
   --border-strong: var(--border-light);
-}
-
-/* ── Dashboard Scanner Grid Responsive ─────────────────────────── */
-@media (max-width: 768px) {
-  .page-container > div[style*="gridTemplateColumns"] {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* ── Nav Mobile Fix ─────────────────────────────────────────────── */
-@media (max-width: 480px) {
-  nav {
-    gap: 2px !important;
-    padding: 0 8px !important;
-  }
-  nav a, nav button {
-    font-size: 11px !important;
-    padding: 4px 6px !important;
-  }
 }
 
 /* ── Landing Light Mode Fixes ───────────────────────────────────── */
@@ -847,4 +766,32 @@ body {
 @media (max-width: 768px) {
   .scanner-right { display: none !important; }
   .scanner-layout { grid-template-columns: 1fr !important; }
+}
+
+/* ── Graph controls mobile/tablet wrap ─────────────────────────────────── */
+@media (max-width: 900px) {
+  .graph-controls {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  .graph-controls > div {
+    width: 100%;
+  }
+  .graph-controls > div[style*="margin-left: auto"] {
+    margin-left: 0 !important;
+    order: -1;
+  }
+  .graph-legend > span[style*="margin-left: auto"] {
+    display: none;
+  }
+  .graph-legend {
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .graph-controls button {
+    font-size: 10px !important;
+    padding: 4px 8px !important;
+  }
 }

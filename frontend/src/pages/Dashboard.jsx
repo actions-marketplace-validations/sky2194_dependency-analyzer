@@ -119,7 +119,7 @@ export default function Dashboard() {
 
   return (
     <div className="page-container">
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
+      <div className="scanner-grid dashboard-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
         <div>
           <div style={{ marginBottom: 20 }}>
             <h1 className="t-h1" style={{ marginBottom: 4 }}>
@@ -144,7 +144,7 @@ export default function Dashboard() {
           
           <FileUpload onAnalyze={analyze} loading={false} onEcosystemChange={setEco} />
         </div>
-        <RightPanel eco={eco} />
+        <div className="dashboard-right"><RightPanel eco={eco} /></div>
       </div>
     </div>
   )

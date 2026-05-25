@@ -88,7 +88,7 @@ export default function App() {
               </button>
             </div>
           ) : (
-            <nav style={{ background: 'var(--bg-card)', borderBottom: '1px solid var(--border)', padding: '0 16px', display: 'flex', alignItems: 'center', gap: 4, height: 52, position: 'sticky', top: 0, zIndex: 100 }}>
+            <nav className="nav" style={{ padding: '0 16px', gap: 6 }}>
               <NavLink to="/" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 16, color: 'var(--text)', marginRight: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ width: 26, height: 26, background: 'linear-gradient(135deg, var(--brand), var(--accent2))', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--white)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -98,7 +98,7 @@ export default function App() {
                 DepAnalyzer
               </NavLink>
               {[{to:'/scan',label:'Scanner'},{to:'/learn',label:'Knowledge Base'},{to:'/history',label:'History'}].map(({to,label}) => (
-                <NavLink key={to} to={to} style={({isActive}) => ({ padding: '6px 12px', fontSize: 13, fontWeight: 600, borderRadius: 6, background: isActive ? 'var(--brand-dim)' : 'none', color: isActive ? 'var(--brand)' : 'var(--text-muted)', transition: 'all 0.15s', whiteSpace: 'nowrap' })}>
+                <NavLink key={to} to={to} className="nav-link-btn" style={({isActive}) => ({ padding: '6px 12px', fontSize: 13, fontWeight: 600, borderRadius: 6, background: isActive ? 'var(--brand-dim)' : 'none', color: isActive ? 'var(--brand)' : 'var(--text-muted)', transition: 'all 0.15s', whiteSpace: 'nowrap' })}>
                   {label}
                 </NavLink>
               ))}
