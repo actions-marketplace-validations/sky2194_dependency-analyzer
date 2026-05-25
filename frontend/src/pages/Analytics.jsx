@@ -124,7 +124,7 @@ function AllClearHero({ snapshot, totalPkgs, directDeps, transitiveDeps, navigat
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '10px 14px', marginBottom: 12 }}>
-            <span style={{ flexShrink: 0, background: '#238636', color: '#fff', borderRadius: 4, padding: '2px 8px', fontFamily: 'var(--font-mono)', fontSize: 11, whiteSpace: 'nowrap' }}>
+            <span style={{ flexShrink: 0, background: 'var(--green)', color: '#fff', borderRadius: 4, padding: '2px 8px', fontFamily: 'var(--font-mono)', fontSize: 11, whiteSpace: 'nowrap' }}>
               security: all clear
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
@@ -250,7 +250,7 @@ export default function Analytics() {
       // Both PDF and CSV download directly now
       Object.assign(document.createElement('a'), {
         href: url,
-        download: `sca-report.${type}`
+        download: `sca-report-${snapshot?.project_name || 'report'}.${type}`
       }).click()
       URL.revokeObjectURL(url)
       setShowExportMenu(false)
@@ -728,16 +728,22 @@ export default function Analytics() {
                 { label: 'High',     color: 'var(--high)',     pts: 30, weight: 'max 30 pts', count: counts.HIGH },
                 { label: 'Medium',   color: 'var(--medium)',   pts: 20, weight: 'max 20 pts', count: counts.MEDIUM },
                 { label: 'Low',      color: 'var(--low)',      pts: 10, weight: 'max 10 pts', count: counts.LOW },
-              ].map(({ label, color, pts, weight, count }) => (
+              ].map(({ label, color, pts, weight, count }) => {
+                const divisorMap = { Critical: 3, High: 5, Medium: 8, Low: 10 }
+                const div = divisorMap[label] || 5
+                const actual = pts * (1 - Math.exp(-count / div))
+                const barPct = Math.round((actual / pts) * 100)
+                return (
                 <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
                   <span style={{ width: 52, fontSize: 10, color, fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{label}</span>
                   <div style={{ flex: 1, height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${pts}%`, background: color, borderRadius: 2, opacity: 0.85 }} />
+                    <div style={{ height: '100%', width: `${barPct}%`, background: color, borderRadius: 2, opacity: 0.85 }} />
                   </div>
                   <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', width: 62, textAlign: 'right' }}>{weight}</span>
                   <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', fontWeight: 700, color, width: 16, textAlign: 'right' }}>{count}</span>
                 </div>
-              ))}
+                )
+              })}
               <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)', fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.6 }}>
                 Score uses <strong style={{ color: 'var(--text-secondary)' }}>diminishing returns</strong> — adding more CVEs increases score but never instantly reaches 100. A score of {riskScore}/100 means your project has significant exposure and should be prioritised.
               </div>

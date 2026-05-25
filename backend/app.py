@@ -543,7 +543,11 @@ def scan_package_deep():
         med_impact  = 20 * (1 - math.exp(-counts['MEDIUM']   / 8)) if counts['MEDIUM']   > 0 else 0
         low_impact  = 10 * (1 - math.exp(-counts['LOW']      /10)) if counts['LOW']      > 0 else 0
         risk_score  = min(100, round(crit_impact + high_impact + med_impact + low_impact))
-        risk_label  = 'Critical' if risk_score >= 90 else 'High' if risk_score >= 70 else 'Medium' if risk_score >= 40 else 'Low'
+        if risk_score >= 90:   risk_label = 'Critical'
+        elif risk_score >= 70: risk_label = 'High'
+        elif risk_score >= 40: risk_label = 'Medium'
+        elif risk_score >= 1:  risk_label = 'Low'
+        else:                  risk_label = 'Secure'
 
         # Build grouped_packages to satisfy frontend contract
         grouped_vulns = group_vulns_by_package(vulnerabilities)
