@@ -35,6 +35,18 @@ def _fetch_deps(name, version):
         return {}
     
     key = f"{name}@{version}"
+
+    # ── DB cache (persistent, survives restarts) ───────────────
+    try:
+        from db import get_resolver_cache, set_resolver_cache
+        cached = get_resolver_cache(f"npm:{key}")
+        if cached is not None:
+            with _cache_lock:
+                _cache[key] = {'deps': cached, 'ts': time.time()}
+            return cached
+    except Exception:
+        pass
+    # ── In-memory cache (fast, process-local) ──────────────────
     with _cache_lock:
         entry = _cache.get(key)
         if entry and time.time() - entry['ts'] < _CACHE_TTL:

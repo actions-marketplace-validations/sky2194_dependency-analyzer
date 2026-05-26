@@ -64,6 +64,9 @@ def _start_scheduler():
         # EPSS + KEV: daily
         scheduler.add_job(sync_epss, 'interval', hours=24, id='epss_sync', replace_existing=True)
         scheduler.add_job(sync_kev,  'interval', hours=24, id='kev_sync',  replace_existing=True)
+        # Purge expired resolver cache entries daily
+        from db import purge_expired_resolver_cache
+        scheduler.add_job(purge_expired_resolver_cache, 'interval', hours=24, id='resolver_cache_purge', replace_existing=True)
         scheduler.start()
         log.info("Sync scheduler started (OSV hourly, EPSS/KEV daily)")
     except Exception as e:

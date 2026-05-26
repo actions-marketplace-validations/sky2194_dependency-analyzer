@@ -3,6 +3,30 @@ import StepBanner from './StepBanner'
 import Tooltip from './Tooltip'
 import ECOSYSTEMS, { detectEcosystem } from '../data/ecosystems'
 
+// Detect ecosystem from pasted text content
+function detectFromContent(text) {
+  if (!text || text.trim().length < 10) return null
+  const t = text.trim()
+  // Maven — XML with groupId/artifactId
+  if (t.includes('<groupId>') || t.includes('<artifactId>') || t.includes('<dependencies>'))
+    return 'maven'
+  // npm — JSON with dependencies/devDependencies/name+version
+  try {
+    const parsed = JSON.parse(t)
+    if (parsed.dependencies || parsed.devDependencies || parsed.peerDependencies ||
+        (parsed.name && parsed.version))
+      return 'npm'
+  } catch (_) {}
+  // PyPI — requirements.txt pattern (pkg==version or pkg>=version or just pkg names)
+  const lines = t.split('\n').filter(l => l.trim() && !l.trim().startsWith('#'))
+  const pypiPattern = /^[a-zA-Z0-9_\-\.]+\s*(==|>=|<=|~=|!=|>|<|\[)/
+  const plainPkg    = /^[a-zA-Z0-9_\-\.]+$/
+  const pypiLines   = lines.filter(l => pypiPattern.test(l.trim()) || plainPkg.test(l.trim()))
+  if (pypiLines.length > 0 && pypiLines.length >= lines.length * 0.6)
+    return 'pypi'
+  return null
+}
+
 const PLACEHOLDERS = {
   npm: `Paste your package.json here...\n\nExample:\n{\n  "dependencies": {\n    "express": "4.17.1",\n    "lodash": "4.17.21"\n  }\n}`,
   pypi: `Paste your requirements.txt here...\n\nExample:\nDjango==3.2.0\nrequests==2.28.0\nnumpy==1.23.0`,
@@ -78,11 +102,27 @@ export default function FileUpload({ onAnalyze, loading, onEcosystemChange }) {
         </button>
       </div>
 
-      <div style={{ fontSize: 12, color: eco.color, marginBottom: 8, fontWeight: 600 }}>{eco.lang} detected</div>
+      <div style={{ fontSize: 12, color: eco.color, marginBottom: 8, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
+        {eco.lang} detected
+        {content.trim() && detectFromContent(content) && (
+          <span style={{ fontSize: 10, background: 'var(--green-dim)', color: 'var(--green)', border: '1px solid var(--fix-border)', borderRadius: 4, padding: '1px 6px', fontFamily: 'var(--font-mono)' }}>
+            auto-detected
+          </span>
+        )}
+      </div>
 
       <textarea
         value={content}
-        onChange={e => setContent(e.target.value)}
+        onChange={e => {
+          const val = e.target.value
+          setContent(val)
+          // Auto-detect ecosystem from pasted content
+          const detected = detectFromContent(val)
+          if (detected && detected !== activeEco) {
+            setActiveEco(detected)
+            onEcosystemChange?.(ECOSYSTEMS[detected])
+          }
+        }}
         rows={10}
         placeholder={PLACEHOLDERS[activeEco]}
         style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: 12, padding: 12, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', color: 'var(--text)', resize: 'vertical', outline: 'none' }}

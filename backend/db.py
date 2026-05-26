@@ -82,6 +82,19 @@ CREATE TABLE IF NOT EXISTS kev_entries (
     date_added         DATE,
     updated_at         TIMESTAMPTZ DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS resolver_cache (
+    cache_key   TEXT PRIMARY KEY,          -- e.g. "npm:lodash@4.17.21"
+    ecosystem   TEXT NOT NULL,
+    deps        JSONB NOT NULL DEFAULT '{}',
+    hit_count   INTEGER DEFAULT 1,
+    cached_at   TIMESTAMPTZ DEFAULT NOW(),
+    expires_at  TIMESTAMPTZ DEFAULT NOW() + INTERVAL '24 hours'
+);
+
+CREATE INDEX IF NOT EXISTS idx_resolver_cache_expires
+    ON resolver_cache (expires_at);
+
 """
 
 def init_schema():
@@ -90,6 +103,61 @@ def init_schema():
         with get_cursor(conn) as cur:
             cur.execute(SCHEMA)
     log.info("DB schema initialised")
+
+def get_resolver_cache(cache_key: str):
+    """Get cached resolver deps. Returns None if miss or expired."""
+    try:
+        with get_conn() as conn:
+            with get_cursor(conn) as cur:
+                cur.execute(
+                    """SELECT deps FROM resolver_cache
+                       WHERE cache_key=%s AND expires_at > NOW()""",
+                    (cache_key,)
+                )
+                row = cur.fetchone()
+                if row:
+                    # Increment hit count async (best effort)
+                    try:
+                        cur.execute(
+                            "UPDATE resolver_cache SET hit_count=hit_count+1 WHERE cache_key=%s",
+                            (cache_key,)
+                        )
+                    except Exception:
+                        pass
+                    return row["deps"]
+    except Exception as e:
+        log.debug(f"Resolver cache get error: {e}")
+    return None
+
+def set_resolver_cache(cache_key: str, ecosystem: str, deps: dict, ttl_hours: int = 24):
+    """Store resolver deps in cache. TTL 24h by default."""
+    import json
+    try:
+        with get_conn() as conn:
+            with get_cursor(conn) as cur:
+                cur.execute(
+                    """INSERT INTO resolver_cache (cache_key, ecosystem, deps, expires_at)
+                       VALUES (%s, %s, %s, NOW() + INTERVAL '%s hours')
+                       ON CONFLICT (cache_key) DO UPDATE SET
+                           deps       = EXCLUDED.deps,
+                           cached_at  = NOW(),
+                           expires_at = NOW() + INTERVAL '%s hours',
+                           hit_count  = resolver_cache.hit_count + 1""",
+                    (cache_key, ecosystem, json.dumps(deps), ttl_hours, ttl_hours)
+                )
+    except Exception as e:
+        log.debug(f"Resolver cache set error: {e}")
+
+def purge_expired_resolver_cache():
+    """Delete expired cache entries. Called daily by scheduler."""
+    try:
+        with get_conn() as conn:
+            with get_cursor(conn) as cur:
+                cur.execute("DELETE FROM resolver_cache WHERE expires_at < NOW()")
+                deleted = cur.rowcount
+                log.info(f"Resolver cache: purged {deleted} expired entries")
+    except Exception as e:
+        log.warning(f"Resolver cache purge error: {e}")
 
 def last_sync_time(source: str):
     """Return ISO timestamp of last successful sync for a source, or None."""
