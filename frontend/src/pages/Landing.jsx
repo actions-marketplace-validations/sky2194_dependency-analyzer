@@ -53,9 +53,13 @@ export default function Landing() {
 
   useEffect(() => {
     const nav = document.getElementById('landing-nav')
+    let lastScrollY = window.scrollY
     const onScroll = () => {
-      nav?.classList.toggle('scrolled', window.scrollY > 20)
-      if (menuOpen) setMenuOpen(false)
+      const currentY = window.scrollY
+      nav?.classList.toggle('scrolled', currentY > 20)
+      // Only close menu if user actually scrolled (not just a tap event)
+      if (menuOpen && Math.abs(currentY - lastScrollY) > 10) setMenuOpen(false)
+      lastScrollY = currentY
     }
     const obs = new IntersectionObserver(entries => {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') })
