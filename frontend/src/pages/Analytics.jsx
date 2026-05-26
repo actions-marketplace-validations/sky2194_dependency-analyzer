@@ -363,7 +363,7 @@ export default function Analytics() {
                         {/* Subtext */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
                           <span style={{ fontSize: 9, color: isSaturated ? color : 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                            {isSaturated ? `⚠ Nearly maxed out — more ${sev} CVEs won't raise score much` : `${100 - pct}% headroom remaining`}
+                            {isSaturated ? `Nearly maxed out — more ${sev} CVEs won't raise score much` : `${100 - pct}% headroom remaining`}
                           </span>
                           <span style={{ fontSize: 9, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{pct}%</span>
                         </div>

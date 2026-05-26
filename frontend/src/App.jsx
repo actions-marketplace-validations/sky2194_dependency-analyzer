@@ -118,12 +118,27 @@ export default function App() {
               ))}
               <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                 {/* OSV freshness indicator — highest-converting trust signal for a security tool */}
-                <div title={`Last successful sync from OSV: ${healthStatus?.osv_synced_at || 'Unknown'}`} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px', background: getSyncBg(healthStatus?.osv_synced_at), border: `1px solid ${getSyncBorder(healthStatus?.osv_synced_at)}`, borderRadius: 5, cursor: 'default' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: '50%', background: getSyncColor(healthStatus?.osv_synced_at), display: 'inline-block' }} />
-                  <span style={{ fontSize: 10, color: getSyncColor(healthStatus?.osv_synced_at), fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
-                    OSV {healthStatus?.osv_synced_at ? getRelativeTime(healthStatus.osv_synced_at) : 'live'}
+                {healthStatus && (
+                <div title={
+                  healthStatus.error
+                    ? 'OSV sync status unavailable — backend unreachable'
+                    : `Last successful sync from OSV: ${healthStatus?.osv_synced_at || 'Unknown'}`
+                } style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 8px',
+                  background: healthStatus.error ? 'var(--red-dim)' : getSyncBg(healthStatus?.osv_synced_at),
+                  border: `1px solid ${healthStatus.error ? 'rgba(239,68,68,0.4)' : getSyncBorder(healthStatus?.osv_synced_at)}`,
+                  borderRadius: 5, cursor: 'default' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: '50%',
+                    background: healthStatus.error ? 'var(--critical)' : getSyncColor(healthStatus?.osv_synced_at),
+                    display: 'inline-block' }} />
+                  <span style={{ fontSize: 10,
+                    color: healthStatus.error ? 'var(--critical)' : getSyncColor(healthStatus?.osv_synced_at),
+                    fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
+                    {healthStatus.error
+                      ? 'OSV offline'
+                      : `OSV ${healthStatus?.osv_synced_at ? getRelativeTime(healthStatus.osv_synced_at) : 'syncing'}`}
                   </span>
                 </div>
+                )}
                 {scanning && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'var(--brand-dim)', border: '1px solid var(--brand)', borderRadius: 6, padding: '4px 10px', color: 'var(--brand)', fontSize: 11, fontFamily: 'var(--font-mono)' }}>
                     <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--brand)', display: 'inline-block', animation: 'pulse 1s infinite' }} />
