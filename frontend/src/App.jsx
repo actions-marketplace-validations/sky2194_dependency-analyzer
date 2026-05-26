@@ -135,7 +135,9 @@ export default function App() {
                     fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
                     {healthStatus.error
                       ? 'OSV offline'
-                      : `OSV ${healthStatus?.osv_synced_at ? getRelativeTime(healthStatus.osv_synced_at) : 'syncing'}`}
+                      : healthStatus?.osv_synced_at
+                        ? `OSV ${getRelativeTime(healthStatus.osv_synced_at)}`
+                        : 'OSV syncing'}
                   </span>
                 </div>
                 )}
