@@ -1,4 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation, NavLink } from 'react-router-dom'
+import SystemStatusBar from './components/SystemStatusBar'
+import SystemLogs from './components/SystemLogs'
 import { createContext, useContext, useState, useEffect } from 'react'
 import axios from 'axios'
 import Landing from './pages/Landing'
@@ -15,6 +17,7 @@ export const useScan = () => useContext(ScanContext)
 
 export default function App() {
   const [scanning, setScanning] = useState(false)
+  const [showLogs, setShowLogs] = useState(false)
   const [scanProject, setScanProject] = useState('')
   const [theme, setTheme] = useState(() => {
     const savedTheme = localStorage.getItem('theme') || 'dark'
@@ -118,6 +121,11 @@ export default function App() {
               ))}
               <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
                 {/* OSV freshness indicator — highest-converting trust signal for a security tool */}
+                <button
+                  onClick={() => setShowLogs(!showLogs)}
+                  style={{ background: 'none', border: 'none', color: showLogs ? 'var(--brand)' : 'var(--text-muted)', cursor: 'pointer', fontSize: 9, fontFamily: 'var(--font-mono)', padding: '2px 6px', letterSpacing: '0.05em' }}>
+                  LOGS
+                </button>
                 {healthStatus && (
                 <div title={
                   healthStatus.error
