@@ -277,7 +277,8 @@ export default function DependencyGraph({ data }) {
           </span>
         ))}
         <span style={{ color:'var(--border-mid)' }}>── Vulnerable path &nbsp; - - Safe edge</span>
-        <span style={{ marginLeft:'auto' }}>Ctrl+Scroll = zoom · Pinch = zoom · Drag = pan · Click = highlight · Node size = blast radius</span>
+        <span className="graph-hint-desktop" style={{ marginLeft:'auto' }}>Ctrl+Scroll = zoom · Pinch = zoom · Drag = pan · Click = highlight · Node size = blast radius</span>
+        <span className="graph-hint-touch" style={{ display:'none' }}>Pinch = zoom · Drag = pan · Tap = highlight</span>
       </div>
 
       {/* ── Selected node panel ── */}
@@ -329,7 +330,7 @@ export default function DependencyGraph({ data }) {
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         onClick={() => { setSelectedNode(null) }}
-        style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', height:'62vh', cursor:isPanning?'grabbing':'grab', position:'relative', userSelect:'none', touchAction:'none' }}
+        className="graph-canvas" style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', height:'62vh', cursor:isPanning?'grabbing':'grab', position:'relative', userSelect:'none', touchAction:'none' }}
       >
         <svg
           viewBox={`0 0 ${W} ${H}`}

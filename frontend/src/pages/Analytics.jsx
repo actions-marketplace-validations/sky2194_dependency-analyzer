@@ -51,7 +51,7 @@ function AllClearHero({ snapshot, totalPkgs, directDeps, transitiveDeps, navigat
   }
 
   return (
-    <div style={{ height: 'calc(100vh - 52px)', overflowY: 'auto', padding: '40px 20px' }}>
+    <div className="all-clear-hero" style={{ minHeight: 'calc(100dvh - 52px)', overflowY: 'auto', padding: '40px 20px' }}>
       <div style={{ maxWidth: 660, margin: '0 auto' }}>
 
         {/* Hero card */}
