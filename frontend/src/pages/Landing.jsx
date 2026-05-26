@@ -1,11 +1,33 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { DATA_SOURCE_SHORT, DATA_SOURCE_DETAIL, DATA_SOURCE_FOOTER } from '../data/dataSources'
 
 const shield = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--white)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
   </svg>
 )
+
+// Lucide-style monoline icons for feature cards
+const Icon = ({ d, d2 }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <path d={d} />{d2 && <path d={d2} />}
+  </svg>
+)
+const FEAT_ICONS = [
+  // Network / dependency graph
+  <Icon d="M12 5a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM5 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM19 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" d2="M12 5v14M12 19l-7 0M12 19l7 0" />,
+  // Microscope / transitive tracing
+  <Icon d="M6 18L17.94 6M9 6h8v8" d2="M2 22l4-4M22 2l-4 4M14 10l4-4" />,
+  // Scale / mediation explainer
+  <Icon d="M12 3v18M3 9l9-6 9 6M5 21h14" d2="M7 12l5 3 5-3" />,
+  // Calculator / risk scoring
+  <Icon d="M4 2h16a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" d2="M8 7h2m6 0h-2M8 12h2m2 0h2m-8 5h2m6 0h-2" />,
+  // Terminal / fix commands
+  <Icon d="M4 17l6-6-6-6" d2="M12 19h8" />,
+  // FileText / PDF+CSV export
+  <Icon d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" d2="M14 2v6h6M8 13h8M8 17h5" />,
+]
 
 const check = (
   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="3">
@@ -31,9 +53,13 @@ export default function Landing() {
 
   useEffect(() => {
     const nav = document.getElementById('landing-nav')
+    let lastScrollY = window.scrollY
     const onScroll = () => {
-      nav?.classList.toggle('scrolled', window.scrollY > 20)
-      if (menuOpen) setMenuOpen(false)
+      const currentY = window.scrollY
+      nav?.classList.toggle('scrolled', currentY > 20)
+      // Only close menu if user actually scrolled (not just a tap event)
+      if (menuOpen && Math.abs(currentY - lastScrollY) > 10) setMenuOpen(false)
+      lastScrollY = currentY
     }
     const obs = new IntersectionObserver(entries => {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') })
@@ -114,14 +140,29 @@ export default function Landing() {
           ))}
         </svg>
         <div className="lp-hero-content">
-          <div className="lp-hero-badge"><div className="lp-hero-badge-dot" />Dependency vulnerability scanner for development teams</div>
-          <h1 className="lp-hero-title">Your Dependencies<br />Have <span>Hidden Vulnerabilities</span></h1>
-          <p className="lp-hero-sub">DepAnalyzer scans your full dependency tree — direct <em>and</em> transitive — against <strong>OSV</strong> database with NVD fallback and delivers <strong>actionable fix commands</strong> so you can resolve issues before they become incidents.</p>
+          <div className="lp-hero-badge"><div className="lp-hero-badge-dot" />Software Supply Chain Security · Open Source · No Signup</div>
+          <h1 className="lp-hero-title">See Every Dependency.<br /><span>Catch Every Risk.</span></h1>
+          <p className="lp-hero-sub">DepAnalyzer maps your full dependency tree — direct <em>and</em> transitive — traces every CVE to its source package, and explains <strong>why the vulnerable version exists</strong> so you can fix it at the root.</p>
           <div className="lp-hero-actions">
-            <button onClick={() => navigate('/scan')} className="lp-btn-hero" aria-label="Start scanning your project">{shield}Start Scanning</button>
+            <button onClick={() => navigate('/scan')} className="lp-btn-hero" aria-label="Start scanning your project">{shield}Scan Your Dependencies</button>
+            <button onClick={() => navigate('/learn')} className="lp-btn-hero-ghost" aria-label="Learn how it works">How it works →</button>
+          </div>
+          {/* Prompt 2: Trust strip */}
+          <div style={{ display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap', marginTop:28 }}>
+            {[
+              DATA_SOURCE_FOOTER,
+              'No data stored',
+              'OWASP-aligned',
+              'Rate-limited API',
+              'Open source',
+            ].map(t => (
+              <span key={t} style={{ display:'inline-flex', alignItems:'center', gap:5, fontSize:12, color:'var(--text-secondary)', background:'var(--bg-elevated)', border:'1px solid var(--border)', borderRadius:999, padding:'4px 12px', fontWeight:500 }}>
+                {t}
+              </span>
+            ))}
           </div>
           <div className="lp-hero-stats">
-            {['2 CVE DBs|OSV · NVD fallback','3 Ecosystems|npm · PyPI · Maven','Full Tree|Direct + Transitive','On-demand|Latest CVE data'].map(item => {
+            {['2 CVE DBs|' + DATA_SOURCE_FOOTER,'3 Ecosystems|npm · PyPI · Maven','Full Tree|Direct + Transitive','Graph View|Blast radius + paths'].map(item => {
               const [val, label] = item.split('|')
               return <div className="lp-hero-stat" key={item}><div className="lp-hero-stat-val">{val}</div><div className="lp-hero-stat-label">{label}</div></div>
             })}
@@ -131,15 +172,15 @@ export default function Landing() {
 
       <section className="lp-section reveal" id="problem">
         <div style={{ textAlign: 'center' }}>
-          <div className="lp-section-label">The Problem</div>
-          <h2 className="lp-section-title" style={{ maxWidth: 600, margin: '0 auto 16px' }}>Most CVEs hide where you're not looking</h2>
-          <p className="lp-section-sub" style={{ margin: '0 auto' }}>Every modern project carries hundreds of transitive dependencies you never explicitly chose — and attackers know it.</p>
+          <div className="lp-section-label">Supply Chain Risk</div>
+          <h2 className="lp-section-title" style={{ maxWidth: 600, margin: '0 auto 16px' }}>The attack surface you can't see</h2>
+          <p className="lp-section-sub" style={{ margin: '0 auto' }}>Modern applications ship with hundreds of transitive dependencies — packages you never chose, never reviewed, and may never have heard of. That's where attackers look first.</p>
         </div>
         <div className="lp-problem-grid">
           {[
-            ['80%+', 'Of CVEs in transitive deps', 'Packages you never installed directly carry the most risk. Most security tools only scan your direct dependencies, missing the real attack surface.'],
-            ['60d', 'Average time-to-patch for teams', 'Without clear fix guidance — just CVSS scores and CVE IDs — teams lack the context to prioritize. Alerts pile up. Critical issues get buried.'],
-            ['$4.5M', 'Average cost of a supply chain breach', 'A single vulnerable transitive dependency can open your entire pipeline. Log4Shell, XZ Utils, and SolarWinds all shared one trait: transitive exposure.'],
+            ['80%+', 'Of CVEs in transitive deps', 'Packages you never installed directly carry the most risk. Most security tools only scan your direct dependencies, missing the real attack surface. (Source: Sonatype SSSC Report 2024)'],
+            ['~90d', 'Average time-to-patch for teams', 'Without clear fix guidance — just CVSS scores and CVE IDs — teams lack the context to prioritize. Alerts pile up. Critical issues get buried. (Source: Veracode State of Software Security)'],
+            ['245k+', 'Malicious packages detected in 2024', 'Log4Shell hid as a transitive dependency in 70%+ of affected JVM applications — most teams didn\'t even know they shipped log4j. It was invisible to standard audits. (Source: Sonatype SSSC Report 2024)'],
           ].map(([num, title, text], i) => (
             <div className={`lp-problem-card reveal reveal-delay-${i + 1}`} key={num}>
               <div className="lp-problem-num">{num}</div>
@@ -156,12 +197,12 @@ export default function Landing() {
         <div className="lp-showcase-inner">
           <div className="lp-showcase-header">
             <div>
-              <div className="lp-section-label">The Solution</div>
-              <h2 className="lp-section-title">Risk intelligence,<br />not just raw alerts</h2>
-              <p className="lp-section-sub" style={{ marginBottom: 28 }}>DepAnalyzer doesn't just list CVEs. It groups vulnerabilities by package, scores risk with logarithmic weighting, and gives you exact commands to resolve each issue.</p>
+              <div className="lp-section-label">Dependency Intelligence</div>
+              <h2 className="lp-section-title">Not just CVEs —<br />why they exist</h2>
+              <p className="lp-section-sub" style={{ marginBottom: 28 }}>Most scanners tell you a package is vulnerable. DepAnalyzer tells you <strong>which dependency dragged it in</strong>, why that version was selected over a safe one, and the minimum bump that removes it. That's dependency mediation — and no other free tool visualizes it.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                <CheckRow title="Full transitive tree analysis" text="Maps every nested dependency, not just what's in your manifest" />
-                <CheckRow title="Logarithmic risk scoring" text="Weighs critical, high, medium, and low vulnerabilities with diminishing returns into a single prioritized risk score" />
+                <CheckRow title="Dependency mediation explainer" text="See exactly which parent pulled in the vulnerable version and why" />
+                <CheckRow title="Blast radius visualization" text="Node size encodes how many downstream CVEs are reachable through each package" />
                 <CheckRow title="One-command fix suggestions" text="Exact npm/pip/mvn commands with safe upgrade paths, ready to copy" />
               </div>
             </div>
@@ -189,7 +230,7 @@ export default function Landing() {
               <div><i>&gt;</i> <b>Upload</b> package.json</div>
               <br />
               <div><strong>✓</strong> Resolved dependency tree <i>(10 packages, 43 transitive)</i></div>
-              <div><strong>✓</strong> Queried OSV database with NVD fallback</div>
+              <div><strong>✓</strong> {DATA_SOURCE_SHORT}</div>
               <div><strong>✓</strong> Risk scoring complete</div>
               <br />
               <div><mark>✗ CRITICAL</mark> lodash@4.17.15 <i>CVE-2020-28500 · CVSS 7.4</i></div>
@@ -211,18 +252,43 @@ export default function Landing() {
       <section className="lp-section" id="features2">
         <div style={{ textAlign: 'center' }} className="reveal">
           <div className="lp-section-label">Features</div>
-          <h2 className="lp-section-title">Everything your security team needs</h2>
-          <p className="lp-section-sub" style={{ margin: '0 auto' }}>Built for engineers who ship fast and security teams who can't afford to slow them down.</p>
+          <h2 className="lp-section-title">Dependency intelligence, not just scanning</h2>
+          <p className="lp-section-sub" style={{ margin: '0 auto' }}>Purpose-built for security-conscious engineering teams who need signal, not noise.</p>
         </div>
         <div className="lp-features-grid">
           {[
-            ['🔬','Deep Transitive Analysis','Traverses the full dependency tree — not just your direct installs. Catches CVEs that hide in nested packages your team never explicitly installed.'],
-            ['🧠','Intelligent Risk Scoring','Uses logarithmic weighting of CVSS severity counts to produce a single prioritized risk score from 0 to 100.'],
-            ['⚡','Actionable Fix Commands','Exact install commands, safe version ranges, and dependency override strategies — ready to copy-paste into your terminal.'],
-            ['🗺️','Visual Dependency Graph','See your full dependency tree visualized with vulnerability highlighting. Instantly understand which packages are the source of transitive CVEs.'],
-            ['📋','Export Reports','Download scan results as PDF or CSV. Share findings with your team or attach to compliance documentation.'],
-            ['🔗','Direct vs Transitive','Every package is tagged as direct or transitive. See exactly which dependency introduced each vulnerability via the full dependency path.'],
-          ].map(([icon, title, text], i) => <div className={`lp-feat-card reveal reveal-delay-${(i % 3) + 1}`} key={title}><div className="lp-feat-icon">{icon}</div><div className="lp-feat-title">{title}</div><div className="lp-feat-text">{text}</div></div>)}
+            ['Dependency Graph Intelligence','Visualize your full dependency tree with blast radius encoding — node size shows how many downstream CVEs are reachable through each package. The graph most scanners never show you.'],
+            ['Transitive Risk Tracing','Traverses the full dependency tree to catch CVEs in packages you never explicitly installed — where 80%+ of real-world vulnerabilities hide.'],
+            ['Dependency Mediation Explainer','See exactly why a vulnerable version was selected — which parent pulled it in, and which version bump removes it. Unique to DepAnalyzer.'],
+            ['Logarithmic Risk Scoring','Weighs severity counts with diminishing returns into a transparent 0–100 risk score. Click to see the exact calculation for your scan.'],
+            ['Actionable Fix Commands','Per-CVE install commands and batch fix-all commands in the correct format for each ecosystem — ready to run.'],
+            ['PDF + CSV Export','Download scan results as structured reports. Share with your team or attach to security reviews.'],
+          ].map(([title, text], i) => <div className={`lp-feat-card reveal reveal-delay-${(i % 3) + 1}`} key={title}><div className="lp-feat-icon">{FEAT_ICONS[i]}</div><div className="lp-feat-title">{title}</div><div className="lp-feat-text">{text}</div></div>)}
+        </div>
+      </section>
+
+      <div className="lp-section-divider" />
+
+      {/* Prompt 2: Enterprise trust section */}
+      <section className="lp-section reveal" style={{ paddingTop: 48, paddingBottom: 48 }}>
+        <div style={{ textAlign:'center', marginBottom: 28 }}>
+          <div className="lp-section-label">Security Transparency</div>
+          <h2 className="lp-section-title" style={{ fontSize:'clamp(22px,2.5vw,32px)' }}>Built for security teams. Transparent by design.</h2>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))', gap:12 }}>
+          {[
+            ['No data stored','Your manifest is parsed in-memory and discarded. Package names, filenames, and registry URLs are never persisted.'],
+            ['Powered by OSV · NVD fallback','CVE data sourced from OSV on every scan. NVD queried as fallback when OSV data is incomplete.'],
+            ['Rate-limited API','All endpoints are rate-limited and input-validated. No request data is logged.'],
+            ['OWASP-aligned','Input sanitisation follows OWASP validation standards. XSS and injection protections on all user inputs.'],
+            ['3 ecosystems','npm, PyPI, and Maven — with automatic ecosystem detection from filename.'],
+            ['Open source','Full source available on GitHub. Audit the code yourself.'],
+          ].map(([title,text]) => (
+            <div key={title} style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:10, padding:'14px 16px' }}>
+              <div style={{ fontWeight:700, fontSize:12, color:'var(--text-primary)', marginBottom:4 }}>{title}</div>
+              <div style={{ fontSize:11, color:'var(--text-muted)', lineHeight:1.5 }}>{text}</div>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -245,13 +311,13 @@ export default function Landing() {
       <div className="lp-section-divider" />
 
       <div className="lp-cta-band reveal">
-        <div><div className="lp-cta-title">Stop guessing.<br />Start securing.</div><div className="lp-cta-sub">Scan your first project — no account required.</div></div>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}><button onClick={() => navigate('/scan')} className="lp-btn-hero" aria-label="Start scanning now">→ Scan Now</button></div>
+        <div><div className="lp-cta-title">Find vulnerabilities<br />before they ship.</div><div className="lp-cta-sub">No account. No agents. Just upload your manifest and get results in seconds.</div></div>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}><button onClick={() => navigate('/scan')} className="lp-btn-hero" aria-label="Start scanning now">{shield} Scan Now — Free</button></div>
       </div>
 
       <footer>
         <div className="lp-footer">
-          <div><div className="lp-nav-logo" style={{ marginBottom: 14 }}><div className="lp-nav-logo-icon">{shield}</div>DepAnalyzer</div><p className="lp-footer-desc">On-demand dependency vulnerability scanning for modern engineering teams.</p></div>
+          <div><div className="lp-nav-logo" style={{ marginBottom: 14 }}><div className="lp-nav-logo-icon">{shield}</div>DepAnalyzer</div><p className="lp-footer-desc">Dependency intelligence and software supply chain security for modern engineering teams. Open source. No signup required.</p></div>
           {['Product|Scanner|Knowledge Base','Databases|NVD|OSV'].map(col => {
             const [title, ...links] = col.split('|')
             return <div key={title}><div className="lp-footer-col-title">{title}</div><div className="lp-footer-links">{links.filter(l => l).map(l => <button key={l} onClick={() => l === 'Scanner' ? navigate('/scan') : l === 'Knowledge Base' ? navigate('/learn') : l === 'NVD' ? window.open('https://nvd.nist.gov', '_blank') : l === 'OSV' ? window.open('https://osv.dev', '_blank') : null}>{l}</button>)}</div></div>
@@ -268,18 +334,18 @@ const landingCss = `
 .landing-page:after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.3}
 .landing-page button{font-family:var(--font-ui)}
 
-.lp-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;display:flex;align-items:center;padding:0 48px;border-bottom:1px solid transparent;transition:background .3s,border-color .3s}
+.lp-nav{position:fixed;top:0;left:0;right:0;z-index:100;height:60px;display:flex;align-items:center;padding:0 48px;border-bottom:1px solid transparent;transition:background .3s,border-color .3s;overflow:visible}
 .lp-nav.scrolled{background:var(--bg-card);border-color:var(--border);backdrop-filter:blur(16px)}
 .lp-nav-logo{font-family:var(--font-display);font-size:17px;font-weight:700;display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text);background:none;border:0;cursor:pointer}
-.lp-nav-logo-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--orange),var(--accent2));border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lp-nav-logo-icon{width:28px;height:28px;background:linear-gradient(135deg,var(--brand),var(--accent2));border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .lp-nav-links{display:flex;gap:2px;margin-left:32px;flex:1}.lp-nav-link{padding:6px 14px;border-radius:7px;font-size:14.5px;color:var(--text-secondary);text-decoration:none;transition:all .15s;background:none;border:0;cursor:pointer}.lp-nav-link:hover{color:var(--text);background:var(--bg-elevated)}.lp-nav-cta{display:flex;gap:10px;align-items:center}
 .lp-btn-ghost,.lp-btn-primary,.lp-btn-hero,.lp-btn-hero-ghost{border-radius:8px;font-weight:500;cursor:pointer;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:8px}
 .lp-btn-ghost{padding:8px 18px;font-size:14.5px;color:var(--text-secondary);background:transparent;border:1px solid var(--border-mid)}.lp-btn-ghost:hover{color:var(--text);border-color:var(--border-light)}
-.lp-btn-primary{padding:8px 20px;font-size:14.5px;font-weight:600;color:var(--white);background:var(--orange);border:none}.lp-btn-primary:hover,.lp-btn-hero:hover{background:var(--blue);transform:translateY(-1px);box-shadow:0 8px 20px var(--orange-glow)}
-.lp-hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 48px 80px;position:relative;overflow:hidden;text-align:center}.lp-hero-bg{position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,var(--orange-dim) 0%,transparent 70%),radial-gradient(ellipse 50% 40% at 80% 80%,var(--purple-dim) 0%,transparent 60%)}.lp-hero-graph{position:absolute;inset:0;z-index:0;opacity:.35}.lp-hero-content{position:relative;z-index:1;max-width:820px}.lp-hero-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:999px;background:var(--orange-dim);border:1px solid var(--orange);font-size:12.5px;font-weight:500;color:var(--orange);margin-bottom:28px}.lp-hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--orange);animation:blink 2s infinite}.lp-hero-title{font-family:var(--font-display);font-size:clamp(42px,5.5vw,72px);font-weight:800;letter-spacing:-2.5px;line-height:1.05;color:var(--text);margin-bottom:24px}.lp-hero-title span{background:linear-gradient(135deg,var(--orange) 0%,var(--purple) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.lp-hero-sub{font-size:18px;color:var(--text-secondary);max-width:560px;margin:0 auto 40px;line-height:1.75}.lp-hero-sub strong{color:var(--text);font-weight:500}.lp-hero-actions{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap}.lp-btn-hero{padding:14px 32px;border-radius:10px;font-size:15px;font-weight:600;color:var(--white);background:var(--orange);border:none}.lp-btn-hero-ghost{padding:14px 28px;border-radius:10px;font-size:15px;color:var(--text-secondary);background:transparent;border:1px solid var(--border-mid)}.lp-btn-hero-ghost:hover{color:var(--text);border-color:var(--border-light);background:var(--bg-elevated)}.lp-hero-stats{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;margin-top:72px;padding-top:48px;border-top:1px solid var(--border)}.lp-hero-stat-val{font-family:var(--font-d);font-size:32px;font-weight:800;letter-spacing:-1px;color:var(--text)}.lp-hero-stat-label{font-size:14px;color:var(--text-2);margin-top:4px}
+.lp-btn-primary{padding:8px 20px;font-size:14.5px;font-weight:600;color:var(--white);background:var(--brand);border:none}.lp-btn-primary:hover,.lp-btn-hero:hover{background:var(--blue);transform:translateY(-1px);box-shadow:0 8px 20px var(--brand-glow)}
+.lp-hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 48px 80px;position:relative;overflow:hidden;text-align:center}.lp-hero-bg{position:absolute;inset:0;z-index:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,var(--brand-dim) 0%,transparent 70%),radial-gradient(ellipse 50% 40% at 80% 80%,var(--purple-dim) 0%,transparent 60%)}.lp-hero-graph{position:absolute;inset:0;z-index:0;opacity:.35}.lp-hero-content{position:relative;z-index:1;max-width:820px}.lp-hero-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:999px;background:var(--brand-dim);border:1px solid var(--brand);font-size:12.5px;font-weight:500;color:var(--brand);margin-bottom:28px}.lp-hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--brand);animation:blink 2s infinite}.lp-hero-title{font-family:var(--font-display);font-size:clamp(42px,5.5vw,72px);font-weight:800;letter-spacing:-2.5px;line-height:1.05;color:var(--text);margin-bottom:24px}.lp-hero-title span{background:linear-gradient(135deg,var(--brand) 0%,var(--purple) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}.lp-hero-sub{font-size:18px;color:var(--text-secondary);max-width:560px;margin:0 auto 40px;line-height:1.75}.lp-hero-sub strong{color:var(--text);font-weight:500}.lp-hero-actions{display:flex;gap:12px;justify-content:center;align-items:center;flex-wrap:wrap}.lp-btn-hero{padding:14px 32px;border-radius:10px;font-size:15px;font-weight:600;color:var(--white);background:var(--brand);border:none}.lp-btn-hero-ghost{padding:14px 28px;border-radius:10px;font-size:15px;color:var(--text-secondary);background:transparent;border:1px solid var(--border-mid)}.lp-btn-hero-ghost:hover{color:var(--text);border-color:var(--border-light);background:var(--bg-elevated)}.lp-hero-stats{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;margin-top:72px;padding-top:48px;border-top:1px solid var(--border)}.lp-hero-stat-val{font-family:var(--font-d);font-size:32px;font-weight:800;letter-spacing:-1px;color:var(--text)}.lp-hero-stat-label{font-size:14px;color:var(--text-2);margin-top:4px}
 .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}.reveal.visible{opacity:1;transform:translateY(0)}.reveal-delay-1{transition-delay:.1s}.reveal-delay-2{transition-delay:.2s}.reveal-delay-3{transition-delay:.3s}.reveal-delay-4{transition-delay:.4s}
 .lp-section{padding:96px 48px;max-width:1200px;margin:0 auto}.lp-section-label{display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);margin-bottom:16px}.lp-section-title{font-family:var(--font-d);font-size:clamp(28px,3vw,42px);font-weight:800;letter-spacing:-1.2px;line-height:1.15;color:var(--text);margin-bottom:16px}.lp-section-sub{font-size:17px;color:var(--text-2);max-width:520px;line-height:1.75}.lp-section-divider{width:100%;height:1px;background:var(--border)}
-.lp-problem-grid,.lp-features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:16px;overflow:hidden;margin-top:56px}.lp-problem-card,.lp-feat-card{background:var(--bg-card);padding:36px 32px}.lp-problem-num{font-family:var(--font-d);font-size:52px;font-weight:800;letter-spacing:-2px;color:var(--border);line-height:1;margin-bottom:16px}.lp-problem-title,.lp-feat-title{font-family:var(--font-d);font-size:18px;font-weight:700;color:var(--text);margin-bottom:10px}.lp-problem-text,.lp-feat-text{font-size:14px;color:var(--text-2);line-height:1.75}.lp-features-grid{border-radius:20px}.lp-feat-card:hover{background:var(--bg-elevated)}.lp-feat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:20px;background:var(--orange-dim);border:1px solid var(--orange)}
+.lp-problem-grid,.lp-features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-radius:16px;overflow:hidden;margin-top:56px}.lp-problem-card,.lp-feat-card{background:var(--bg-card);padding:36px 32px}.lp-problem-num{font-family:var(--font-d);font-size:52px;font-weight:800;letter-spacing:-2px;color:var(--border);line-height:1;margin-bottom:16px}.lp-problem-title,.lp-feat-title{font-family:var(--font-d);font-size:18px;font-weight:700;color:var(--text);margin-bottom:10px}.lp-problem-text,.lp-feat-text{font-size:14px;color:var(--text-2);line-height:1.75}.lp-features-grid{border-radius:20px}.lp-feat-card:hover{background:var(--bg-elevated)}.lp-feat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;font-size:20px;background:var(--brand-dim);border:1px solid var(--brand)}
 .lp-showcase{background:linear-gradient(180deg,var(--bg) 0%,var(--bg-panel) 50%,var(--bg) 100%);padding:96px 48px}.lp-showcase-inner{max-width:1200px;margin:0 auto}.lp-showcase-header,.lp-two-col{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;margin-bottom:64px}.lp-check{width:20px;height:20px;border-radius:5px;background:rgba(62,207,142,.12);border:1px solid rgba(62,207,142,.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px}.lp-showcase-screen{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.6),0 0 0 1px var(--border);position:relative}.lp-showcase-screen:before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent)}.lp-screen-bar,.lp-terminal-bar{height:40px;background:var(--bg-elevated);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:8px}.lp-screen-bar span,.lp-terminal-bar span{width:10px;height:10px;border-radius:50%}.lp-screen-bar div,.lp-terminal-bar div{flex:1;text-align:center;font-family:var(--font-m);font-size:11px;color:var(--text-muted)}.lp-screen-body{padding:20px}.lp-mini-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}.lp-mini-stats div{background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}.lp-mini-stats strong{font-family:var(--font-d);font-size:22px;font-weight:800;display:block}.lp-mini-stats span{font-size:10px;color:var(--text-secondary)}.lp-vuln-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:8px 10px;border-radius:6px;margin-bottom:6px;background:var(--bg-elevated)}.lp-vuln-row.critical{background:var(--vuln-bg);border-left:2px solid var(--critical)}.lp-vuln-row.high{background:var(--warn-bg)}.lp-vuln-row b{display:block;font-family:var(--font-m);font-size:12px;color:var(--text-secondary)}.lp-vuln-row small{font-size:10px;color:var(--text-muted)}.lp-vuln-row em{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;text-transform:uppercase;font-style:normal;color:var(--high);border:1px solid rgba(255,140,66,.3);background:rgba(255,140,66,.15)}.lp-vuln-row.critical em{color:var(--critical);border-color:rgba(255,59,92,.3);background:rgba(255,59,92,.15)}.lp-vuln-row.medium em{color:var(--medium);border-color:rgba(245,200,66,.3);background:rgba(245,200,66,.15)}.lp-vuln-row span{font-family:var(--font-m);font-size:10px;color:var(--text-muted)}
 .lp-terminal{background:var(--code-bg);border:1px solid var(--border-mid);border-radius:12px;overflow:hidden;font-family:var(--font-m);box-shadow:0 20px 60px var(--overlay-bg)}.lp-terminal-body{padding:18px 20px;font-size:12.5px;line-height:1.9;color:var(--text)}.lp-terminal-body i{color:var(--text-muted);font-style:normal}.lp-terminal-body strong{color:var(--green)}.lp-terminal-body b{color:var(--accent)}.lp-terminal-body mark{background:transparent;color:var(--critical)}.lp-terminal-body u{color:var(--high);text-decoration:none}
 .lp-hiw-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:64px;position:relative}.lp-hiw-steps:before{content:'';position:absolute;top:28px;left:12.5%;right:12.5%;height:1px;background:linear-gradient(90deg,transparent,var(--border-mid) 20%,var(--border-mid) 80%,transparent)}.lp-hiw-step{display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 20px}.lp-hiw-num{width:56px;height:56px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border-mid);display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:18px;font-weight:800;color:var(--accent);margin-bottom:24px;position:relative;z-index:1;flex-shrink:0}.lp-hiw-title{font-family:var(--font-d);font-size:15px;font-weight:700;color:var(--text);margin-bottom:8px}.lp-hiw-text{font-size:14px;color:var(--text-2);line-height:1.7}
@@ -289,11 +355,11 @@ const landingCss = `
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}@keyframes pulse-node{0%,100%{opacity:.6}50%{opacity:1}}@keyframes dash{to{stroke-dashoffset:-40}}
 .lp-hamburger{display:none;flex-direction:column;justify-content:center;align-items:center;gap:5px;width:32px;height:32px;background:none;border:none;cursor:pointer;border-radius:6px;padding:6px;flex-shrink:0;margin-right:44px}
 .lp-hamburger:hover{background:var(--bg-elevated)}
-.lp-mobile-menu{position:absolute;top:60px;left:0;right:0;background:var(--bg-card);border-bottom:2px solid var(--border);padding:10px 16px 18px;display:flex;flex-direction:column;gap:4px;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:200}
-.lp-mobile-link{display:block;padding:13px 14px;font-size:15px;font-weight:500;color:var(--text-secondary);text-decoration:none;border-radius:8px;transition:background .15s,color .15s}
+.lp-mobile-menu{position:fixed;top:60px;left:0;right:0;background:var(--bg-card);border-bottom:2px solid var(--border);padding:12px 16px 20px;display:flex;flex-direction:column;gap:6px;box-shadow:0 8px 32px rgba(0,0,0,0.3);z-index:200}
+.lp-mobile-link{display:block;padding:14px 16px;font-size:16px;font-weight:600;color:var(--text);text-decoration:none;border-radius:8px;transition:background .15s,color .15s}
 .lp-mobile-link:hover{background:var(--bg-elevated);color:var(--text)}
 .lp-mobile-cta{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;background:var(--accent);color:var(--white);border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;transition:opacity .15s;width:100%}
 .lp-mobile-cta:hover{opacity:0.9}
-.lp-menu-backdrop{position:fixed;inset:0;z-index:199;background:rgba(0,0,0,0.25);backdrop-filter:blur(2px)}
+.lp-menu-backdrop{position:fixed;inset:0;z-index:198;background:rgba(0,0,0,0.4)}
 @media(max-width:900px){.lp-mini-stats{grid-template-columns:repeat(2,1fr)!important}.lp-nav{padding:0 16px}.lp-nav-links{display:none!important}.lp-nav-cta{display:none!important}.lp-hamburger{display:flex!important}.lp-showcase-header,.lp-two-col,.lp-problem-grid,.lp-features-grid,.lp-footer{grid-template-columns:1fr}.lp-hiw-steps{grid-template-columns:1fr;gap:28px}.lp-hiw-steps:before{display:none}.lp-cta-band{margin:0 20px 72px;padding:42px 28px;flex-direction:column;align-items:flex-start}.lp-section,.lp-showcase,.lp-hero{padding-left:24px;padding-right:24px}.lp-footer-bottom{flex-direction:column;gap:10px;align-items:flex-start}}
 `

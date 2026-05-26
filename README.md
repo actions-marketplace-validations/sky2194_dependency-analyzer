@@ -4,6 +4,8 @@
 <img src="https://img.shields.io/badge/python-3.9+-3776AB?style=flat-square&logo=python&logoColor=white" />
 <img src="https://img.shields.io/badge/react-18-61DAFB?style=flat-square&logo=react&logoColor=black" />
 <img src="https://img.shields.io/badge/flask-3.0-000000?style=flat-square&logo=flask&logoColor=white" />
+<img src="https://img.shields.io/badge/postgresql-17-336791?style=flat-square&logo=postgresql&logoColor=white" />
+<img src="https://img.shields.io/badge/CVE_cache-249k_vulns-red?style=flat-square" />
 <img src="https://img.shields.io/badge/license-Apache%202.0-green?style=flat-square" />
 
 # DepAnalyzer
@@ -19,15 +21,18 @@ Scan your project dependencies for known CVE vulnerabilities — across npm, PyP
 
 ## Overview
 
-DepAnalyzer parses a dependency manifest, resolves every package in the tree via the ecosystem's public registry, and maps each one against the [OSV](https://osv.dev) vulnerability database — with optional [NVD](https://nvd.nist.gov) enrichment for CVSS scores. Results are aggregated into a risk score, grouped by package, and rendered in an interactive UI with a live dependency graph.
+DepAnalyzer parses a dependency manifest, resolves every package in the tree via the ecosystem's public registry, and maps each one against a local PostgreSQL cache of the [OSV](https://osv.dev) vulnerability database — seeded once and kept fresh via delta sync every 5 minutes. Missing CVSS scores are enriched from [NVD](https://nvd.nist.gov). Results are aggregated into a risk score, grouped by package, and rendered in an interactive UI with a live dependency graph.
+
+The local CVE cache (249k+ vulnerabilities across npm, PyPI, and Maven) means scan lookups take milliseconds instead of seconds — no live API round-trips per package.
 
 **Scan workflow:**
 1. Parse the uploaded manifest (extract package names and pinned versions)
 2. Resolve the full dependency tree via public registry APIs, up to three levels deep
-3. Query OSV for every resolved package; enrich missing CVSS scores from NVD
-4. Build an immutable, versioned snapshot with a unique transaction ID
-5. Validate the snapshot contract on the frontend before rendering
-6. Display risk score, CVE list, dependency graph, and per-ecosystem fix commands
+3. Query local PostgreSQL CVE cache (DB-first); fall back to live OSV API on cache miss
+4. Enrich missing CVSS scores from NVD where needed
+5. Build an immutable, versioned snapshot with a unique transaction ID
+6. Validate the snapshot contract on the frontend before rendering
+7. Display risk score, CVE list, dependency graph, and per-ecosystem fix commands
 
 Built for developers who want visibility into their supply chain without enterprise tooling overhead.
 
@@ -68,7 +73,6 @@ Built for developers who want visibility into their supply chain without enterpr
 ### Scan History
 - localStorage-backed history, grouped by project name
 - Stores up to 20 scans per project with timestamps and summary snapshots
-- Risk score delta between any two scans
 
 ### Knowledge Base
 - Eight learning sections: SCA, dependency types, CVSS, CVEs, supply chain risks, remediation, CI/CD integration, SBOMs
@@ -105,6 +109,8 @@ Built for developers who want visibility into their supply chain without enterpr
 | Flask | 3.0.0 | HTTP framework |
 | Gunicorn | 21.2.0 | WSGI server |
 | Flask-CORS | 4.0.0 | CORS middleware |
+| psycopg2-binary | 2.9.9 | PostgreSQL driver |
+| APScheduler | 3.10.4 | Background sync scheduler |
 | ReportLab | 4.2.5 | PDF generation |
 | requests | 2.31.0 | External API calls |
 | xmltodict | 0.13.0 | pom.xml parsing |
@@ -151,7 +157,10 @@ User uploads manifest
 │                                          │
 │  3. Scan  (cve/scanner.py)               │
 │     BFS traversal, up to 8 OSV workers   │
-│     OSV primary → NVD CVSS enrichment    │
+│     DB-first lookup (PostgreSQL cache)   │
+│     → live OSV fallback on cache miss    │
+│     → NVD CVSS enrichment                │
+│     → EPSS score + KEV flag enrichment   │
 │     LRU cache (1000 entries, 1h TTL)     │
 │                                          │
 │  4. Build snapshot                       │
@@ -294,10 +303,12 @@ npm run dev
 
 | Variable | Required | Description |
 |----------|----------|-------------|
+| `DATABASE_URL` | Yes (production) | PostgreSQL connection string. Format: `postgresql://user:pass@host/db?sslmode=require`. Free tier: [neon.tech](https://neon.tech) |
 | `NVD_API_KEY` | No | NVD API key. Without it: 5 req/30s. With it: 50 req/30s. Get one at nvd.nist.gov/developers/request-an-api-key |
 | `ALLOWED_ORIGINS` | No | Comma-separated CORS origins. Defaults to permissive in development. |
 | `ALLOW_VERCEL_PREVIEWS` | No | Set to `true` to allow `*.vercel.app` preview URLs. |
 | `USE_REDIS_RATE_LIMIT` | No | Set to `true` to switch from in-memory to Redis-backed rate limiting. |
+| `DISABLE_SCHEDULER` | No | Set to `true` to disable background OSV/EPSS/KEV sync (useful in dev). |
 
 ```bash
 cp backend/.env.example backend/.env
@@ -309,6 +320,48 @@ cp backend/.env.example backend/.env
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `VITE_API_URL` | Production only | Backend base URL. In development, Vite proxies `/api/*` to `localhost:5000` automatically. |
+
+---
+
+## Database Setup (PostgreSQL CVE Cache)
+
+DepAnalyzer uses a local PostgreSQL cache for fast CVE lookups. Without it, scans fall back to live OSV API calls (slower but functional).
+
+### 1. Create a free Neon database
+
+1. Sign up at [neon.tech](https://neon.tech) (free, no credit card)
+2. Create a project → name it `depanalyzer`, region US East
+3. Copy the connection string:
+   ```
+   postgresql://user:password@ep-xxx.neon.tech/depanalyzer?sslmode=require
+   ```
+4. Add it to `backend/.env`:
+   ```
+   DATABASE_URL=postgresql://user:password@ep-xxx.neon.tech/depanalyzer?sslmode=require
+   ```
+
+### 2. Download OSV data (once)
+
+```bash
+curl -L -o /tmp/npm.zip   https://osv-vulnerabilities.storage.googleapis.com/npm/all.zip
+curl -L -o /tmp/pypi.zip  https://osv-vulnerabilities.storage.googleapis.com/PyPI/all.zip
+curl -L -o /tmp/maven.zip https://osv-vulnerabilities.storage.googleapis.com/Maven/all.zip
+```
+
+### 3. Seed the database (once, ~5-10 min)
+
+```bash
+cd backend
+python3 sync/seed.py
+```
+
+This loads 249k+ vulnerabilities + EPSS scores + CISA KEV entries. Run once — delta sync keeps it fresh automatically.
+
+### 4. That's it
+
+The backend initialises the schema and starts the delta sync scheduler on every restart. OSV data is refreshed every 5 minutes (delta only — not a full re-download).
+
+> **Without `DATABASE_URL`:** scans still work via live OSV API. Expect 10-30s per scan on large manifests vs under 1s with the DB cache.
 
 ---
 
@@ -346,8 +399,7 @@ dependency-analyzer/
 │       │   ├── Scanning.jsx        # Loading state during active scan
 │       │   ├── Analytics.jsx       # Results page (risk score, CVE list, graph)
 │       │   ├── History.jsx         # Scan history browser
-│       │   ├── Learn.jsx           # Knowledge base
-│       │   └── Compare.jsx         # Scan comparison page
+│       │   └── Learn.jsx           # Knowledge base
 │       ├── components/
 │       │   ├── DependencyGraph.jsx # SVG interactive dependency graph
 │       │   ├── FileUpload.jsx      # Upload, paste textarea, ecosystem selector
@@ -379,9 +431,15 @@ dependency-analyzer/
 │   │   ├── maven_resolver.py       # Maven Central resolution
 │   │   └── lockfile_resolver.py    # Lock file resolution (no registry calls)
 │   ├── cve/
-│   │   ├── scanner.py              # BFS scan orchestration (up to 8 workers)
-│   │   ├── osv_client.py           # OSV API client with circuit breaker
+│   │   ├── scanner.py              # BFS scan orchestration — DB-first with OSV fallback
+│   │   ├── db_scanner.py           # PostgreSQL CVE lookup (version-aware)
+│   │   ├── osv_client.py           # OSV API client with circuit breaker (fallback)
 │   │   └── nvd_client.py           # NVD API client (CVSS enrichment)
+│   ├── sync/
+│   │   ├── osv_sync.py             # Delta sync via OSV API every 5 minutes
+│   │   ├── epss_kev_sync.py        # EPSS scores + CISA KEV list (daily)
+│   │   └── seed.py                 # One-time seed from local OSV ZIP dumps
+│   ├── db.py                       # PostgreSQL connection manager + schema
 │   ├── exports/
 │   │   ├── pdf_export.py           # ReportLab PDF generation
 │   │   └── csv_export.py           # CSV export
@@ -431,7 +489,7 @@ dependency-analyzer/
 | `GET` | `/api/cve/<cve_id>` | Fetch details for a specific CVE |
 | `POST` | `/api/export/pdf` | Generate a PDF report from a scan snapshot |
 | `POST` | `/api/export/csv` | Generate a CSV export of vulnerabilities |
-| `GET` | `/api/health` | Health check — returns `{"status": "ok"}` |
+| `GET` | `/api/health` | Health check — returns status, DB connection state, and last OSV/EPSS/KEV sync timestamps |
 
 ### POST `/api/scan`
 
@@ -554,6 +612,7 @@ Referrer-Policy: strict-origin-when-cross-origin
 - **Transitive depth** — resolves up to three levels for npm and two levels for PyPI and Maven. Very deep trees are not fully traversed.
 - **Rate limiting** — in-memory rate limiting resets on server restart. Use Redis (`USE_REDIS_RATE_LIMIT=true`) for persistent enforcement across restarts.
 - **No authentication** — the application is stateless. Scan history is stored in the browser's localStorage only.
+- **DB version coverage** — the OSV seed captures versions listed in OSV dump files. Packages with only range-based affected entries (no explicit version list) default to conservative match (assumed affected). Live OSV fallback resolves these precisely.
 
 ---
 
@@ -588,7 +647,9 @@ source venv/bin/activate
 gunicorn app:app --bind 0.0.0.0:5000 --workers 2
 ```
 
-Set `ALLOWED_ORIGINS` to your frontend domain and optionally `NVD_API_KEY` for better NVD rate limits.
+Set `ALLOWED_ORIGINS` to your frontend domain, `DATABASE_URL` to your Neon connection string, and optionally `NVD_API_KEY` for better NVD rate limits.
+
+**Do not set `DATABASE_URL` in a file on the server.** Set it as an environment variable in your hosting platform dashboard (DigitalOcean → App → Environment Variables, or Render/Railway settings). This keeps your database password off the filesystem.
 
 ---
 

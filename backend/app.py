@@ -40,6 +40,42 @@ from export.csv_export import generate_csv
 
 app = Flask(__name__)
 
+# ── Database init (runs once at startup) ───────────────────────────────────
+def _init_db():
+    try:
+        from db import init_schema
+        init_schema()
+        log.info("DB schema ready")
+    except Exception as e:
+        log.warning(f"DB init skipped (no DATABASE_URL?): {e}")
+
+_init_db()
+
+# ── Hourly sync scheduler ──────────────────────────────────────────────────
+def _start_scheduler():
+    try:
+        from apscheduler.schedulers.background import BackgroundScheduler
+        from sync.osv_sync import sync_all
+        from sync.epss_kev_sync import sync_epss, sync_kev
+
+        scheduler = BackgroundScheduler()
+        # OSV delta: every 5 minutes — only fetches records changed since last sync
+        scheduler.add_job(sync_all,  'interval', minutes=5, id='osv_sync',  replace_existing=True)
+        # EPSS + KEV: daily
+        scheduler.add_job(sync_epss, 'interval', hours=24, id='epss_sync', replace_existing=True)
+        scheduler.add_job(sync_kev,  'interval', hours=24, id='kev_sync',  replace_existing=True)
+        # Purge expired resolver cache entries daily
+        from db import purge_expired_resolver_cache
+        scheduler.add_job(purge_expired_resolver_cache, 'interval', hours=24, id='resolver_cache_purge', replace_existing=True)
+        scheduler.start()
+        log.info("Sync scheduler started (OSV hourly, EPSS/KEV daily)")
+    except Exception as e:
+        log.warning(f"Scheduler not started: {e}")
+
+import os as _os
+if _os.environ.get("DISABLE_SCHEDULER", "").lower() != "true":
+    _start_scheduler()
+
 def parse_allowed_origins():
     origins = os.environ.get(
         'ALLOWED_ORIGINS',
@@ -510,7 +546,11 @@ def scan_package_deep():
         med_impact  = 20 * (1 - math.exp(-counts['MEDIUM']   / 8)) if counts['MEDIUM']   > 0 else 0
         low_impact  = 10 * (1 - math.exp(-counts['LOW']      /10)) if counts['LOW']      > 0 else 0
         risk_score  = min(100, round(crit_impact + high_impact + med_impact + low_impact))
-        risk_label  = 'Critical' if risk_score >= 90 else 'High' if risk_score >= 70 else 'Medium' if risk_score >= 40 else 'Low'
+        if risk_score >= 90:   risk_label = 'Critical'
+        elif risk_score >= 70: risk_label = 'High'
+        elif risk_score >= 40: risk_label = 'Medium'
+        elif risk_score >= 1:  risk_label = 'Low'
+        else:                  risk_label = 'Secure'
 
         # Build grouped_packages to satisfy frontend contract
         grouped_vulns = group_vulns_by_package(vulnerabilities)
@@ -623,12 +663,37 @@ def export_csv():
 
 @app.route('/api/health', methods=['GET'])
 def health():
+    from datetime import datetime, timezone
+    now = datetime.now(timezone.utc).isoformat()
+
+    # Real DB sync times — powering the freshness indicator in the frontend
+    try:
+        from db import last_sync_time
+        osv_synced_at = (
+            last_sync_time('OSV_npm') or
+            last_sync_time('OSV_pypi') or
+            last_sync_time('OSV_maven') or
+            None
+        )
+        epss_synced_at = last_sync_time('EPSS') or None
+        kev_synced_at  = last_sync_time('KEV')  or None
+        db_ok = True
+    except Exception:
+        osv_synced_at  = None
+        epss_synced_at = None
+        kev_synced_at  = None
+        db_ok = False
+
     return jsonify({
         'status': 'ok', 'version': '1.0.0',
         'nvd_api_key_configured': bool(os.environ.get('NVD_API_KEY')),
         'rate_limit': f"{RATE_LIMIT} requests per {RATE_WINDOW}s",
         'max_file_size': f"{MAX_CONTENT_SIZE // 1024}KB",
         'allowed_origins': ALLOWED_ORIGINS,
+        'db_connected': db_ok,
+        'osv_synced_at':  osv_synced_at,
+        'epss_synced_at': epss_synced_at,
+        'kev_synced_at':  kev_synced_at,
     })
 
 if __name__ == '__main__':

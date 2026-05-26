@@ -15,6 +15,16 @@ _MAX_CACHE_SIZE = 500
 
 def _fetch_deps(group, artifact, version):
     key = f"{group}:{artifact}:{version}"
+    # DB cache first
+    try:
+        from db import get_resolver_cache, set_resolver_cache
+        cached = get_resolver_cache(f"maven:{key}")
+        if cached is not None:
+            with _cache_lock:
+                _cache[key] = cached
+            return cached
+    except Exception:
+        pass
     with _cache_lock:
         if key in _cache:
             return _cache[key]

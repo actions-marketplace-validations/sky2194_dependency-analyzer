@@ -3,14 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import axios from 'axios'
 import API_BASE from '../config'
 import { useScan } from '../App'
+import { DATA_SOURCE_SHORT } from '../data/dataSources'
 
 const STEPS = [
-  { icon: '📄', label: 'Parsing manifest structure' },
-  { icon: '🌳', label: 'Resolving transitive dependencies' },
-  { icon: '🔗', label: 'Building dependency graph' },
-  { icon: '🔍', label: 'Checking vulnerability databases' },
-  { icon: '🛡️', label: 'Querying OSV database' },
-  { icon: '📊', label: 'Calculating risk score' },
+  { label: 'Detecting ecosystem' },
+  { label: 'Parsing manifest file' },
+  { label: 'Resolving dependency tree' },
+  { label: 'Querying vulnerability databases' },
+  { label: 'Calculating risk metrics' },
 ]
 
 export default function Scanning() {
@@ -99,12 +99,16 @@ export default function Scanning() {
     return (
       <div style={{ minHeight: 'calc(100vh - 52px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 20 }}>
         <div style={{ width: '90%', maxWidth: 420, padding: 32, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, textAlign: 'center' }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>🔍</div>
+          <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center' }}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>No active scan</h2>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
             This page only renders during a live scan. Start one from the Scanner.
           </p>
-          <button onClick={() => navigate('/scan')} aria-label="Go to scanner" style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--orange)', color: 'var(--white)', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
+          <button onClick={() => navigate('/scan')} aria-label="Go to scanner" style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--brand)', color: 'var(--white)', border: 'none', fontWeight: 700, fontSize: 13, cursor: 'pointer' }}>
             ← Go to Scanner
           </button>
         </div>
@@ -117,7 +121,11 @@ export default function Scanning() {
     return (
       <div style={{ minHeight: 'calc(100vh - 52px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: 20 }}>
         <div style={{ width: '90%', maxWidth: 420, padding: 32, background: 'var(--bg-card)', border: '1px solid var(--critical)', borderRadius: 16, textAlign: 'center' }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>⚠️</div>
+          <div style={{ marginBottom: 12, display: 'flex', justifyContent: 'center' }}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, marginBottom: 8, color: 'var(--critical)' }}>Scan Failed</h2>
           <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 20, lineHeight: 1.6 }}>
             {scanError}
@@ -126,7 +134,7 @@ export default function Scanning() {
             <button onClick={() => navigate('/scan')} style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--bg-elevated)', color: 'var(--text)', border: '1px solid var(--border)', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
               ← Back
             </button>
-            <button onClick={() => { setScanError(null); setStep(0); window.location.reload() }} style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--orange)', color: 'var(--white)', border: 'none', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+            <button onClick={() => { setScanError(null); setStep(0); window.location.reload() }} style={{ padding: '10px 20px', borderRadius: 8, background: 'var(--brand)', color: 'var(--white)', border: 'none', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
               Retry
             </button>
           </div>
@@ -140,7 +148,6 @@ export default function Scanning() {
       <div style={{ width: '90%', maxWidth: 480, padding: 'clamp(24px, 5vw, 40px)', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, boxShadow: '0 24px 64px var(--overlay-bg)' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🔐</div>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, marginBottom: 6 }}>Scanning Dependencies</h2>
           <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
             {locationState?.ecosystem?.toUpperCase() || 'npm'} · Analyzing your project...
@@ -155,31 +162,31 @@ export default function Scanning() {
               <div key={i} style={{
                 display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderRadius: 8,
                 background: isCurrent ? 'var(--bg-elevated)' : 'transparent',
-                border: isCurrent ? '1px solid var(--orange)' : '1px solid transparent',
+                border: isCurrent ? '1px solid var(--brand)' : '1px solid transparent',
                 transition: 'all 0.3s'
               }}>
                 <div style={{
                   width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-                  border: `2px solid ${isPast ? 'var(--green)' : isCurrent ? 'var(--orange)' : 'var(--border-light)'}`,
+                  border: `2px solid ${isPast ? 'var(--green)' : isCurrent ? 'var(--brand)' : 'var(--border-light)'}`,
                   background: isPast ? 'var(--green)' : 'transparent',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 11, fontWeight: 700, color: isPast ? 'var(--white)' : isCurrent ? 'var(--orange)' : 'var(--text-muted)',
+                  fontSize: 11, fontWeight: 700, color: isPast ? 'var(--white)' : isCurrent ? 'var(--brand)' : 'var(--text-muted)',
                   transition: 'all 0.3s'
                 }}>
-                  {isPast ? '✓' : isCurrent ? '●' : ''}
+                  {isPast ? (i + 1) : isCurrent ? (i + 1) : ''}
                 </div>
                 <span style={{
                   fontSize: 13,
                   color: isPast ? 'var(--green)' : isCurrent ? 'var(--text)' : 'var(--text-muted)',
                   transition: 'color 0.3s'
                 }}>
-                  {s.icon} {s.label}
+                  {s.label}
                 </span>
                 {isCurrent && (
                   <div style={{ marginLeft: 'auto', display: 'flex', gap: 3 }}>
                     {[0, 1, 2].map(d => (
                       <div key={d} style={{
-                        width: 4, height: 4, borderRadius: '50%', background: 'var(--orange)',
+                        width: 4, height: 4, borderRadius: '50%', background: 'var(--brand)',
                         animation: `bounce 0.8s ease-in-out ${d * 0.15}s infinite`
                       }} />
                     ))}
@@ -192,7 +199,7 @@ export default function Scanning() {
 
         <div role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Scan progress" style={{ background: 'var(--bg-elevated)', borderRadius: 8, height: 4, overflow: 'hidden', marginBottom: 10 }}>
           <div style={{
-            height: '100%', background: 'var(--orange)',
+            height: '100%', background: 'var(--brand)',
             width: `${progress}%`, transition: 'width 0.6s ease', borderRadius: 8
           }} />
         </div>

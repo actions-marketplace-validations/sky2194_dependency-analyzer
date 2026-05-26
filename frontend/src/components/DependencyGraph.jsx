@@ -60,9 +60,10 @@ export default function DependencyGraph({ data }) {
   const [pan,          setPan]          = useState({ x: 0, y: 0 })
   const [isPanning,    setIsPanning]    = useState(false)
   const panStart   = useRef(null)
+  const pinchStart = useRef(null)
   const containerRef = useRef(null)
 
-  // Zoom via Ctrl+scroll only — normal scroll passes through to page
+  // Ctrl+scroll zoom (desktop)
   const onWheel = useCallback(e => {
     if (!e.ctrlKey && !e.metaKey) return
     e.preventDefault()
@@ -75,6 +76,7 @@ export default function DependencyGraph({ data }) {
     return () => el.removeEventListener('wheel', onWheel)
   }, [onWheel])
 
+  // Mouse pan
   const onMouseDown = useCallback(e => {
     if (e.button !== 0) return
     setIsPanning(true)
@@ -85,6 +87,41 @@ export default function DependencyGraph({ data }) {
     setPan({ x: e.clientX - panStart.current.x, y: e.clientY - panStart.current.y })
   }, [isPanning])
   const onMouseUp = useCallback(() => { setIsPanning(false); panStart.current = null }, [])
+
+  // Touch: pan + pinch zoom
+  const onTouchStart = useCallback(e => {
+    if (e.touches.length === 1) {
+      panStart.current = { x: e.touches[0].clientX - pan.x, y: e.touches[0].clientY - pan.y }
+      pinchStart.current = null
+    } else if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX
+      const dy = e.touches[0].clientY - e.touches[1].clientY
+      pinchStart.current = { dist: Math.hypot(dx, dy), zoom }
+      panStart.current = null
+    }
+  }, [pan, zoom])
+
+  const onTouchMove = useCallback(e => {
+    e.preventDefault()
+    if (e.touches.length === 1 && panStart.current) {
+      setPan({ x: e.touches[0].clientX - panStart.current.x, y: e.touches[0].clientY - panStart.current.y })
+    } else if (e.touches.length === 2 && pinchStart.current) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX
+      const dy = e.touches[0].clientY - e.touches[1].clientY
+      const dist = Math.hypot(dx, dy)
+      const scale = dist / pinchStart.current.dist
+      setZoom(Math.min(3, Math.max(0.25, pinchStart.current.zoom * scale)))
+    }
+  }, [])
+
+  const onTouchEnd = useCallback(() => { panStart.current = null; pinchStart.current = null }, [])
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    el.addEventListener('touchmove', onTouchMove, { passive: false })
+    return () => el.removeEventListener('touchmove', onTouchMove)
+  }, [onTouchMove])
 
   // Compute layout
   const layout = useMemo(() => {
@@ -172,6 +209,18 @@ export default function DependencyGraph({ data }) {
 
   const selData  = selectedNode ? [...directs, ...transitives, root].find(n => n.name === selectedNode) : null
 
+  // Blast radius: count transitive CVEs reachable through each node
+  const blastRadius = useMemo(() => {
+    const map = {}
+    if (!layout) return map
+    const { all } = layout
+    all.forEach(n => {
+      const desc = getDescendants(n.name, all)
+      map[n.name] = [...desc].filter(d => all.find(x => x.name === d)?.vulns.length > 0).length
+    })
+    return map
+  }, [layout])
+
   const handleClick = (name, e) => {
     e.stopPropagation()
     setSelectedNode(prev => prev === name ? null : name)
@@ -189,7 +238,7 @@ export default function DependencyGraph({ data }) {
   return (
     <div>
       {/* ── Controls ── */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="graph-controls" style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         {/* View */}
         <div style={{ display: 'flex', gap: 3, background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 7, padding: 3 }}>
           {[['all','◉ All'],['vulnerable','⚠ Vulnerable'],['direct','▲ Direct']].map(([id,label]) => (
@@ -221,14 +270,15 @@ export default function DependencyGraph({ data }) {
       </div>
 
       {/* ── Legend ── */}
-      <div style={{ display:'flex', gap:14, marginBottom:10, fontSize:10, color:'var(--text-muted)', fontFamily:'var(--font-mono)', flexWrap:'wrap', alignItems:'center' }}>
+      <div className="graph-legend" style={{ display:'flex', gap:14, marginBottom:10, fontSize:10, color:'var(--text-muted)', fontFamily:'var(--font-mono)', flexWrap:'wrap', alignItems:'center' }}>
         {[['var(--critical)','Critical'],['var(--high)','High'],['var(--medium)','Medium'],['var(--green)','Safe']].map(([c,l]) => (
           <span key={l} style={{ display:'flex', alignItems:'center', gap:5 }}>
             <span style={{ width:9, height:9, borderRadius:'50%', background:c, display:'inline-block' }} />{l}
           </span>
         ))}
         <span style={{ color:'var(--border-mid)' }}>── Vulnerable path &nbsp; - - Safe edge</span>
-        <span style={{ marginLeft:'auto' }}>Ctrl+Scroll = zoom · Drag = pan · Click = highlight path</span>
+        <span className="graph-hint-desktop" style={{ marginLeft:'auto' }}>Ctrl+Scroll = zoom · Pinch = zoom · Drag = pan · Click = highlight · Node size = blast radius</span>
+        <span className="graph-hint-touch" style={{ display:'none' }}>Pinch = zoom · Drag = pan · Tap = highlight</span>
       </div>
 
       {/* ── Selected node panel ── */}
@@ -254,7 +304,7 @@ export default function DependencyGraph({ data }) {
             <div style={{ display:'flex', gap:6 }}>
               {!isolatedNode && (
                 <button onClick={() => { setIsolatedNode(selData.name) }}
-                  style={{ padding:'5px 11px', background:'var(--orange-dim)', border:'1px solid var(--accent)', borderRadius:6, color:'var(--accent)', cursor:'pointer', fontSize:11, fontWeight:600 }}>
+                  style={{ padding:'5px 11px', background:'var(--brand-dim)', border:'1px solid var(--accent)', borderRadius:6, color:'var(--accent)', cursor:'pointer', fontSize:11, fontWeight:600 }}>
                   ⬡ Isolate Subtree
                 </button>
               )}
@@ -277,8 +327,10 @@ export default function DependencyGraph({ data }) {
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseUp}
-        onClick={() => setSelectedNode(null)}
-        style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', height:'62vh', cursor:isPanning?'grabbing':'grab', position:'relative', userSelect:'none' }}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        onClick={() => { setSelectedNode(null) }}
+        className="graph-canvas" style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:12, overflow:'hidden', height:'62vh', cursor:isPanning?'grabbing':'grab', position:'relative', userSelect:'none', touchAction:'none' }}
       >
         <svg
           viewBox={`0 0 ${W} ${H}`}
@@ -304,7 +356,7 @@ export default function DependencyGraph({ data }) {
 
           {/* Root node */}
           <g style={{ cursor:'pointer' }} onClick={e => handleClick(root.name, e)}>
-            <circle cx={root.x} cy={root.y} r={NODE_R+4} fill="var(--orange-dim)" stroke="var(--accent)" strokeWidth={selectedNode===root.name?3:2} opacity={isLit(root.name)?1:0.15} />
+            <circle cx={root.x} cy={root.y} r={NODE_R+4} fill="var(--brand-dim)" stroke="var(--accent)" strokeWidth={selectedNode===root.name?3:2} opacity={isLit(root.name)?1:0.15} />
             <text x={root.x} y={root.y+4} fontSize="10" fill="var(--accent)" textAnchor="middle" fontWeight="700">ROOT</text>
             <text x={root.x} y={root.y+NODE_R+18} fontSize="12" fill="var(--text-primary)" textAnchor="middle" fontWeight="700">{root.name}</text>
             <text x={root.x} y={root.y+NODE_R+30} fontSize="10" fill="var(--text-muted)" textAnchor="middle">{root.version}</text>
@@ -317,13 +369,21 @@ export default function DependencyGraph({ data }) {
             const fill    = sev ? SEV_FILL[sev.sev]  : 'var(--green-dim)'
             const isSel   = n.name === selectedNode
             const lit     = isLit(n.name)
-            const r       = sev ? NODE_R + 2 : n.depth === 1 ? NODE_R : NODE_R - 3
+            const blast   = blastRadius[n.name] || 0
+            // Node size encodes blast radius (transitive CVEs reachable through this node)
+            const r       = sev
+              ? Math.min(NODE_R + 2 + Math.min(blast, 8), NODE_R + 10)
+              : n.depth === 1 ? NODE_R : NODE_R - 3
             const label   = n.name.length > 12 ? n.name.slice(0, 11) + '…' : n.name
 
             return (
-              <g key={`n${i}`} style={{ cursor:'pointer' }} onClick={e => handleClick(n.name, e)} opacity={lit ? 1 : 0.12}>
+              <g key={`n${i}`} style={{ cursor:'pointer' }}
+                onClick={e => handleClick(n.name, e)}
+                opacity={lit ? 1 : 0.12}>
                 {/* Glow */}
                 {sev && lit && <circle cx={n.x} cy={n.y} r={r+10} fill={col} opacity="0.1" style={{ filter:'blur(6px)' }} />}
+                {/* Blast radius ring — larger = more downstream CVEs */}
+                {blast > 0 && <circle cx={n.x} cy={n.y} r={r+5} fill="none" stroke={col} strokeWidth="0.5" opacity="0.3" strokeDasharray="3 2" />}
                 {/* Selection ring */}
                 {isSel && <circle cx={n.x} cy={n.y} r={r+7} fill="none" stroke="var(--accent)" strokeWidth="2" strokeDasharray="4 3" />}
                 {/* Node */}

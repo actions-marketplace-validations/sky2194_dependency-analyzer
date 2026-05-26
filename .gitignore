@@ -73,3 +73,14 @@ playwright/.auth/
 *.trace
 *.webm
 
+
+# ── OSV seed ZIPs (downloaded locally, not committed) ─────────────────────
+/tmp/npm.zip
+/tmp/pypi.zip
+/tmp/maven.zip
+*.zip
+
+
+# ── Seed logs ──────────────────────────────────────────────────────────────
+/tmp/seed_*.log
+seed_*.log

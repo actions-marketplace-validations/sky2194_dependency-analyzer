@@ -9,15 +9,13 @@ import normalizeSnapshot from '../utils/normalizeSnapshot'
 
 const SEV_COLOR = { CRITICAL: 'var(--critical)', HIGH: 'var(--high)', MEDIUM: 'var(--medium)', LOW: 'var(--low)' }
 const SEV_DIM   = { CRITICAL: 'var(--red-dim)', HIGH: 'var(--yellow-dim)', MEDIUM: 'var(--blue-dim)', LOW: 'var(--green-dim)' }
-const SEV_ICON  = { CRITICAL: '🔴', HIGH: '🟠', MEDIUM: '🟡', LOW: '🟢' }
 
-// Accessible severity badge — icon + label, never color alone
+// Accessible severity badge — label only, color-coded
 const SevBadge = ({ sev, style = {} }) => {
   if (!sev) return null
   const s = sev.toUpperCase()
   return (
     <span className="sev-badge" style={{ background: SEV_DIM[s], color: SEV_COLOR[s], display: 'inline-flex', alignItems: 'center', gap: 4, ...style }}>
-      <span role="img" aria-hidden="true">{SEV_ICON[s]}</span>
       {s}
     </span>
   )
@@ -53,7 +51,7 @@ function AllClearHero({ snapshot, totalPkgs, directDeps, transitiveDeps, navigat
   }
 
   return (
-    <div style={{ height: 'calc(100vh - 52px)', overflowY: 'auto', padding: '40px 20px' }}>
+    <div className="all-clear-hero" style={{ minHeight: 'calc(100dvh - 52px)', overflowY: 'auto', padding: '40px 20px' }}>
       <div style={{ maxWidth: 660, margin: '0 auto' }}>
 
         {/* Hero card */}
@@ -67,8 +65,11 @@ function AllClearHero({ snapshot, totalPkgs, directDeps, transitiveDeps, navigat
           <div style={{ position: 'absolute', top: -50, right: -50, width: 200, height: 200, borderRadius: '50%', border: '1px solid var(--fix-border)', opacity: 0.3, pointerEvents: 'none' }} />
           <div style={{ position: 'absolute', top: -24, right: -24, width: 120, height: 120, borderRadius: '50%', border: '1px solid var(--fix-border)', opacity: 0.3, pointerEvents: 'none' }} />
 
-          <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--fix-bg)', border: '2px solid var(--fix-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 22px', fontSize: 34 }}>
-            🛡️
+          <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--fix-bg)', border: '2px solid var(--fix-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 22px' }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
           </div>
 
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 42, fontWeight: 800, color: 'var(--green)', marginBottom: 10, letterSpacing: -0.8 }}>
@@ -108,7 +109,7 @@ function AllClearHero({ snapshot, totalPkgs, directDeps, transitiveDeps, navigat
           )}
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-            <button onClick={() => navigate('/scan')} className="a-btn-primary">Scan Another →</button>
+            <button onClick={() => navigate('/scan')} className="a-btn-primary">Scan Another</button>
             <button onClick={() => navigate('/history')} className="a-btn">View History</button>
           </div>
         </div>
@@ -123,8 +124,8 @@ function AllClearHero({ snapshot, totalPkgs, directDeps, transitiveDeps, navigat
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '10px 14px', marginBottom: 12 }}>
-            <span style={{ flexShrink: 0, background: '#238636', color: '#fff', borderRadius: 4, padding: '2px 8px', fontFamily: 'var(--font-mono)', fontSize: 11, whiteSpace: 'nowrap' }}>
-              security: all clear ✓
+            <span style={{ flexShrink: 0, background: 'var(--green)', color: '#fff', borderRadius: 4, padding: '2px 8px', fontFamily: 'var(--font-mono)', fontSize: 11, whiteSpace: 'nowrap' }}>
+              security: all clear
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
               {badgeMd}
@@ -132,7 +133,7 @@ function AllClearHero({ snapshot, totalPkgs, directDeps, transitiveDeps, navigat
           </div>
 
           <button onClick={copyBadge} style={{ padding: '8px 18px', fontWeight: 600, fontSize: 12, background: copied ? 'var(--green)' : 'var(--bg-elevated)', color: copied ? 'var(--white)' : 'var(--text)', border: `1px solid ${copied ? 'var(--green)' : 'var(--border)'}`, borderRadius: 'var(--radius)', cursor: 'pointer', transition: 'all 0.2s ease', fontFamily: 'var(--font-ui)' }}>
-            {copied ? '✓ Copied to clipboard!' : 'Copy Badge Markdown'}
+            {copied ? 'Copied to clipboard!' : 'Copy Badge Markdown'}
           </button>
         </div>
       </div>
@@ -249,7 +250,7 @@ export default function Analytics() {
       // Both PDF and CSV download directly now
       Object.assign(document.createElement('a'), {
         href: url,
-        download: `sca-report.${type}`
+        download: `sca-report-${snapshot?.project_name || 'report'}.${type}`
       }).click()
       URL.revokeObjectURL(url)
       setShowExportMenu(false)
@@ -291,7 +292,7 @@ export default function Analytics() {
       <div className="a-main">
 
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, gap: 12, flexWrap: 'wrap' }}>
+        <div className="a-header-row" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, gap: 12, flexWrap: 'wrap' }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 800, letterSpacing: -0.4, marginBottom: 4 }}>
               Security Report
@@ -362,7 +363,7 @@ export default function Analytics() {
                         {/* Subtext */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
                           <span style={{ fontSize: 9, color: isSaturated ? color : 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                            {isSaturated ? `⚠ Nearly maxed out — more ${sev} CVEs won't raise score much` : `${100 - pct}% headroom remaining`}
+                            {isSaturated ? `Nearly maxed out — more ${sev} CVEs won't raise score much` : `${100 - pct}% headroom remaining`}
                           </span>
                           <span style={{ fontSize: 9, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>{pct}%</span>
                         </div>
@@ -447,9 +448,6 @@ export default function Analytics() {
               <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Risk Score</div>
               <div data-testid="risk-score" style={{ fontFamily: 'var(--font-mono)', fontSize: 20, fontWeight: 700, color: riskColor }}>{riskScore}<span style={{ fontSize: 12, color: 'var(--text-muted)' }}>/100</span></div>
               <span className="a-risk-label" style={{ background: riskDim, color: riskColor }}>{riskLabel}</span>
-              <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', marginTop: 6, lineHeight: 1.5 }}>
-                <span style={{ color: 'var(--critical)' }}>Critical</span> ×10 · <span style={{ color: 'var(--high)' }}>High</span> ×7 · <span style={{ color: 'var(--medium)' }}>Medium</span> ×4 · <span style={{ color: 'var(--low)' }}>Low</span> ×1
-              </div>
               <button onClick={() => setShowRiskModal(true)} style={{ marginTop: 6, background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontSize: 10, color: 'var(--accent)', fontFamily: 'var(--font-mono)', textDecoration: 'underline' }}>
                 How is this calculated?
               </button>
@@ -483,7 +481,7 @@ export default function Analytics() {
                 <button key={sv} onClick={() => setSevFilter(sv)} className={`a-pill ${sevFilter === sv ? 'active' : ''}`}>
                   {sv === 'ALL'
                     ? `All (${vulnPackages.length})`
-                    : <>{SEV_ICON[sv]} {sv} ({counts[sv] || 0})</>
+                    : <>{sv} ({counts[sv] || 0})</>
                   }
                 </button>
               ))}
@@ -550,7 +548,7 @@ export default function Analytics() {
                   <div key={i} className="a-pkg-row" style={{ borderLeftColor: has ? SEV_COLOR[g.highestSeverity] : 'var(--green)' }}>
                     {has
                       ? <SevBadge sev={g.highestSeverity} style={{ fontSize: 10 }} />
-                      : <span className="sev-badge" style={{ background: 'var(--green-dim)', color: 'var(--green)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><span role="img" aria-hidden="true">🟢</span> Secure</span>
+                      : <span className="sev-badge" style={{ background: 'var(--green-dim)', color: 'var(--green)', display: 'inline-flex', alignItems: 'center', gap: 4 }}><span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--green)' }} /> Secure</span>
                     }
                     <span className="a-mono-bold">{g.package}</span>
                     <span className="a-muted-mono">v{g.version}</span>
@@ -572,7 +570,9 @@ export default function Analytics() {
               <div style={{ marginBottom: 16, border: '1px solid var(--fix-border)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
                 {/* Header */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'var(--fix-bg)', borderBottom: '1px solid var(--fix-border)' }}>
-                  <span style={{ fontSize: 16 }}>🔧</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                  </svg>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text-primary)', marginBottom: 2 }}>Fix All Vulnerabilities</div>
                     <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
@@ -602,12 +602,12 @@ export default function Analytics() {
                       whiteSpace: 'nowrap'
                     }}
                   >
-                    {copied === 'fix-all-btn' ? '✓ Copied!' : 'Copy Command'}
+                    {copied === 'fix-all-btn' ? 'Copied!' : 'Copy Command'}
                   </button>
                 </div>
                 {/* Warning */}
                 <div style={{ padding: '6px 16px', background: 'var(--warn-bg)', borderBottom: '1px solid var(--warn-border)', fontSize: 11, color: 'var(--yellow)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span>⚠️</span>
+                  <span style={{ fontWeight: 700 }}>WARNING</span>
                   <span>These are minimum-safe versions. Test in a staging environment before deploying to production — version upgrades may introduce breaking changes.</span>
                 </div>
                 {/* Terminal block */}
@@ -639,7 +639,7 @@ export default function Analytics() {
                     {v.fix_version && <span style={{ fontSize: 11, color: 'var(--green)', fontFamily: 'var(--font-mono)' }}>v{pkgVersion(v)} &#8594; v{v.fix_version}</span>}
                   </div>
                   <div style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 8 }}>{v.description}</div>
-                  {v.fix_version && <div className="a-code-block"><span>{installCmd(v, snapshot.ecosystem)}</span><button onClick={() => handleCopy(installCmd(v, snapshot.ecosystem), `fix-${i}`)} className="a-copy-btn">{copied === `fix-${i}` ? '✓ Copied' : 'Copy'}</button></div>}
+                  {v.fix_version && <div className="a-code-block"><span>{installCmd(v, snapshot.ecosystem)}</span><button onClick={() => handleCopy(installCmd(v, snapshot.ecosystem), `fix-${i}`)} className="a-copy-btn">{copied === `fix-${i}` ? 'Copied' : 'Copy'}</button></div>}
                 </div>
               ))
             }
@@ -687,7 +687,7 @@ export default function Analytics() {
                   {selectedVuln.fix_version && (
                     <div style={{ background: 'var(--green-dim)', border: '1px solid var(--fix-border)', borderRadius: 6, padding: '10px 12px', marginBottom: 8 }}>
                       <div className="a-panel-label" style={{ color: 'var(--green)' }}>FIX</div>
-                      <div className="a-code-block"><span>{installCmd(selectedVuln, snapshot.ecosystem)}</span><button onClick={() => handleCopy(installCmd(selectedVuln, snapshot.ecosystem), 'sidebar')} className="a-copy-btn">{copied === 'sidebar' ? '✓ Copied' : 'Copy'}</button></div>
+                      <div className="a-code-block"><span>{installCmd(selectedVuln, snapshot.ecosystem)}</span><button onClick={() => handleCopy(installCmd(selectedVuln, snapshot.ecosystem), 'sidebar')} className="a-copy-btn">{copied === 'sidebar' ? 'Copied' : 'Copy'}</button></div>
                     </div>
                   )}
                   <div className="a-panel-row">
@@ -705,8 +705,8 @@ export default function Analytics() {
           <div style={{ padding: 14 }}>
             {['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'].map(sv => (
               <div key={sv} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <span style={{ width: 66, color: SEV_COLOR[sv], fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span role="img" aria-hidden="true">{SEV_ICON[sv]}</span>{sv}
+                <span style={{ width: 66, color: SEV_COLOR[sv], fontFamily: 'var(--font-mono)', fontSize: 10, fontWeight: 700 }}>
+                  {sv}
                 </span>
                 <div style={{ flex: 1, height: 6, background: 'var(--border)', borderRadius: 3, overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${totalVulns > 0 ? ((counts[sv] || 0) / totalVulns) * 100 : 0}%`, background: SEV_COLOR[sv], borderRadius: 3 }} />
@@ -724,20 +724,26 @@ export default function Analytics() {
               <div style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>How Risk Score is Calculated</div>
               {/* Severity weight bars */}
               {[
-                { label: 'Critical', color: 'var(--critical)', pts: 40, weight: '10 pts each', count: counts.CRITICAL },
-                { label: 'High',     color: 'var(--high)',     pts: 30, weight: '7 pts each',  count: counts.HIGH },
-                { label: 'Medium',   color: 'var(--medium)',   pts: 20, weight: '4 pts each',  count: counts.MEDIUM },
-                { label: 'Low',      color: 'var(--low)',      pts: 10, weight: '1 pt each',   count: counts.LOW },
-              ].map(({ label, color, pts, weight, count }) => (
+                { label: 'Critical', color: 'var(--critical)', pts: 40, weight: 'max 40 pts', count: counts.CRITICAL },
+                { label: 'High',     color: 'var(--high)',     pts: 30, weight: 'max 30 pts', count: counts.HIGH },
+                { label: 'Medium',   color: 'var(--medium)',   pts: 20, weight: 'max 20 pts', count: counts.MEDIUM },
+                { label: 'Low',      color: 'var(--low)',      pts: 10, weight: 'max 10 pts', count: counts.LOW },
+              ].map(({ label, color, pts, weight, count }) => {
+                const divisorMap = { Critical: 3, High: 5, Medium: 8, Low: 10 }
+                const div = divisorMap[label] || 5
+                const actual = pts * (1 - Math.exp(-count / div))
+                const barPct = Math.round((actual / pts) * 100)
+                return (
                 <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 5 }}>
                   <span style={{ width: 52, fontSize: 10, color, fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{label}</span>
                   <div style={{ flex: 1, height: 4, background: 'var(--border)', borderRadius: 2, overflow: 'hidden' }}>
-                    <div style={{ height: '100%', width: `${pts}%`, background: color, borderRadius: 2, opacity: 0.85 }} />
+                    <div style={{ height: '100%', width: `${barPct}%`, background: color, borderRadius: 2, opacity: 0.85 }} />
                   </div>
                   <span style={{ fontSize: 10, color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', width: 62, textAlign: 'right' }}>{weight}</span>
                   <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', fontWeight: 700, color, width: 16, textAlign: 'right' }}>{count}</span>
                 </div>
-              ))}
+                )
+              })}
               <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--border)', fontSize: 10, color: 'var(--text-muted)', lineHeight: 1.6 }}>
                 Score uses <strong style={{ color: 'var(--text-secondary)' }}>diminishing returns</strong> — adding more CVEs increases score but never instantly reaches 100. A score of {riskScore}/100 means your project has significant exposure and should be prioritised.
               </div>

@@ -6,6 +6,20 @@ export default function History() {
   const navigate = useNavigate()
   const [projects] = useState(getAllProjects())
   const [expandedProject, setExpandedProject] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null)
+
+  const handleDelete = (e, projectName) => {
+    e.stopPropagation()
+    if (confirmDelete === projectName) {
+      deleteProject(projectName)
+      setConfirmDelete(null)
+      setProjects(getAllProjects())
+      if (expandedProject === projectName) setExpandedProject(null)
+    } else {
+      setConfirmDelete(projectName)
+      setTimeout(() => setConfirmDelete(null), 3000)
+    }
+  }
   
   const formatDate = (timestamp) => {
     const d = new Date(timestamp)
@@ -13,10 +27,11 @@ export default function History() {
   }
   
   const getRiskColor = (score) => {
-    if (score >= 75) return 'var(--critical)'
-    if (score >= 50) return 'var(--high)'
-    if (score >= 25) return 'var(--medium)'
-    return 'var(--low)'
+    if (score >= 90) return 'var(--critical)'
+    if (score >= 70) return 'var(--high)'
+    if (score >= 40) return 'var(--medium)'
+    if (score >= 1) return 'var(--low)'
+    return 'var(--green)'
   }
   
   return (
@@ -35,10 +50,9 @@ export default function History() {
       
       {projects.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '60px 20px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)' }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
           <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>No scan history yet</div>
           <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 20 }}>Run your first scan to start tracking vulnerabilities over time</div>
-          <button onClick={() => navigate('/scan')} 
+          <button onClick={() => navigate('/scan')}
             style={{ padding: '10px 20px', background: 'var(--accent)', color: 'var(--white)', border: 'none', borderRadius: 'var(--radius)', fontWeight: 600, cursor: 'pointer' }}>
             Start Scanning
           </button>
@@ -69,6 +83,19 @@ export default function History() {
                     <div style={{ fontSize: 18, color: 'var(--text-muted)', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)' }}>
                       ▼
                     </div>
+                    <button
+                      onClick={(e) => handleDelete(e, project.name)}
+                      title={confirmDelete === project.name ? 'Click again to confirm delete' : 'Delete project history'}
+                      style={{
+                        background: 'none', border: '1px solid',
+                        borderColor: confirmDelete === project.name ? 'var(--critical)' : 'var(--border)',
+                        color: confirmDelete === project.name ? 'var(--critical)' : 'var(--text-muted)',
+                        borderRadius: 4, padding: '2px 7px', fontSize: 11,
+                        cursor: 'pointer', fontFamily: 'var(--font-mono)',
+                        transition: 'all 0.15s'
+                      }}>
+                      {confirmDelete === project.name ? 'confirm' : '×'}
+                    </button>
                   </div>
                 </div>
                 

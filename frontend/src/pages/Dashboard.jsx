@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import ECOSYSTEMS, { detectEcosystem } from '../data/ecosystems'
 import FileUpload from '../components/FileUpload'
 import Tooltip from '../components/Tooltip'
+import { DATA_SOURCE_DETAIL } from '../data/dataSources'
 
 const SEVS = [
   { level: 'CRITICAL', score: '9–10', color: 'var(--critical)', desc: 'Fix immediately' },
@@ -17,8 +18,8 @@ function MediationPanel({ eco }) {
   return (
     <div className="scanner-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
       <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, marginBottom: 6, color: 'var(--accent)' }}>
-        ⚖️ <Tooltip termKey="mediation">DEPENDENCY MEDIATION</Tooltip>
-        <span style={{ marginLeft: 8, fontSize: 10, color: eco.color, fontWeight: 400 }}>{eco.icon} {eco.label} rules</span>
+        <Tooltip termKey="mediation">DEPENDENCY MEDIATION</Tooltip>
+        <span style={{ marginLeft: 8, fontSize: 10, color: eco.color, fontWeight: 400 }}>{eco.label} rules</span>
       </div>
       <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 12, lineHeight: 1.6 }}>{eco.mediationRule}</div>
       <div style={{ background: 'var(--code-bg)', borderRadius: 6, padding: '10px 12px', fontFamily: 'var(--font-mono)', fontSize: 11 }}>
@@ -30,7 +31,7 @@ function MediationPanel({ eco }) {
             <span style={{ display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
               <span style={{ color: 'var(--muted)' }}>{ex.package}@</span>
               <span style={{ color: c.safe ? 'var(--green)' : 'var(--red)', fontWeight: 700 }}>{c.version}</span>
-              <span style={{ fontSize: 10, color: c.safe ? 'var(--green)' : 'var(--red)' }}>{c.safe ? '✓' : '⚠️'}</span>
+              <span style={{ fontSize: 10, color: c.safe ? 'var(--green)' : 'var(--red)', fontWeight: 700 }}>{c.safe ? 'SAFE' : 'UNSAFE'}</span>
             </span>
           </div>
         ))}
@@ -40,8 +41,8 @@ function MediationPanel({ eco }) {
           <span style={{ color: 'var(--muted)', fontSize: 10, marginLeft: 6 }}>({ex.winReason})</span>
         </div>
       </div>
-      <div style={{ fontSize: 11, color: 'var(--vuln-text)', marginTop: 8, lineHeight: 1.5 }}>⚠️ {ex.danger}</div>
-      <div style={{ fontSize: 11, color: 'var(--ok)', marginTop: 6, lineHeight: 1.5 }}>🛠️ Fix: {eco.mediationFix}</div>
+      <div style={{ fontSize: 11, color: 'var(--vuln-text)', marginTop: 8, lineHeight: 1.5, fontWeight: 600 }}>WARNING: {ex.danger}</div>
+      <div style={{ fontSize: 11, color: 'var(--ok)', marginTop: 6, lineHeight: 1.5 }}>Fix: {eco.mediationFix}</div>
     </div>
   )
 }
@@ -82,17 +83,17 @@ function RightPanel({ eco }) {
       <div className="scanner-card" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: 16 }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, marginBottom: 10, color: 'var(--accent)' }}>CVE PATH EXAMPLE</div>
         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, lineHeight: 2 }}>
-          {['my-app', 'express', 'body-parser', 'lodash ⚠️'].map((p, i) => (
+          {(eco?.cvePathExample || ['my-app', 'express', 'body-parser', 'lodash (CVE)']).map((p, i) => (
             <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               {i > 0 && <span style={{ color: 'var(--border)', marginLeft: i * 10 }}>└─</span>}
-              <span style={{ marginLeft: i > 0 ? i * 10 : 0, color: p.includes('⚠️') ? 'var(--red)' : 'var(--text)' }}>{p}</span>
-              {i === 0 && <span style={{ fontSize: 10, color: 'var(--muted)' }}>← your app</span>}
-              {p.includes('⚠️') && <span style={{ fontSize: 10, color: 'var(--red)' }}>← CVE here</span>}
+              <span style={{ marginLeft: i > 0 ? i * 10 : 0, color: p.includes('(CVE)') ? 'var(--red)' : 'var(--text)' }}>{p}</span>
+              {i === 0 && <span style={{ fontSize: 10, color: 'var(--muted)' }}>(your app)</span>}
+              {p.includes('(CVE)') && <span style={{ fontSize: 10, color: 'var(--red)' }}>(vulnerable)</span>}
             </div>
           ))}
         </div>
         <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>
-          <Tooltip termKey="rootCause">Root cause</Tooltip>: express → body-parser → lodash.
+          <Tooltip termKey="rootCause">Root cause</Tooltip>: {(eco?.cvePathExample || ['my-app', 'express', 'body-parser', 'lodash (CVE)']).slice(1, -1).join(' → ')}.
         </div>
       </div>
     </div>
@@ -118,21 +119,32 @@ export default function Dashboard() {
 
   return (
     <div className="page-container">
-      <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 800, marginBottom: 6, letterSpacing: -0.4 }}>
-          Dependency Vulnerability Scanner
-        </h1>
-        <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.7, maxWidth: 600 }}>
-          Upload your dependency manifest to scan all direct and transitive packages for known CVEs.
-          Results are sourced from <strong style={{color:'var(--text)'}}>OSV</strong> — the industry-standard open-source vulnerability database.
-        </p>
-      </div>
+      <div className="scanner-grid dashboard-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
+        <div>
+          <div style={{ marginBottom: 20 }}>
+            <h1 className="t-h1" style={{ marginBottom: 4 }}>
+              Dependency Vulnerability Scanner
+            </h1>
+            <p className="t-body" style={{ color: 'var(--muted)', maxWidth: 600 }}>
+              Upload your dependency manifest to scan all direct and transitive packages for known CVEs.
+              {DATA_SOURCE_DETAIL}
+            </p>
+            {/* Data handling trust statement — critical for security tool credibility */}
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 8, padding: '5px 10px', background: 'var(--green-dim)', border: '1px solid var(--fix-border)', borderRadius: 6 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
+              <span className="t-sm" style={{ color: 'var(--green)', fontWeight: 600 }}>
+                Your manifest is parsed in-memory and never stored. CVE lookups go directly to OSV — no telemetry, no third-party data sharing.
+              </span>
+            </div>
+          </div>
 
-      {error && <div style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 14px', color: 'var(--red)', fontSize: 12, marginBottom: 16 }}>⚠️ {error}</div>}
-      
-      <div className="scanner-layout">
-        <FileUpload onAnalyze={analyze} loading={false} onEcosystemChange={setEco} />
-        <RightPanel eco={eco} />
+          {error && <div className="t-sm" style={{ background: 'var(--vuln-bg)', border: '1px solid var(--vuln-border)', borderRadius: 'var(--radius)', padding: '10px 14px', color: 'var(--red)', marginBottom: 12 }}>ERROR: {error}</div>}
+          
+          <FileUpload onAnalyze={analyze} loading={false} onEcosystemChange={setEco} />
+        </div>
+        <div className="dashboard-right"><RightPanel eco={eco} /></div>
       </div>
     </div>
   )

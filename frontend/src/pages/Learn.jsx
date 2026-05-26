@@ -4,34 +4,34 @@ import { useNavigate } from 'react-router-dom'
 /* ── NAV GROUPS ── */
 const NAV = [
   { group: 'Foundations', items: [
-    { id: 'sca', icon: '🔍', title: 'What is SCA?' },
-    { id: 'deps', icon: '🌳', title: 'Dependency Types' },
-    { id: 'cvss', icon: '📊', title: 'CVSS Scoring' },
+    { id: 'sca', title: 'What is SCA?' },
+    { id: 'deps', title: 'Dependency Types' },
+    { id: 'cvss', title: 'CVSS Scoring' },
   ]},
   { group: 'Vulnerabilities', items: [
-    { id: 'cve', icon: '🏷️', title: 'CVEs Explained' },
-    { id: 'supply-chain', icon: '⛓️', title: 'Supply Chain Security' },
-    { id: 'databases', icon: '💾', title: 'Vulnerability Databases' },
+    { id: 'cve', title: 'CVEs Explained' },
+    { id: 'supply-chain', title: 'Supply Chain Security' },
+    { id: 'databases', title: 'Vulnerability Databases' },
   ]},
   { group: 'Remediation', items: [
-    { id: 'fix', icon: '🛠️', title: 'Remediation Strategies' },
-    { id: 'pipeline', icon: '🔄', title: 'SCA in CI/CD Pipeline' },
+    { id: 'fix', title: 'Remediation Strategies' },
+    { id: 'pipeline', title: 'SCA in CI/CD Pipeline' },
   ]},
   { group: 'Compliance', items: [
-    { id: 'sbom', icon: '📋', title: 'SBOMs' },
+    { id: 'sbom', title: 'SBOMs' },
   ]},
 ]
 
 /* ── CONTENT ── */
 const SECTIONS = [
   {
-    id: 'sca', icon: '🔍', title: 'What is SCA?',
+    id: 'sca', title: 'What is SCA?',
     subtitle: 'Software Composition Analysis — the foundation of dependency security.',
     content: [
       { type: 'keypoint', label: 'Definition', text: 'Software Composition Analysis (SCA) is a security practice that automatically identifies all open-source libraries in a codebase and checks them against known vulnerability databases.' },
       { type: 'keypoint', label: 'Why it matters', text: 'Modern applications are built on hundreds of third-party packages. Each package is a potential attack surface. SCA tools provide complete visibility into every component being shipped to production.' },
       { type: 'keypoint', label: 'How it works', text: 'SCA tools parse dependency manifests (package.json, requirements.txt, pom.xml), resolve the full dependency tree including all transitive dependencies, then cross-reference each package@version against vulnerability databases like OSV and NVD.' },
-      { type: 'callout', color: 'info', text: '📌 Over 75% of modern application code comes from open-source packages — making SCA a critical first line of defence.' },
+      { type: 'callout', color: 'info', text: 'Over 75% of modern application code comes from open-source packages — making SCA a critical first line of defence.' },
       { type: 'heading', text: 'Common Ecosystems' },
       { type: 'table', headers: ['Ecosystem', 'Language', 'Manifest File', 'Package Manager'], rows: [
         ['npm', 'JavaScript / Node.js', 'package.json, package-lock.json', 'npm, yarn, pnpm'],
@@ -41,7 +41,7 @@ const SECTIONS = [
     ]
   },
   {
-    id: 'deps', icon: '🌳', title: 'Dependency Types',
+    id: 'deps', title: 'Dependency Types',
     subtitle: 'Direct vs transitive — and why it matters for security.',
     content: [
       { type: 'keypoint', label: 'Direct dependency', text: 'A package you explicitly declared in your manifest file. You chose it, you control its version.' },
@@ -54,13 +54,13 @@ const SECTIONS = [
       { type: 'heading', text: 'Real Example: 4-level nesting' },
       { type: 'code', text: 'Your Application (my-app@1.0.0)\n  └── express@4.17.0                    ← direct (you explicitly added)\n        └── body-parser@1.19.0          ← transitive (express depends on it)\n              └── qs@6.7.0              ← transitive (body-parser depends on it)\n                    └── CVE-2022-24999  ← vulnerability found here (CVSS 7.5)' },
       { type: 'text', text: 'In this example, you never explicitly imported qs. But a vulnerability in qs affects your app through three layers of dependencies. Without SCA, you would never know.' },
-      { type: 'callout', color: 'warn', text: '⚠️ Why is this hard to fix? A vulnerability deep in the dependency tree requires understanding complex version compatibility. You may need to patch multiple branches or update parent dependencies first.' },
+      { type: 'callout', color: 'warn', text: 'Why is this hard to fix? A vulnerability deep in the dependency tree requires understanding complex version compatibility. You may need to patch multiple branches or update parent dependencies first.' },
       { type: 'heading', text: 'Ecosystem-Specific Solutions' },
       { type: 'code', text: 'npm (JavaScript): Use "overrides" in package.json to force a specific version\npip (Python): Use constraints file (requirements.txt or pip-tools) to pin versions\nMaven (Java): Use <dependencyManagement> section to lock transitive versions' },
     ]
   },
   {
-    id: 'cvss', icon: '📊', title: 'CVSS Scoring',
+    id: 'cvss', title: 'CVSS Scoring',
     subtitle: 'How vulnerability severity is measured and what to do about it.',
     content: [
       { type: 'keypoint', label: 'What is CVSS', text: 'CVSS (Common Vulnerability Scoring System) is an open framework for rating the severity of security vulnerabilities. Scores range from 0–10 across metric groups: Base, Temporal, and Environmental.' },
@@ -74,11 +74,11 @@ const SECTIONS = [
         ['0.1 – 3.9',  'LOW',      'Patch in next scheduled release'],
         ['0.0',        'NONE',     'Informational — no action required'],
       ]},
-      { type: 'callout', color: 'info', text: '📌 CVSS v4.0 was released in 2023, though v3.1 remains widely used. This tool displays CVSS v3.1 scores from the OSV database.' },
+      { type: 'callout', color: 'info', text: 'CVSS v4.0 was released in 2023, though v3.1 remains widely used. This tool displays CVSS v3.1 scores from the OSV database.' },
     ]
   },
   {
-    id: 'cve', icon: '🏷️', title: 'CVEs Explained',
+    id: 'cve', title: 'CVEs Explained',
     subtitle: 'Understanding the global vulnerability identification system.',
     content: [
       { type: 'keypoint', label: 'What is a CVE', text: 'CVE (Common Vulnerabilities and Exposures) is a globally standardised identifier for publicly disclosed security vulnerabilities. Each CVE is assigned by MITRE and tracked in the National Vulnerability Database (NVD).' },
@@ -101,7 +101,7 @@ const SECTIONS = [
     ]
   },
   {
-    id: 'supply-chain', icon: '⛓️', title: 'Supply Chain Security',
+    id: 'supply-chain', title: 'Supply Chain Security',
     subtitle: 'When trusted packages become attack vectors.',
     content: [
       { type: 'keypoint', label: 'What is it', text: 'A software supply chain attack occurs when an adversary compromises a component upstream in the development pipeline — a package, build tool, or CI system — so that malicious code is automatically distributed to all downstream consumers.' },
@@ -113,13 +113,13 @@ const SECTIONS = [
         ['ua-parser-js (npm)', '2021', 'Account compromise', 'Cryptominer + credential stealer injected into 8M weekly downloads'],
         ['XZ Utils (liblzma)', '2024', 'Multi-year social engineering', 'Backdoor targeting Linux SSH authentication'],
       ]},
-      { type: 'callout', color: 'critical', text: '🚨 The XZ Utils backdoor was nearly undetected — a sophisticated 2-year campaign by a trusted contributor. Only accidental discovery prevented widespread deployment.' },
+      { type: 'callout', color: 'critical', text: 'The XZ Utils backdoor was nearly undetected — a sophisticated 2-year campaign by a trusted contributor. Only accidental discovery prevented widespread deployment.' },
       { type: 'heading', text: 'Defence Strategies' },
       { type: 'code', text: '1. Pin dependency versions — use lock files (package-lock.json, requirements.txt)\n2. Verify package integrity — check hashes and signatures\n3. Monitor maintainer changes — watch for suspicious new contributors\n4. Use SBOMs — track component provenance\n5. Run SCA continuously — not just at release time' },
     ]
   },
   {
-    id: 'databases', icon: '💾', title: 'Vulnerability Databases',
+    id: 'databases', title: 'Vulnerability Databases',
     subtitle: 'Where vulnerability data comes from.',
     content: [
       { type: 'keypoint', label: 'OSV (Open Source Vulnerabilities)', text: 'Maintained by Google and the open-source community. Provides ecosystem-specific version ranges with real-time updates from package registry advisories. Optimized for npm, PyPI, Maven, and other open-source ecosystems.' },
@@ -132,11 +132,11 @@ const SECTIONS = [
       ]},
       { type: 'heading', text: 'Why Multiple Databases?' },
       { type: 'text', text: 'Different databases have different strengths. OSV provides faster updates for open-source packages, NVD offers broader coverage, and GHSA integrates directly into development workflows. Enterprise SCA tools often query multiple sources to ensure comprehensive coverage.' },
-      { type: 'callout', color: 'info', text: '🔍 Best practice: Use tools that aggregate data from multiple sources rather than relying on a single database. This ensures you catch vulnerabilities that may appear in one database before another.' },
+      { type: 'callout', color: 'info', text: 'Best practice: Use tools that aggregate data from multiple sources rather than relying on a single database. This ensures you catch vulnerabilities that may appear in one database before another.' },
     ]
   },
   {
-    id: 'fix', icon: '🛠️', title: 'Remediation Strategies',
+    id: 'fix', title: 'Remediation Strategies',
     subtitle: 'A systematic approach to fixing vulnerabilities.',
     content: [
       { type: 'keypoint', label: 'Key principle', text: 'The correct remediation depends on severity, location (direct vs transitive), and your ecosystem. Always test patches before deploying.' },
@@ -162,11 +162,11 @@ const SECTIONS = [
       ]},
       { type: 'heading', text: 'Step 5: Deploy Safely' },
       { type: 'code', text: '1. Push to feature branch, create PR\n2. Deploy to staging environment\n3. Run integration tests + smoke tests\n4. Monitor for 24-48 hours\n5. Deploy to production with gradual rollout\n6. Keep previous version ready to rollback if needed' },
-      { type: 'callout', color: 'ok', text: '✅ Always re-run your test suite after upgrading — even patch versions can introduce breaking changes. Monitor production for regressions in the first 48 hours.' },
+      { type: 'callout', color: 'ok', text: 'Always re-run your test suite after upgrading — even patch versions can introduce breaking changes. Monitor production for regressions in the first 48 hours.' },
     ]
   },
   {
-    id: 'pipeline', icon: '🔄', title: 'SCA in CI/CD Pipeline',
+    id: 'pipeline', title: 'SCA in CI/CD Pipeline',
     subtitle: 'Shift left — catch vulnerabilities before they reach production.',
     content: [
       { type: 'keypoint', label: 'Key principle', text: 'SCA is most effective when embedded directly into CI/CD pipelines. Catching vulnerable dependencies during the build process prevents them from reaching production and reduces remediation costs.' },
@@ -187,11 +187,11 @@ const SECTIONS = [
         ['Grype + Syft', 'Open-source', 'CLI-based, integrates with any CI system'],
         ['npm audit', 'Built-in', 'Native npm command, runs in any Node.js CI pipeline'],
       ]},
-      { type: 'callout', color: 'ok', text: '✅ Best practice: Run SCA on every commit and pull request, not just releases. This catches vulnerabilities before they merge into main branches.' },
+      { type: 'callout', color: 'ok', text: 'Best practice: Run SCA on every commit and pull request, not just releases. This catches vulnerabilities before they merge into main branches.' },
     ]
   },
   {
-    id: 'sbom', icon: '📋', title: 'SBOMs',
+    id: 'sbom', title: 'SBOMs',
     subtitle: 'Software Bill of Materials — your dependency inventory.',
     content: [
       { type: 'keypoint', label: 'What is an SBOM', text: 'A formally structured, machine-readable inventory of all components in a software product — analogous to an ingredient list on packaged food.' },
@@ -210,7 +210,7 @@ const SECTIONS = [
         ['ISO 27001', 'Ongoing', 'Information security management', 'Component inventory requirement'],
         ['EU Cyber Resilience Act', '2027', 'CE-marked products in EU', 'Upcoming requirement for European markets'],
       ]},
-      { type: 'callout', color: 'info', text: '📌 US Executive Order 14028 mandates SBOMs for software sold to US federal agencies. EU Cyber Resilience Act requires them for CE-marked products from 2027.' },
+      { type: 'callout', color: 'info', text: 'US Executive Order 14028 mandates SBOMs for software sold to US federal agencies. EU Cyber Resilience Act requires them for CE-marked products from 2027.' },
     ]
   },
 ]
@@ -317,16 +317,16 @@ export default function Learn() {
   }
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '32px 20px' }}>
+    <div style={{ maxWidth: 3200, margin: '0 auto', padding: '32px 16px' }}>
       <button onClick={() => navigate(-1)}
-        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 13, marginBottom: 20, fontFamily: 'var(--font-ui)' }}>
+        style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: 13, marginBottom: 16, fontFamily: 'var(--font-ui)' }}>
         ← Back
       </button>
 
       <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 800, marginBottom: 4, letterSpacing: -0.4, color: 'var(--text-primary)' }}>
         Security Knowledge Base
       </h1>
-      <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 28, lineHeight: 1.6 }}>
+      <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 20, lineHeight: 1.6 }}>
         Reference guide to SCA concepts, vulnerability scoring, and secure dependency management.
       </p>
 
@@ -342,11 +342,11 @@ export default function Learn() {
         </select>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 28 }} className="learn-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: 16 }} className="learn-grid">
         {/* Sidebar — grouped + sticky */}
         <div className="learn-sidebar" style={{ position: 'sticky', top: 80, alignSelf: 'start', maxHeight: 'calc(100vh - 120px)', overflowY: 'auto' }}>
           {NAV.map((g, gi) => (
-            <div key={g.group} style={{ marginBottom: 20 }}>
+            <div key={g.group} style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px', padding: '0 14px', marginBottom: 6, fontFamily: 'var(--font-mono)' }}>
                 {g.group}
               </div>
@@ -380,7 +380,7 @@ export default function Learn() {
         </div>
 
         {/* Content */}
-        <div ref={contentRef} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '28px 28px', minHeight: 400 }}>
+        <div ref={contentRef} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '20px 20px', minHeight: 400 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
             <span style={{ fontSize: 22 }}>{section.icon}</span>
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -388,9 +388,9 @@ export default function Learn() {
             </h2>
           </div>
           {section.subtitle && (
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 20, lineHeight: 1.6 }}>{section.subtitle}</p>
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.6 }}>{section.subtitle}</p>
           )}
-          <div style={{ width: 40, height: 3, background: 'var(--accent)', borderRadius: 2, marginBottom: 24 }} />
+          <div style={{ width: 40, height: 3, background: 'var(--accent)', borderRadius: 2, marginBottom: 20 }} />
 
           {section.content.map(renderBlock)}
         </div>
