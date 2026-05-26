@@ -105,6 +105,7 @@ export default function App() {
               </button>
             </div>
           ) : (
+            <>
             <nav className="nav" style={{ padding: '0 16px', gap: 6 }}>
               <NavLink to="/" style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 16, color: 'var(--text)', marginRight: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <div style={{ width: 26, height: 26, background: 'linear-gradient(135deg, var(--brand), var(--accent2))', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -160,16 +161,13 @@ export default function App() {
                   </button>
               </div>
             </nav>
-
-              {/* System Status Bar — always visible below nav on non-landing pages */}
-              {!isLanding && <SystemStatusBar healthStatus={healthStatus} />}
-
-              {/* System Logs — toggleable */}
-              {!isLanding && showLogs && (
-                <div style={{ borderBottom: '1px solid var(--border)', maxHeight: 200, overflow: 'hidden' }}>
-                  <SystemLogs healthStatus={healthStatus} />
-                </div>
-              )}
+            <SystemStatusBar healthStatus={healthStatus} />
+            {showLogs && (
+              <div style={{ borderBottom: '1px solid var(--border)', maxHeight: 200, overflow: 'hidden' }}>
+                <SystemLogs healthStatus={healthStatus} />
+              </div>
+            )}
+            </>
           )}
           <Routes>
             <Route path="/" element={<Landing />} />
