@@ -160,6 +160,16 @@ export default function App() {
                   </button>
               </div>
             </nav>
+
+              {/* System Status Bar — always visible below nav on non-landing pages */}
+              {!isLanding && <SystemStatusBar healthStatus={healthStatus} />}
+
+              {/* System Logs — toggleable */}
+              {!isLanding && showLogs && (
+                <div style={{ borderBottom: '1px solid var(--border)', maxHeight: 200, overflow: 'hidden' }}>
+                  <SystemLogs healthStatus={healthStatus} />
+                </div>
+              )}
           )}
           <Routes>
             <Route path="/" element={<Landing />} />

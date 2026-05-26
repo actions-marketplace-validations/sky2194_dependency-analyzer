@@ -1,47 +1,67 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 
-const SIMULATED_LOGS = [
-  { level: 'INFO', message: 'OSV database sync completed successfully' },
-  { level: 'INFO', message: 'NVD mirror check: 0 new CVEs since last poll' },
-  { level: 'DEBUG', message: 'Cache warmup complete — 12,847 CVE records indexed' },
-  { level: 'OK', message: 'Health check passed: all services responding' },
-  { level: 'INFO', message: 'EPSS score batch updated for 2,341 CVEs' },
-  { level: 'DEBUG', message: 'Dependency resolver initialized for npm ecosystem' },
-  { level: 'INFO', message: 'Circuit breaker status: CLOSED (all services healthy)' },
-  { level: 'DEBUG', message: 'Manifest parser cache: 14 entries, 98% hit rate' },
-]
+const LEVEL_COLOR = {
+  INFO:  'var(--brand)',
+  OK:    'var(--green)',
+  WARN:  'var(--high)',
+  ERROR: 'var(--critical)',
+  DEBUG: 'var(--text-muted)',
+}
 
-export default function SystemLogs({ logs = SIMULATED_LOGS, maxHeight = 180 }) {
+export default function SystemLogs({ healthStatus }) {
   const [isExpanded, setIsExpanded] = useState(true)
-  const [entries, setEntries] = useState(logs || [])
-  const containerRef = useRef(null)
 
-  // Auto-scroll to bottom when new entries appear
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight
+  // Build real log entries from healthStatus — no fake data
+  const entries = []
+
+  if (!healthStatus) {
+    entries.push({ level: 'INFO', message: 'Connecting to backend...' })
+  } else if (healthStatus.error) {
+    entries.push({ level: 'ERROR', message: 'Backend unreachable — health check failed' })
+  } else {
+    // DB
+    entries.push(healthStatus.db_connected
+      ? { level: 'OK',   message: 'PostgreSQL connected — CVE cache ready' }
+      : { level: 'ERROR', message: 'PostgreSQL disconnected — falling back to live OSV API' }
+    )
+
+    // OSV sync
+    if (healthStatus.osv_synced_at) {
+      const mins = Math.floor((Date.now() - new Date(healthStatus.osv_synced_at)) / 60000)
+      entries.push({ level: 'INFO', message: `OSV last synced ${mins}m ago — ${mins < 10 ? 'fresh' : mins < 60 ? 'recent' : 'stale'}` })
+    } else {
+      entries.push({ level: 'WARN', message: 'OSV sync timestamp unavailable — seed may be pending' })
     }
-  }, [entries])
 
-  // Simulate live log entries appearing
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const liveEntries = [
-        { level: 'DEBUG', message: `Heartbeat check: ${Math.floor(Math.random() * 100)}ms latency` },
-        { level: 'INFO', message: 'Dependency graph cache refreshed' },
-        { level: 'DEBUG', message: `Rate limit counter reset: ${Math.floor(Math.random() * 50)} requests/min` },
-      ]
-      const random = liveEntries[Math.floor(Math.random() * liveEntries.length)]
-      setEntries(prev => [...prev.slice(-50), { ...random, timestamp: new Date().toISOString().slice(11, 19) }])
-    }, 8000)
-    return () => clearInterval(interval)
-  }, [])
+    // EPSS
+    if (healthStatus.epss_synced_at) {
+      entries.push({ level: 'INFO', message: 'EPSS scores loaded — exploit probability data available' })
+    }
 
-  if (!entries || entries.length === 0) return null
+    // KEV
+    if (healthStatus.kev_synced_at) {
+      entries.push({ level: 'INFO', message: 'CISA KEV list loaded — known exploited vulnerabilities indexed' })
+    }
+
+    // NVD
+    entries.push({ level: healthStatus.nvd_api_key_configured ? 'OK' : 'WARN',
+      message: healthStatus.nvd_api_key_configured
+        ? 'NVD API key configured — 50 req/30s rate limit'
+        : 'NVD API key not set — limited to 5 req/30s (set NVD_API_KEY for better performance)'
+    })
+
+    // Rate limit
+    if (healthStatus.rate_limit) {
+      entries.push({ level: 'INFO', message: `Rate limit: ${healthStatus.rate_limit}` })
+    }
+
+    // Status
+    entries.push({ level: 'OK', message: `System ready — version ${healthStatus.version || '1.0.0'}` })
+  }
 
   return (
-    <div style={{ background: 'var(--code-bg)', borderBottom: '1px solid var(--border)', overflow: 'hidden' }}>
-      {/* Header — terminal style */}
+    <div style={{ background: 'var(--code-bg)', borderBottom: '1px solid var(--border)' }}>
+      {/* Header */}
       <div
         onClick={() => setIsExpanded(!isExpanded)}
         style={{
@@ -51,7 +71,7 @@ export default function SystemLogs({ logs = SIMULATED_LOGS, maxHeight = 180 }) {
           borderBottom: isExpanded ? '1px solid var(--border)' : 'none',
           userSelect: 'none'
         }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--accent)' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--brand)' }}>
           SYSTEM_LOGS
         </span>
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 7, color: 'var(--text-muted)' }}>
@@ -62,51 +82,30 @@ export default function SystemLogs({ logs = SIMULATED_LOGS, maxHeight = 180 }) {
         </span>
       </div>
 
-      {/* Log entries — dense terminal output */}
+      {/* Log entries */}
       {isExpanded && (
-        <div ref={containerRef} style={{
-          maxHeight,
+        <div style={{
+          maxHeight: 160,
           overflowY: 'auto',
           padding: '4px 10px',
           fontFamily: 'var(--font-mono)',
           fontSize: 8,
-          lineHeight: 1.55
+          lineHeight: 1.6
         }}>
           {entries.map((log, i) => (
             <div key={i} style={{
-              display: 'flex', gap: 6,
+              display: 'flex', gap: 8,
               padding: '1px 0',
               borderBottom: i < entries.length - 1 ? '1px solid var(--border-light)' : 'none'
             }}>
-              <span style={{ color: 'var(--text-muted)', minWidth: 52, flexShrink: 0, fontSize: 7 }}>
-                {log.timestamp || '--:--:--'}
+              <span style={{ color: LEVEL_COLOR[log.level] || 'var(--text-muted)', fontWeight: 700, minWidth: 36 }}>
+                {log.level}
               </span>
-              <span style={{
-                minWidth: 36, flexShrink: 0, fontWeight: 700,
-                color: getSeverityColor(log.level), fontSize: 7, textTransform: 'uppercase'
-              }}>
-                {log.level || 'INFO'}
-              </span>
-              <span style={{ color: 'var(--text-secondary)', wordBreak: 'break-word', fontSize: 8 }}>
-                {log.message}
-              </span>
+              <span style={{ color: 'var(--text-secondary)' }}>{log.message}</span>
             </div>
           ))}
         </div>
       )}
     </div>
   )
-}
-
-function getSeverityColor(level) {
-  const colors = {
-    'ERROR': 'var(--critical)',
-    'WARN': 'var(--yellow)',
-    'WARNING': 'var(--yellow)',
-    'INFO': 'var(--blue)',
-    'DEBUG': 'var(--text-muted)',
-    'SUCCESS': 'var(--green)',
-    'OK': 'var(--green)'
-  }
-  return colors[level?.toUpperCase()] || 'var(--text-muted)'
 }
