@@ -196,8 +196,6 @@ button { font-family: var(--font-ui); -webkit-appearance: none; -moz-appearance:
 /* Badges */
 .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; font-family: var(--font-mono); text-transform: uppercase; }
 .badge-critical { background: var(--red-dim); border: 1px solid rgba(239,68,68,0.3); color: var(--red); }
-.badge-high { background: var(--yellow-dim); border: 1px solid rgba(245,158,11,0.3); color: var(--yellow); }
-
 .badge-low { background: var(--green-dim); border: 1px solid rgba(34,197,94,0.3); color: var(--green); }
 
 /* Animations */

@@ -6,6 +6,20 @@ export default function History() {
   const navigate = useNavigate()
   const [projects] = useState(getAllProjects())
   const [expandedProject, setExpandedProject] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState(null)
+
+  const handleDelete = (e, projectName) => {
+    e.stopPropagation()
+    if (confirmDelete === projectName) {
+      deleteProject(projectName)
+      setConfirmDelete(null)
+      setProjects(getAllProjects())
+      if (expandedProject === projectName) setExpandedProject(null)
+    } else {
+      setConfirmDelete(projectName)
+      setTimeout(() => setConfirmDelete(null), 3000)
+    }
+  }
   
   const formatDate = (timestamp) => {
     const d = new Date(timestamp)
@@ -69,6 +83,19 @@ export default function History() {
                     <div style={{ fontSize: 18, color: 'var(--text-muted)', transition: 'transform 0.2s', transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)' }}>
                       ▼
                     </div>
+                    <button
+                      onClick={(e) => handleDelete(e, project.name)}
+                      title={confirmDelete === project.name ? 'Click again to confirm delete' : 'Delete project history'}
+                      style={{
+                        background: 'none', border: '1px solid',
+                        borderColor: confirmDelete === project.name ? 'var(--critical)' : 'var(--border)',
+                        color: confirmDelete === project.name ? 'var(--critical)' : 'var(--text-muted)',
+                        borderRadius: 4, padding: '2px 7px', fontSize: 11,
+                        cursor: 'pointer', fontFamily: 'var(--font-mono)',
+                        transition: 'all 0.15s'
+                      }}>
+                      {confirmDelete === project.name ? 'confirm' : '×'}
+                    </button>
                   </div>
                 </div>
                 
