@@ -959,3 +959,72 @@ table { width: 100%; table-layout: fixed; word-break: break-word; }
 .lp-mobile-link:hover{background:var(--bg-elevated)}
 .lp-mobile-cta{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;padding:13px 20px;background:var(--brand);color:var(--white);border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;width:100%}
 .lp-mobile-cta:hover{opacity:0.9}
+
+/* ── Scrollbar — thin, technical (from swe-UI-enhacements) ────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-mid); }
+* { scrollbar-width: thin; scrollbar-color: var(--border-light) var(--bg); }
+
+/* ── Nav — compressed, operational (from swe-UI-enhacements) ──── */
+.nav {
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 44px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.nav-logo {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--text);
+  margin-right: 16px;
+  letter-spacing: 0.2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.nav-logo .logo-icon {
+  width: 22px; height: 22px;
+  background: linear-gradient(135deg, var(--brand), var(--accent2));
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+}
+.nav-link {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 3px;
+  color: var(--text-muted);
+  transition: all 0.12s;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+.nav-link:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+.nav-link.active { background: var(--brand-dim); color: var(--brand); }
+.nav-link.active-orange { color: var(--brand); background: var(--brand-dim); }
+
+/* ── Status strip (from swe-UI-enhacements) ─────────────────────── */
+.status-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 12px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 0.03em;
+  flex-wrap: wrap;
+}
+.status-div { color: var(--border); user-select: none; }
