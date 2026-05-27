@@ -8,7 +8,7 @@ import Analytics from './pages/Analytics'
 import Learn from './pages/Learn'
 import History from './pages/History'
 import ErrorBoundary from './components/ErrorBoundary'
-import SystemStatusBar from './components/SystemStatusBar'
+import SystemStatusBar, { SystemStatusFooter } from './components/SystemStatusBar'
 import SystemLogs from './components/SystemLogs'
 import API_BASE from './config'
 
@@ -144,6 +144,8 @@ export default function App() {
                   <SystemLogs />
                 </div>
               )}
+
+              <SystemStatusFooter healthStatus={healthStatus} />
             </>
           )}
 
