@@ -49,7 +49,7 @@ function useStatusData(externalHealth) {
   const osv = (() => {
     if (!h?.osv_synced_at) return { color: 'var(--critical)', label: 'NEVER' }
     const m = Math.floor((Date.now() - new Date(h.osv_synced_at)) / 60000)
-    if (m < 5)  return { color: 'var(--green)',  label: 'SYNCED' }
+    if (m < 10) return { color: 'var(--green)',  label: 'SYNCED' }
     if (m < 15) return { color: 'var(--yellow)', label: `${m}m` }
     return               { color: 'var(--critical)', label: `${m}m` }
   })()
@@ -65,29 +65,29 @@ export default function SystemStatusBar({ healthStatus: externalHealth }) {
   const { h, osv, uptimeMins, timeStr } = useStatusData(externalHealth)
 
   return (
-    <div style={{ ...base, background: 'var(--bg-panel)', color: 'var(--text-muted)' }}>
+    <div style={{ ...base, gap: 10, background: 'var(--bg-panel)', color: 'var(--text-muted)' }}>
 
       <Dot color="var(--green)" />
-      <span style={{ color: 'var(--text-muted)', fontSize: 8, fontWeight: 700 }}>SYS</span>
+      <span style={{ color: 'var(--text-muted)', fontSize: 8, fontWeight: 700 }}>SYS</span>{' '}
       <span style={{ color: 'var(--green)' }}>ONLINE</span>
 
       <Dot color={h?.db_connected ? 'var(--green)' : 'var(--critical)'} />
-      <span style={{ color: 'var(--text-muted)', fontSize: 8, fontWeight: 700 }}>DB</span>
+      <span style={{ color: 'var(--text-muted)', fontSize: 8, fontWeight: 700 }}>DB</span>{' '}
       <span style={{ color: h?.db_connected ? 'var(--green)' : 'var(--critical)' }}>
         {h?.db_connected ? 'CONNECTED' : 'DISCONNECTED'}
       </span>
 
       <Dot color={osv.color} />
-      <span style={{ color: 'var(--text-muted)', fontSize: 8, fontWeight: 700 }}>OSV</span>
+      <span style={{ color: 'var(--text-muted)', fontSize: 8, fontWeight: 700 }}>OSV</span>{' '}
       <span style={{ color: osv.color }}>{osv.label}</span>
 
       <Dot color="var(--text-muted)" />
-      <span style={{ color: 'var(--text-muted)', fontSize: 8, fontWeight: 700 }}>NVD</span>
+      <span style={{ color: 'var(--text-muted)', fontSize: 8, fontWeight: 700 }}>NVD</span>{' '}
       <span>IDLE</span>
 
       <Pipe />
 
-      <span style={{ fontSize: 8, fontWeight: 700, color: 'var(--text-muted)' }}>UP</span>
+      <span style={{ fontSize: 8, fontWeight: 700, color: 'var(--text-muted)' }}>UP</span>{' '}
       <span style={{ color: 'var(--green)' }}>{uptimeMins}m</span>
 
       <Pipe />
