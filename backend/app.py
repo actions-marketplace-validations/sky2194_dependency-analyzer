@@ -477,6 +477,7 @@ def run_analysis(body):
 
 @app.route('/api/scan', methods=['POST'])
 @rate_limited
+@request_id_middleware
 def scan():
     body = request.get_json(silent=True)
     if not body:
@@ -614,6 +615,7 @@ def scan_package_deep():
         return jsonify({'error': f'Deep scan failed: {str(e)}'}), 500
 
 @app.route('/api/cve/<cve_id>', methods=['GET'])
+@rate_limited
 def get_cve(cve_id):
     import re, requests as req
     if not re.match(r'^CVE-\d{4}-\d+$', cve_id):
@@ -633,6 +635,7 @@ def get_cve(cve_id):
 
 @app.route('/api/export/pdf', methods=['POST'])
 @rate_limited
+@request_id_middleware
 def export_pdf():
     data = request.get_json(silent=True)
     if not data:
@@ -652,6 +655,7 @@ def export_pdf():
 
 @app.route('/api/export/csv', methods=['POST'])
 @rate_limited
+@request_id_middleware
 def export_csv():
     data = request.get_json(silent=True)
     if not data:
@@ -684,17 +688,26 @@ def health():
         kev_synced_at  = None
         db_ok = False
 
-    return jsonify({
-        'status': 'ok', 'version': '1.0.0',
+    # Internal token allows frontend/monitoring to see full details
+    # Public callers get minimal response only
+    internal = request.headers.get('X-Internal-Token') == os.environ.get('INTERNAL_TOKEN', '')
+
+    public = {
+        'status': 'ok',
+        'version': '1.0.0',
+        'osv_synced_at': osv_synced_at,
+        'db_connected':  db_ok,
+    }
+    private = {
+        **public,
         'nvd_api_key_configured': bool(os.environ.get('NVD_API_KEY')),
-        'rate_limit': f"{RATE_LIMIT} requests per {RATE_WINDOW}s",
+        'rate_limit':   f"{RATE_LIMIT} requests per {RATE_WINDOW}s",
         'max_file_size': f"{MAX_CONTENT_SIZE // 1024}KB",
         'allowed_origins': ALLOWED_ORIGINS,
-        'db_connected': db_ok,
-        'osv_synced_at':  osv_synced_at,
         'epss_synced_at': epss_synced_at,
         'kev_synced_at':  kev_synced_at,
-    })
+    }
+    return jsonify(private if internal else public)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
