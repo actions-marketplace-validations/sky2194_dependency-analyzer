@@ -57,6 +57,13 @@ Out of scope:
 - Rate limiting bypass (known limitation, mitigated in-memory)
 - Self-hosted instances running without TLS
 
+## Health Endpoint
+
+`/api/health` is a public endpoint. By default it returns only:
+- `status`, `version`, `osv_synced_at`, `db_connected`
+
+Full details (allowed origins, rate limits, NVD key status, sync timestamps) are only returned when the request includes a valid `X-Internal-Token` header matching the `INTERNAL_TOKEN` environment variable. Generate with `openssl rand -hex 32` and set on both backend and frontend.
+
 ## Database Security
 
 - `DATABASE_URL` is stored in `backend/.env` which is gitignored — never committed to the repository

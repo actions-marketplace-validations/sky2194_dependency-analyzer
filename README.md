@@ -43,7 +43,8 @@ Built for developers who want visibility into their supply chain without enterpr
 ### Dependency Scanning
 - Parses `package.json`, `package-lock.json`, `requirements.txt`, and `pom.xml`
 - Resolves direct and transitive dependencies up to three levels deep
-- Auto-detects ecosystem from filename
+- Auto-detects ecosystem from filename **and from pasted content** (JSON → npm, XML → Maven, `pkg==ver` → PyPI)
+- PostgreSQL resolver cache — repeat package lookups skip registry API entirely (warm cache: ~5ms vs ~500ms)
 - Handles `dependencies`, `devDependencies`, and `peerDependencies` for npm
 - No API key required for OSV (primary vulnerability source)
 
@@ -77,6 +78,13 @@ Built for developers who want visibility into their supply chain without enterpr
 ### Knowledge Base
 - Eight learning sections: SCA, dependency types, CVSS, CVEs, supply chain risks, remediation, CI/CD integration, SBOMs
 - Glossary with 25+ plain-English term definitions surfaced via inline tooltips
+
+### System Status Bar
+- Live operational strip below the nav bar — visible on all non-landing pages
+- Row 1: `SYS · DB · OSV · NVD` status dots + uptime + UTC clock + version
+- Row 2: `SYS_READY · TXN · DB · OSV · NVD_POLL` — session transaction ID and sync status
+- Toggleable `SYSTEM_LOGS` panel — real-time log entries from health data + live activity (heartbeat, rate limit resets, cache refreshes)
+- All status fields wired to real `/api/health` data — no fake indicators
 
 ### Theme System
 - Dark and light themes toggled via the header control, persisted to localStorage
@@ -309,6 +317,7 @@ npm run dev
 | `ALLOW_VERCEL_PREVIEWS` | No | Set to `true` to allow `*.vercel.app` preview URLs. |
 | `USE_REDIS_RATE_LIMIT` | No | Set to `true` to switch from in-memory to Redis-backed rate limiting. |
 | `DISABLE_SCHEDULER` | No | Set to `true` to disable background OSV/EPSS/KEV sync (useful in dev). |
+| `INTERNAL_TOKEN` | No | Secret token for `/api/health` full response. Public callers get minimal response. Set same value as `VITE_INTERNAL_TOKEN` on frontend. Generate with `openssl rand -hex 32`. |
 
 ```bash
 cp backend/.env.example backend/.env
@@ -320,6 +329,7 @@ cp backend/.env.example backend/.env
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `VITE_API_URL` | Production only | Backend base URL. In development, Vite proxies `/api/*` to `localhost:5000` automatically. |
+| `VITE_INTERNAL_TOKEN` | No | Matches `INTERNAL_TOKEN` on backend. Allows frontend to receive full `/api/health` response. |
 
 ---
 
@@ -576,8 +586,9 @@ All package names, versions, and Maven coordinates are validated by regex before
 - Manifest body: capped at 512KB
 
 ### Rate limiting
-- 20 requests per 60-second window per client IP
+- 20 requests per 60-second window per client IP — applied to all endpoints including `/api/cve`
 - In-memory by default; switch to Redis with `USE_REDIS_RATE_LIMIT=true`
+- `/api/health` returns minimal public response by default; full details require `X-Internal-Token` header
 
 ### Resilience
 - **Circuit breaker** — OSV and NVD clients each use a three-state circuit breaker (CLOSED → OPEN after 5 consecutive failures → HALF_OPEN after 30s recovery). Prevents cascade failures when upstream APIs degrade.
@@ -652,6 +663,34 @@ Set `ALLOWED_ORIGINS` to your frontend domain, `DATABASE_URL` to your Neon conne
 **Do not set `DATABASE_URL` in a file on the server.** Set it as an environment variable in your hosting platform dashboard (DigitalOcean → App → Environment Variables, or Render/Railway settings). This keeps your database password off the filesystem.
 
 ---
+
+### Auto-deploy hook (optional)
+
+Set up a `post-merge` hook on the server so `git pull` automatically restarts the service:
+
+```bash
+cat > /var/www/dependency-analyzer/.git/hooks/post-merge << 'EOF'
+#!/bin/bash
+cd /var/www/dependency-analyzer
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$BRANCH" != "main" ]; then exit 0; fi
+eval $(grep -E "^Environment=" /etc/systemd/system/dependency-analyzer.service.d/override.conf | sed 's/Environment=//;s/"//g' | xargs -I{} echo export {})
+if git diff HEAD@{1} HEAD --name-only | grep -q "requirements.txt"; then
+  source backend/venv/bin/activate && pip install -r backend/requirements.txt -q
+fi
+if git diff HEAD@{1} HEAD --name-only | grep -q "backend/db.py"; then
+  cd backend && python3 -c "from db import init_schema; init_schema()" && cd ..
+fi
+systemctl restart dependency-analyzer
+echo "✅ Deploy complete"
+EOF
+chmod +x /var/www/dependency-analyzer/.git/hooks/post-merge
+```
+
+After this, deploying is a single command:
+```bash
+ssh root@your-server "cd /var/www/dependency-analyzer && git pull origin main"
+```
 
 ## Troubleshooting
 
