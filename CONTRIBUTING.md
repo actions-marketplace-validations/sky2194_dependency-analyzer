@@ -45,7 +45,7 @@ Always branch from `feature/ai-fixes` (active development branch).
 
 **Backend (Python):**
 - Input sanitisation via `utils/validation.py` for all user-supplied strings
-- Rate-limit new endpoints via the `@rate_limited` decorator
+- Rate-limit new endpoints via the `@rate_limited` decorator — every endpoint including read-only ones like `/api/cve`
 - Return structured errors: `{"error": "..."}` with appropriate HTTP status
 - DB queries go in `db.py` (schema) or `cve/db_scanner.py` (lookups) — not inline in `app.py`
 - Sync jobs go in `sync/` — never block the request thread
@@ -55,6 +55,12 @@ Always branch from `feature/ai-fixes` (active development branch).
 - Use type-scale classes (`t-h1`, `t-h2`, `t-body`) — no inline `fontSize:` on headings
 - Error states must be explicit — never silently fall back to demo/mock data
 - Accessibility: interactive elements need `aria-label`, focus states, keyboard support
+
+## System Status Bar
+
+The `SystemStatusBar` and `SystemLogs` components are always dark-themed (hardcoded dark palette) regardless of app theme. This is intentional — they are operational terminal components, not UI components.
+
+All status fields must be wired to real data from `healthStatus` prop. No fake/simulated static entries are acceptable. Live entries (heartbeat, rate limit resets) are generated client-side on a timer — these are acceptable as they reflect real activity patterns.
 
 ## Database Development
 
