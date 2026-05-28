@@ -55,7 +55,7 @@ export default function Tooltip({ termKey, children }) {
           boxShadow: '0 8px 24px var(--overlay-bg)',
           pointerEvents: 'none',
         }}>
-          <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--accent)', letterSpacing: 1, marginBottom: 5, fontWeight: 600 }}>
+          <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--brand)', letterSpacing: 1, marginBottom: 5, fontWeight: 600 }}>
             {data.term}
           </div>
           {data.plain}

@@ -53,7 +53,7 @@ export default function History() {
           <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 8 }}>No scan history yet</div>
           <div style={{ fontSize: 14, color: 'var(--text-secondary)', marginBottom: 20 }}>Run your first scan to start tracking vulnerabilities over time</div>
           <button onClick={() => navigate('/scan')}
-            style={{ padding: '10px 20px', background: 'var(--accent)', color: 'var(--white)', border: 'none', borderRadius: 'var(--radius)', fontWeight: 600, cursor: 'pointer' }}>
+            style={{ padding: '10px 20px', background: 'var(--brand)', color: 'var(--white)', border: 'none', borderRadius: 'var(--radius)', fontWeight: 600, cursor: 'pointer' }}>
             Start Scanning
           </button>
         </div>
