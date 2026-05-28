@@ -249,7 +249,7 @@ export default function Learn() {
     )
     if (block.type === 'keypoint') return (
       <div key={i} style={{ display: 'flex', gap: 14, marginBottom: 16, padding: '14px 16px', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius)' }}>
-        <div style={{ minWidth: 90, fontSize: 11, fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.5px', paddingTop: 2, fontFamily: 'var(--font-mono)' }}>{block.label}</div>
+        <div style={{ minWidth: 90, fontSize: 11, fontWeight: 700, color: 'var(--brand)', textTransform: 'uppercase', letterSpacing: '0.5px', paddingTop: 2, fontFamily: 'var(--font-mono)' }}>{block.label}</div>
         <div style={{ fontSize: 14, lineHeight: 1.75, color: 'var(--text)' }}>{block.text}</div>
       </div>
     )
@@ -273,7 +273,7 @@ export default function Learn() {
           <div key={j} style={{ display: 'flex', gap: 16, marginBottom: 20, alignItems: 'flex-start', position: 'relative' }}>
             <div style={{
               minWidth: 32, height: 32, borderRadius: '50%',
-              background: 'var(--accent)', color: 'var(--white)', fontWeight: 700,
+              background: 'var(--brand)', color: 'var(--white)', fontWeight: 700,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: 13, flexShrink: 0, position: 'relative', zIndex: 1
             }}>{step.num}</div>
@@ -354,8 +354,8 @@ export default function Learn() {
                 <button key={s.id} onClick={() => selectSection(s.id)} style={{
                   display: 'block', width: '100%', textAlign: 'left', padding: '9px 14px', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
                   background: active === s.id ? 'var(--bg-elevated)' : 'transparent',
-                  borderLeft: active === s.id ? '2px solid var(--accent)' : '2px solid transparent',
-                  border: 'none', borderLeftStyle: 'solid', borderLeftWidth: 2, borderLeftColor: active === s.id ? 'var(--accent)' : 'transparent',
+                  borderLeft: active === s.id ? '2px solid var(--brand)' : '2px solid transparent',
+                  border: 'none', borderLeftStyle: 'solid', borderLeftWidth: 2, borderLeftColor: active === s.id ? 'var(--brand)' : 'transparent',
                   color: active === s.id ? 'var(--text-primary)' : 'var(--text-secondary)',
                   fontSize: 13, fontWeight: active === s.id ? 600 : 400, transition: 'all 0.15s',
                   fontFamily: 'var(--font-ui)',
@@ -371,7 +371,7 @@ export default function Learn() {
             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 6 }}>Ready to scan?</div>
             <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 10, lineHeight: 1.5 }}>Apply what you've learned — scan your project now.</div>
             <button onClick={() => navigate('/scan')} style={{
-              width: '100%', padding: '8px 0', background: 'var(--accent)', color: 'var(--white)',
+              width: '100%', padding: '8px 0', background: 'var(--brand)', color: 'var(--white)',
               border: 'none', borderRadius: 'var(--radius-sm)', cursor: 'pointer', fontSize: 12, fontWeight: 600,
             }}>
               Start Scanning →
@@ -390,7 +390,7 @@ export default function Learn() {
           {section.subtitle && (
             <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.6 }}>{section.subtitle}</p>
           )}
-          <div style={{ width: 40, height: 3, background: 'var(--accent)', borderRadius: 2, marginBottom: 20 }} />
+          <div style={{ width: 40, height: 3, background: 'var(--brand)', borderRadius: 2, marginBottom: 20 }} />
 
           {section.content.map(renderBlock)}
         </div>

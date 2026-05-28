@@ -106,13 +106,18 @@ export default function App() {
                 ))}
 
                 <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {/* OSV freshness indicator */}
-                  <div title={`Last sync: ${healthStatus?.osv_synced_at || 'Unknown'}`} style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '1px 6px', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 2, cursor: 'default' }}>
-                    <span style={{ width: 4, height: 4, borderRadius: '50%', background: getSyncColor(healthStatus?.osv_synced_at), display: 'inline-block' }} />
-                    <span style={{ fontSize: 8, color: getSyncColor(healthStatus?.osv_synced_at), fontFamily: 'var(--font-mono)' }}>
-                      OSV {healthStatus?.osv_synced_at ? getRelativeTime(healthStatus.osv_synced_at) : '--'}
-                    </span>
-                  </div>
+                  {/* OSV freshness indicator — error/loading/synced differentiated */}
+                  {healthStatus?.error
+                    ? <div title="Backend unreachable" style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '1px 6px', background: 'var(--bg-elevated)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 2, cursor: 'default' }}>
+                        <span style={{ width: 4, height: 4, borderRadius: '50%', background: 'var(--critical)', display: 'inline-block' }} />
+                        <span style={{ fontSize: 8, color: 'var(--critical)', fontFamily: 'var(--font-mono)' }}>OSV offline</span>
+                      </div>
+                    : healthStatus?.osv_synced_at
+                      ? <div title={`Last sync: ${healthStatus.osv_synced_at}`} style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '1px 6px', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 2, cursor: 'default' }}>
+                          <span style={{ width: 4, height: 4, borderRadius: '50%', background: getSyncColor(healthStatus.osv_synced_at), display: 'inline-block' }} />
+                          <span style={{ fontSize: 8, color: getSyncColor(healthStatus.osv_synced_at), fontFamily: 'var(--font-mono)' }}>OSV {getRelativeTime(healthStatus.osv_synced_at)}</span>
+                        </div>
+                      : null}
 
                   {/* Scanning indicator */}
                   {scanning && (
@@ -123,7 +128,7 @@ export default function App() {
                   )}
 
                   {/* Toggle logs */}
-                  <button onClick={() => setShowLogs(!showLogs)} style={{ background: 'none', border: 'none', color: showLogs ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', fontSize: 9, fontFamily: 'var(--font-mono)', padding: '2px 5px' }}>
+                  <button onClick={() => setShowLogs(!showLogs)} style={{ background: 'none', border: 'none', color: showLogs ? 'var(--brand)' : 'var(--text-muted)', cursor: 'pointer', fontSize: 9, fontFamily: 'var(--font-mono)', padding: '2px 5px' }}>
                     LOGS
                   </button>
 

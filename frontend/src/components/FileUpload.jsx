@@ -87,7 +87,7 @@ export default function FileUpload({ onAnalyze, loading, onEcosystemChange }) {
         onDrop={e => { e.preventDefault(); setDrag(false); handleFile(e.dataTransfer.files[0]) }}
         onDragOver={e => { e.preventDefault(); setDrag(true) }}
         onDragLeave={() => setDrag(false)}
-        style={{ border: `2px dashed ${drag ? 'var(--accent)' : 'var(--border)'}`, borderRadius: 'var(--radius)', padding: '16px', textAlign: 'center', cursor: 'pointer', background: drag ? 'var(--vuln-bg)' : 'var(--surface)', marginBottom: 10, transition: 'all 0.2s' }}>
+        style={{ border: `2px dashed ${drag ? 'var(--brand)' : 'var(--border)'}`, borderRadius: 'var(--radius)', padding: '16px', textAlign: 'center', cursor: 'pointer', background: drag ? 'var(--vuln-bg)' : 'var(--surface)', marginBottom: 10, transition: 'all 0.2s' }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Drop file or click to browse</div>
         <div style={{ color: 'var(--muted)', fontSize: 11, marginTop: 2 }}>package.json / package-lock.json · requirements.txt · pom.xml</div>
         <input ref={ref} type="file" hidden accept=".json,.txt,.xml" onChange={e => handleFile(e.target.files[0])} />
@@ -134,7 +134,7 @@ export default function FileUpload({ onAnalyze, loading, onEcosystemChange }) {
         </div>
       )}
       <button onClick={() => onAnalyze(content, eco.file)} disabled={!content.trim() || loading || content.length > 512000}
-        style={{ marginTop: 14, padding: '11px 28px', background: content.trim() ? 'var(--accent)' : 'var(--border)', color: 'var(--white)', border: 'none', borderRadius: 'var(--radius)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, cursor: content.trim() ? 'pointer' : 'not-allowed' }}>
+        style={{ marginTop: 14, padding: '11px 28px', background: content.trim() ? 'var(--brand)' : 'var(--border)', color: 'var(--white)', border: 'none', borderRadius: 'var(--radius)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 14, cursor: content.trim() ? 'pointer' : 'not-allowed' }}>
         {loading ? 'Scanning...' : 'Scan & Detect Vulnerabilities'}
       </button>
     </div>

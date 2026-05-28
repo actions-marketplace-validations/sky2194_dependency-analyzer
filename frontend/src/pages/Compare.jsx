@@ -19,12 +19,12 @@ export default function Compare() {
         Compare Scans
       </h1>
       <p style={{ color: 'var(--text-secondary)', fontSize: 14, marginBottom: 28 }}>
-        Compare two scans to see what changed: new CVEs, fixed vulnerabilities, package updates.
+        Scan-to-scan diff is on the roadmap. It will show new CVEs, fixed vulnerabilities, risk score delta, and package changes between any two scans.
       </p>
       
       <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: 28 }}>
         <div style={{ fontSize: 14, color: 'var(--text-muted)', marginBottom: 20, textAlign: 'center' }}>
-          Compare view coming soon
+          Roadmap — Coming Next Sprint
         </div>
         <div style={{ fontSize: 13, color: 'var(--text-secondary)', textAlign: 'center' }}>
           This feature will show side-by-side comparison of:

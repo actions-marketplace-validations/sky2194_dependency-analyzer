@@ -231,7 +231,7 @@ export default function DependencyGraph({ data }) {
   const btnStyle = (active, color) => ({
     padding: '5px 11px', border: 'none', borderRadius: 5, cursor: 'pointer',
     fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-ui)', transition: 'all 0.15s',
-    background: active ? (color || 'var(--accent)') : 'transparent',
+    background: active ? (color || 'var(--brand)') : 'transparent',
     color: active ? 'var(--white)' : (color || 'var(--text-secondary)'),
   })
 
@@ -304,7 +304,7 @@ export default function DependencyGraph({ data }) {
             <div style={{ display:'flex', gap:6 }}>
               {!isolatedNode && (
                 <button onClick={() => { setIsolatedNode(selData.name) }}
-                  style={{ padding:'5px 11px', background:'var(--brand-dim)', border:'1px solid var(--accent)', borderRadius:6, color:'var(--accent)', cursor:'pointer', fontSize:11, fontWeight:600 }}>
+                  style={{ padding:'5px 11px', background:'var(--brand-dim)', border:'1px solid var(--brand)', borderRadius:6, color:'var(--brand)', cursor:'pointer', fontSize:11, fontWeight:600 }}>
                   ⬡ Isolate Subtree
                 </button>
               )}
@@ -356,8 +356,8 @@ export default function DependencyGraph({ data }) {
 
           {/* Root node */}
           <g style={{ cursor:'pointer' }} onClick={e => handleClick(root.name, e)}>
-            <circle cx={root.x} cy={root.y} r={NODE_R+4} fill="var(--brand-dim)" stroke="var(--accent)" strokeWidth={selectedNode===root.name?3:2} opacity={isLit(root.name)?1:0.15} />
-            <text x={root.x} y={root.y+4} fontSize="10" fill="var(--accent)" textAnchor="middle" fontWeight="700">ROOT</text>
+            <circle cx={root.x} cy={root.y} r={NODE_R+4} fill="var(--brand-dim)" stroke="var(--brand)" strokeWidth={selectedNode===root.name?3:2} opacity={isLit(root.name)?1:0.15} />
+            <text x={root.x} y={root.y+4} fontSize="10" fill="var(--brand)" textAnchor="middle" fontWeight="700">ROOT</text>
             <text x={root.x} y={root.y+NODE_R+18} fontSize="12" fill="var(--text-primary)" textAnchor="middle" fontWeight="700">{root.name}</text>
             <text x={root.x} y={root.y+NODE_R+30} fontSize="10" fill="var(--text-muted)" textAnchor="middle">{root.version}</text>
           </g>
@@ -385,9 +385,9 @@ export default function DependencyGraph({ data }) {
                 {/* Blast radius ring — larger = more downstream CVEs */}
                 {blast > 0 && <circle cx={n.x} cy={n.y} r={r+5} fill="none" stroke={col} strokeWidth="0.5" opacity="0.3" strokeDasharray="3 2" />}
                 {/* Selection ring */}
-                {isSel && <circle cx={n.x} cy={n.y} r={r+7} fill="none" stroke="var(--accent)" strokeWidth="2" strokeDasharray="4 3" />}
+                {isSel && <circle cx={n.x} cy={n.y} r={r+7} fill="none" stroke="var(--brand)" strokeWidth="2" strokeDasharray="4 3" />}
                 {/* Node */}
-                <circle cx={n.x} cy={n.y} r={r} fill={fill} stroke={isSel?'var(--accent)':col} strokeWidth={sev?2:1.5} />
+                <circle cx={n.x} cy={n.y} r={r} fill={fill} stroke={isSel?'var(--brand)':col} strokeWidth={sev?2:1.5} />
                 {/* CVSS */}
                 {sev?.cvss && (
                   <g>
@@ -396,9 +396,9 @@ export default function DependencyGraph({ data }) {
                   </g>
                 )}
                 {/* Direct badge */}
-                {n.depth===1 && !sev && <text x={n.x} y={n.y-r-7} fontSize="8" fill="var(--accent)" textAnchor="middle" fontWeight="600" opacity="0.8">DIRECT</text>}
+                {n.depth===1 && !sev && <text x={n.x} y={n.y-r-7} fontSize="8" fill="var(--brand)" textAnchor="middle" fontWeight="600" opacity="0.8">DIRECT</text>}
                 {/* Label */}
-                <text x={n.x} y={n.y+r+14} fontSize={sev?11:10} fill={isSel?'var(--accent)':sev?col:'var(--text-primary)'} textAnchor="middle" fontWeight={sev||isSel?'700':'500'}>{label}</text>
+                <text x={n.x} y={n.y+r+14} fontSize={sev?11:10} fill={isSel?'var(--brand)':sev?col:'var(--text-primary)'} textAnchor="middle" fontWeight={sev||isSel?'700':'500'}>{label}</text>
                 {/* Version */}
                 <text x={n.x} y={n.y+r+25} fontSize="9" fill="var(--text-muted)" textAnchor="middle">{n.version}</text>
               </g>
