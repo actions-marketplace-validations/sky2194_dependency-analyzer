@@ -326,6 +326,14 @@ def add_cors_headers(response):
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
         response.headers['Vary'] = 'Origin'
     # Security headers
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data:; "
+        "connect-src 'self'"
+    )
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
@@ -612,10 +620,11 @@ def scan_package_deep():
         })
     except Exception as e:
         log.error(f"Deep scan error: {e}")
-        return jsonify({'error': f'Deep scan failed: {str(e)}'}), 500
+        return jsonify({'error': 'Deep scan failed. Check server logs for details.'}), 500
 
 @app.route('/api/cve/<cve_id>', methods=['GET'])
 @rate_limited
+@request_id_middleware
 def get_cve(cve_id):
     import re, requests as req
     if not re.match(r'^CVE-\d{4}-\d+$', cve_id):
@@ -651,7 +660,7 @@ def export_pdf():
                      'Content-Length': len(pdf_bytes)})
     except Exception as e:
         log.error(f"PDF export error: {e}")
-        return jsonify({'error': f'PDF generation failed: {str(e)}'}), 500
+        return jsonify({'error': 'PDF generation failed. Check server logs for details.'}), 500
 
 @app.route('/api/export/csv', methods=['POST'])
 @rate_limited
