@@ -20,6 +20,14 @@ const NAV = [
   { group: 'Compliance', items: [
     { id: 'sbom', title: 'SBOMs' },
   ]},
+  { group: 'Prioritization', items: [
+    { id: 'epss-kev',    title: 'EPSS + KEV' },
+    { id: 'risk-score',  title: 'Risk Score Explained' },
+  ]},
+  { group: 'DepAnalyzer', items: [
+    { id: 'mediation',   title: 'Dependency Mediation' },
+    { id: 'cve-paths',   title: 'Transitive CVE Paths' },
+  ]},
 ]
 
 /* ── CONTENT ── */
@@ -211,6 +219,131 @@ const SECTIONS = [
         ['EU Cyber Resilience Act', '2027', 'CE-marked products in EU', 'Upcoming requirement for European markets'],
       ]},
       { type: 'callout', color: 'info', text: 'US Executive Order 14028 mandates SBOMs for software sold to US federal agencies. EU Cyber Resilience Act requires them for CE-marked products from 2027.' },
+    ]
+  },
+  {
+    id: 'epss-kev', title: 'EPSS + KEV',
+    subtitle: 'Two signals that tell you which CVEs are actually being exploited — not just theoretically dangerous.',
+    content: [
+      { type: 'keypoint', label: 'The problem with CVSS alone', text: 'A CVE with CVSS 9.8 sounds terrifying — but most high-CVSS CVEs are never exploited in practice. CVSS measures theoretical severity, not real-world exploitation. Prioritizing by CVSS alone means fixing the wrong things first.' },
+      { type: 'heading', text: 'EPSS — Exploit Prediction Scoring System' },
+      { type: 'keypoint', label: 'What it is', text: 'A machine-learning model that predicts the probability (0–100%) that a CVE will be actively exploited in the wild within the next 30 days. Published daily by the Cyentia Institute, free and public.' },
+      { type: 'table', headers: ['CVE', 'CVSS', 'EPSS', 'Reality'], rows: [
+        ['CVE-2021-44228 (Log4Shell)', '10.0', '97.3%', 'Fix immediately — being actively exploited'],
+        ['CVE-2023-99999 (hypothetical)', '9.8', '0.4%', 'Low urgency — almost never exploited'],
+        ['CVE-2024-12345 (hypothetical)', '7.5', '45.2%', 'High urgency despite lower CVSS'],
+      ]},
+      { type: 'callout', color: 'info', text: 'Research shows that only ~4% of CVEs are ever exploited. EPSS helps you focus on that 4%.' },
+      { type: 'heading', text: 'KEV — CISA Known Exploited Vulnerabilities' },
+      { type: 'keypoint', label: 'What it is', text: 'A list maintained by the US Cybersecurity and Infrastructure Security Agency (CISA) of CVEs that are confirmed to be actively exploited by real attackers right now. Updated continuously. If a CVE is on the KEV list, it is not theoretical — someone is actively using it to attack systems.' },
+      { type: 'keypoint', label: 'Why it matters', text: 'The US federal government requires agencies to patch KEV vulnerabilities within 2 weeks (critical) or 6 months (others). Enterprise security teams treat KEV as a mandatory fix list.' },
+      { type: 'heading', text: 'Prioritization Framework' },
+      { type: 'table', headers: ['KEV', 'EPSS', 'CVSS', 'Action'], rows: [
+        ['✓ Yes', 'Any', 'Any', 'Fix immediately — confirmed active exploitation'],
+        ['✗ No', '> 50%', '≥ 7.0', 'Fix this week — high exploitation probability'],
+        ['✗ No', '> 10%', '≥ 4.0', 'Fix this month — elevated risk'],
+        ['✗ No', '< 10%', 'Any', 'Fix when convenient — low exploitation likelihood'],
+      ]},
+      { type: 'callout', color: 'ok', text: 'DepAnalyzer stores EPSS scores and KEV data locally — synced daily from public sources. Both will be surfaced in the vulnerability table in an upcoming release.' },
+    ]
+  },
+  {
+    id: 'risk-score', title: 'Risk Score Explained',
+    subtitle: 'How DepAnalyzer calculates the 0–100 risk score — and what it actually means.',
+    content: [
+      { type: 'keypoint', label: 'Not a count', text: 'The risk score is not a count of CVEs. A project with 100 LOW CVEs scores lower than one with 2 CRITICAL CVEs. It measures the weighted, logarithmic impact of vulnerabilities on your specific dependency tree.' },
+      { type: 'heading', text: 'Severity Buckets' },
+      { type: 'table', headers: ['Severity', 'Max Contribution', 'Divisor'], rows: [
+        ['CRITICAL', '40 pts', '3 CVEs to saturate'],
+        ['HIGH',     '30 pts', '5 CVEs to saturate'],
+        ['MEDIUM',   '20 pts', '8 CVEs to saturate'],
+        ['LOW',      '10 pts', '10 CVEs to saturate'],
+      ]},
+      { type: 'heading', text: 'Logarithmic Decay Formula' },
+      { type: 'keypoint', label: 'Why logarithmic?', text: 'The first CRITICAL CVE contributes the most to your score. The second adds less. The third adds even less. This reflects reality — fixing your first CRITICAL matters far more than fixing your tenth. Beyond a certain count, you're already at maximum risk for that severity.' },
+      { type: 'code', text: 'impact = maxPts × (1 − e^(−count / divisor))
+
+Example: 2 CRITICAL CVEs
+  impact = 40 × (1 − e^(−2/3))
+  impact = 40 × 0.736 = 29.5 pts
+
+Example: 10 CRITICAL CVEs
+  impact = 40 × (1 − e^(−10/3))
+  impact = 40 × 0.964 = 38.6 pts  ← nearly maxed out' },
+      { type: 'heading', text: 'Score Bands' },
+      { type: 'table', headers: ['Score', 'Label', 'Meaning'], rows: [
+        ['0',      'Secure',   'No known vulnerabilities in the dependency tree'],
+        ['1–39',   'Low',      'Minor vulnerabilities, low exploitation risk'],
+        ['40–69',  'Medium',   'Moderate risk — patch in next sprint'],
+        ['70–89',  'High',     'Significant risk — patch this week'],
+        ['90–100', 'Critical', 'Severe risk — patch immediately'],
+      ]},
+      { type: 'callout', color: 'info', text: 'The score is recalculated on every scan using live CVE data. The same codebase can score differently over time as new vulnerabilities are published or patched.' },
+    ]
+  },
+  {
+    id: 'mediation', title: 'Dependency Mediation',
+    subtitle: 'When two packages need different versions of the same dependency — who wins?',
+    content: [
+      { type: 'keypoint', label: 'The problem', text: 'Your project depends on package A (which needs lodash@4.17.21) and package B (which needs lodash@4.17.15 — the vulnerable version). Only one version of lodash can be installed. Which one wins?' },
+      { type: 'heading', text: 'Ecosystem Rules' },
+      { type: 'table', headers: ['Ecosystem', 'Rule', 'Winner'], rows: [
+        ['npm', 'Nearest depth wins', 'Closest to root in the dependency tree'],
+        ['PyPI (pip)', 'First matching version wins', 'First package resolved during install'],
+        ['Maven', 'Nearest definition wins', 'Declared first in the dependency tree'],
+      ]},
+      { type: 'heading', text: 'npm Example' },
+      { type: 'code', text: 'my-app
+├── package-A → lodash@4.17.21  (depth 1) ← WINS
+└── package-B
+    └── lodash@4.17.15  (depth 2) ← loses' },
+      { type: 'keypoint', label: 'Why this matters for security', text: 'If the vulnerable version wins mediation, your app ships with the vulnerable lodash even though another package needs the safe version. DepAnalyzer detects this — the mediation panel shows exactly which version won and why.' },
+      { type: 'heading', text: 'Forcing a Safe Version' },
+      { type: 'code', text: '// npm — package.json overrides
+{
+  "overrides": {
+    "lodash": "4.17.21"
+  }
+}
+
+# pip — requirements.txt constraint
+lodash==4.17.21
+
+<!-- Maven — dependencyManagement -->
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>org.example</groupId>
+      <artifactId>lodash</artifactId>
+      <version>4.17.21</version>
+    </dependency>
+  </dependencies>
+</dependencyManagement>' },
+      { type: 'callout', color: 'warn', text: 'Forcing a version override can break packages that depend on the older version. Always test in staging after applying overrides.' },
+    ]
+  },
+  {
+    id: 'cve-paths', title: 'Transitive CVE Paths',
+    subtitle: 'How to read the dependency chain that brought a vulnerability into your project.',
+    content: [
+      { type: 'keypoint', label: 'What is a CVE path?', text: 'A CVE path shows the exact chain of dependencies that introduced a vulnerability. You didn't install the vulnerable package directly — something you installed pulled it in transitively.' },
+      { type: 'heading', text: 'Reading the Path' },
+      { type: 'code', text: 'my-app → express@4.17.0 → body-parser@1.19.0 → qs@6.7.0 → lodash@4.17.15
+                                                                    ↑
+                                              CVE-2020-28500 lives here (CVSS 9.8)' },
+      { type: 'keypoint', label: 'You installed', text: 'express — listed in your package.json' },
+      { type: 'keypoint', label: 'express pulled in', text: 'body-parser — not in your package.json' },
+      { type: 'keypoint', label: 'body-parser pulled in', text: 'qs — not in your package.json' },
+      { type: 'keypoint', label: 'qs pulled in', text: 'lodash@4.17.15 — the vulnerable version' },
+      { type: 'heading', text: 'Why This Matters' },
+      { type: 'keypoint', label: 'You cannot fix lodash directly', text: 'It's not in your package.json. You need to either update express (which will update its transitive deps) or add a version override to force a safe lodash version.' },
+      { type: 'heading', text: 'Fix Strategies by Path Depth' },
+      { type: 'table', headers: ['Depth', 'Strategy', 'Example'], rows: [
+        ['1 — Direct', 'Update the package', 'npm install lodash@4.17.21'],
+        ['2 — One level deep', 'Update parent package', 'npm install express@latest'],
+        ['3+ — Deep transitive', 'Override or wait for parent update', 'Add "overrides": {"lodash": "4.17.21"}'],
+      ]},
+      { type: 'callout', color: 'info', text: 'DepAnalyzer's dependency graph shows the full path visually. Click any vulnerable node to see the exact chain that introduced it.' },
     ]
   },
 ]
