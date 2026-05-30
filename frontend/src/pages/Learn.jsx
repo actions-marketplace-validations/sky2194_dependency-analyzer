@@ -260,7 +260,7 @@ const SECTIONS = [
         ['LOW',      '10 pts', '10 CVEs to saturate'],
       ]},
       { type: 'heading', text: 'Logarithmic Decay Formula' },
-      { type: 'keypoint', label: 'Why logarithmic?', text: 'The first CRITICAL CVE contributes the most to your score. The second adds less. The third adds even less. This reflects reality — fixing your first CRITICAL matters far more than fixing your tenth. Beyond a certain count, you're already at maximum risk for that severity.' },
+      { type: 'keypoint', label: 'Why logarithmic?', text: 'The first CRITICAL CVE contributes the most to your score. The second adds less. The third adds even less. This reflects reality — fixing your first CRITICAL matters far more than fixing your tenth. Beyond a certain count, you\'re already at maximum risk for that severity.' },
       { type: 'code', text: 'impact = maxPts × (1 − e^(−count / divisor))
 
 Example: 2 CRITICAL CVEs
