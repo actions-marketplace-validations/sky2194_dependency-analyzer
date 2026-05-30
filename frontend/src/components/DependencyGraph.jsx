@@ -277,7 +277,7 @@ export default function DependencyGraph({ data }) {
           </span>
         ))}
         <span style={{ color:'var(--border-mid)' }}>── Vulnerable path &nbsp; - - Safe edge</span>
-        <span className="graph-hint-desktop" style={{ marginLeft:'auto' }}>Ctrl+Scroll = zoom · Pinch = zoom · Drag = pan · Click = highlight · Node size = blast radius</span>
+        <span className="graph-hint-desktop" style={{ marginLeft:'auto' }}>Ctrl+Scroll = zoom · Pinch = zoom · Drag = pan · Click = highlight · Node size + count = downstream CVE impact</span>
         <span className="graph-hint-touch" style={{ display:'none' }}>Pinch = zoom · Drag = pan · Tap = highlight</span>
       </div>
 
@@ -371,9 +371,10 @@ export default function DependencyGraph({ data }) {
             const lit     = isLit(n.name)
             const blast   = blastRadius[n.name] || 0
             // Node size encodes blast radius (transitive CVEs reachable through this node)
+            const blastScale = blast === 0 ? 0 : Math.min(Math.log(blast + 1) / Math.log(20), 1)
             const r       = sev
-              ? Math.min(NODE_R + 2 + Math.min(blast, 8), NODE_R + 10)
-              : n.depth === 1 ? NODE_R : NODE_R - 3
+              ? Math.round(NODE_R + 4 + blastScale * 14)
+              : NODE_R
             const label   = n.name.length > 12 ? n.name.slice(0, 11) + '…' : n.name
 
             return (
@@ -383,7 +384,7 @@ export default function DependencyGraph({ data }) {
                 {/* Glow */}
                 {sev && lit && <circle cx={n.x} cy={n.y} r={r+10} fill={col} opacity="0.1" style={{ filter:'blur(6px)' }} />}
                 {/* Blast radius ring — larger = more downstream CVEs */}
-                {blast > 0 && <circle cx={n.x} cy={n.y} r={r+5} fill="none" stroke={col} strokeWidth="0.5" opacity="0.3" strokeDasharray="3 2" />}
+                {blast > 0 && <circle cx={n.x} cy={n.y} r={r + 4 + Math.min(blast, 6)} fill="none" stroke={col} strokeWidth="0.5" opacity="0.3" strokeDasharray="3 2" />}
                 {/* Selection ring */}
                 {isSel && <circle cx={n.x} cy={n.y} r={r+7} fill="none" stroke="var(--brand)" strokeWidth="2" strokeDasharray="4 3" />}
                 {/* Node */}
@@ -401,6 +402,12 @@ export default function DependencyGraph({ data }) {
                 <text x={n.x} y={n.y+r+14} fontSize={sev?11:10} fill={isSel?'var(--brand)':sev?col:'var(--text-primary)'} textAnchor="middle" fontWeight={sev||isSel?'700':'500'}>{label}</text>
                 {/* Version */}
                 <text x={n.x} y={n.y+r+25} fontSize="9" fill="var(--text-muted)" textAnchor="middle">{n.version}</text>
+                {blast > 2 && (
+                  <text x={n.x} y={n.y - r - 8} fontSize="8"
+                    fill={col} textAnchor="middle" fontWeight="700" opacity="0.8">
+                    {blast}↓
+                  </text>
+                )}
               </g>
             )
           })}
