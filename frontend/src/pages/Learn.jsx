@@ -261,7 +261,7 @@ const SECTIONS = [
       ]},
       { type: 'heading', text: 'Logarithmic Decay Formula' },
       { type: 'keypoint', label: 'Why logarithmic?', text: 'The first CRITICAL CVE contributes the most to your score. The second adds less. The third adds even less. This reflects reality — fixing your first CRITICAL matters far more than fixing your tenth. Beyond a certain count, you\'re already at maximum risk for that severity.' },
-      { type: 'code', text: 'impact = maxPts × (1 − e^(−count / divisor))
+      { type: 'code', text: `impact = maxPts × (1 − e^(−count / divisor))
 
 Example: 2 CRITICAL CVEs
   impact = 40 × (1 − e^(−2/3))
@@ -269,7 +269,7 @@ Example: 2 CRITICAL CVEs
 
 Example: 10 CRITICAL CVEs
   impact = 40 × (1 − e^(−10/3))
-  impact = 40 × 0.964 = 38.6 pts  ← nearly maxed out' },
+  impact = 40 × 0.964 = 38.6 pts  ← nearly maxed out` },
       { type: 'heading', text: 'Score Bands' },
       { type: 'table', headers: ['Score', 'Label', 'Meaning'], rows: [
         ['0',      'Secure',   'No known vulnerabilities in the dependency tree'],
@@ -293,13 +293,13 @@ Example: 10 CRITICAL CVEs
         ['Maven', 'Nearest definition wins', 'Declared first in the dependency tree'],
       ]},
       { type: 'heading', text: 'npm Example' },
-      { type: 'code', text: 'my-app
+      { type: 'code', text: `my-app
 ├── package-A → lodash@4.17.21  (depth 1) ← WINS
 └── package-B
-    └── lodash@4.17.15  (depth 2) ← loses' },
+    └── lodash@4.17.15  (depth 2) ← loses` },
       { type: 'keypoint', label: 'Why this matters for security', text: 'If the vulnerable version wins mediation, your app ships with the vulnerable lodash even though another package needs the safe version. DepAnalyzer detects this — the mediation panel shows exactly which version won and why.' },
       { type: 'heading', text: 'Forcing a Safe Version' },
-      { type: 'code', text: '// npm — package.json overrides
+      { type: 'code', text: `// npm — package.json overrides
 {
   "overrides": {
     "lodash": "4.17.21"
@@ -318,7 +318,7 @@ lodash==4.17.21
       <version>4.17.21</version>
     </dependency>
   </dependencies>
-</dependencyManagement>' },
+</dependencyManagement>` },
       { type: 'callout', color: 'warn', text: 'Forcing a version override can break packages that depend on the older version. Always test in staging after applying overrides.' },
     ]
   },
@@ -326,24 +326,24 @@ lodash==4.17.21
     id: 'cve-paths', title: 'Transitive CVE Paths',
     subtitle: 'How to read the dependency chain that brought a vulnerability into your project.',
     content: [
-      { type: 'keypoint', label: 'What is a CVE path?', text: 'A CVE path shows the exact chain of dependencies that introduced a vulnerability. You didn't install the vulnerable package directly — something you installed pulled it in transitively.' },
+      { type: 'keypoint', label: 'What is a CVE path?', text: 'A CVE path shows the exact chain of dependencies that introduced a vulnerability. You didn\'t install the vulnerable package directly — something you installed pulled it in transitively.' },
       { type: 'heading', text: 'Reading the Path' },
-      { type: 'code', text: 'my-app → express@4.17.0 → body-parser@1.19.0 → qs@6.7.0 → lodash@4.17.15
+      { type: 'code', text: `my-app → express@4.17.0 → body-parser@1.19.0 → qs@6.7.0 → lodash@4.17.15
                                                                     ↑
-                                              CVE-2020-28500 lives here (CVSS 9.8)' },
+                                              CVE-2020-28500 lives here (CVSS 9.8)` },
       { type: 'keypoint', label: 'You installed', text: 'express — listed in your package.json' },
       { type: 'keypoint', label: 'express pulled in', text: 'body-parser — not in your package.json' },
       { type: 'keypoint', label: 'body-parser pulled in', text: 'qs — not in your package.json' },
       { type: 'keypoint', label: 'qs pulled in', text: 'lodash@4.17.15 — the vulnerable version' },
       { type: 'heading', text: 'Why This Matters' },
-      { type: 'keypoint', label: 'You cannot fix lodash directly', text: 'It's not in your package.json. You need to either update express (which will update its transitive deps) or add a version override to force a safe lodash version.' },
+      { type: 'keypoint', label: 'You cannot fix lodash directly', text: 'It\'s not in your package.json. You need to either update express (which will update its transitive deps) or add a version override to force a safe lodash version.' },
       { type: 'heading', text: 'Fix Strategies by Path Depth' },
       { type: 'table', headers: ['Depth', 'Strategy', 'Example'], rows: [
         ['1 — Direct', 'Update the package', 'npm install lodash@4.17.21'],
         ['2 — One level deep', 'Update parent package', 'npm install express@latest'],
         ['3+ — Deep transitive', 'Override or wait for parent update', 'Add "overrides": {"lodash": "4.17.21"}'],
       ]},
-      { type: 'callout', color: 'info', text: 'DepAnalyzer's dependency graph shows the full path visually. Click any vulnerable node to see the exact chain that introduced it.' },
+      { type: 'callout', color: 'info', text: 'DepAnalyzer\'s dependency graph shows the full path visually. Click any vulnerable node to see the exact chain that introduced it.' },
     ]
   },
 ]
