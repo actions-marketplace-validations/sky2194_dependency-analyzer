@@ -149,15 +149,7 @@ export default function Analytics() {
   const [selected, setSelected] = useState(null)
   const [expanded, setExpanded] = useState(new Set())
 
-  // Auto-select highest severity CVE once snapshot loads
-  useEffect(() => {
-    if (!snapshot?.vulnerabilities?.length) return
-    const SEV_ORDER = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }
-    const top = [...snapshot.vulnerabilities].sort((a, b) =>
-      (SEV_ORDER[a.severity] ?? 4) - (SEV_ORDER[b.severity] ?? 4)
-    )[0]
-    if (top?.cve_id) setSelected(top.cve_id)
-  }, [snapshot])
+
   const [showExportMenu, setShowExportMenu] = useState(false)
   const [copied, setCopied] = useState(null)
   const [pkgPage, setPkgPage] = useState(1)
@@ -218,6 +210,16 @@ export default function Analytics() {
 
   const groupedPackages = snapshot.grouped_packages || []
   const vulns = snapshot.vulnerabilities || []
+
+  // Auto-select highest severity CVE — snapshot is now available
+  useEffect(() => {
+    if (!vulns.length) return
+    const SEV_ORDER = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }
+    const top = [...vulns].sort((a, b) =>
+      (SEV_ORDER[a.severity] ?? 4) - (SEV_ORDER[b.severity] ?? 4)
+    )[0]
+    if (top?.cve_id) setSelected(top.cve_id)
+  }, [result])
   const sm = snapshot.summary
   const riskScore = sm.risk_score
   const riskLabel = sm.risk_label
