@@ -12,6 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
+    defaults:
+      run:
+        working-directory: frontend
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,31 +26,22 @@ jobs:
           node-version: '20'
 
       - name: Install dependencies
-        working-directory: frontend
         run: npm install
 
       - name: Install Playwright browsers
-        working-directory: frontend
         run: npx playwright install chromium --with-deps
 
       - name: Build frontend
-        working-directory: frontend
         run: npm run build
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
-      - name: Start preview server
-        working-directory: frontend
-        run: npx vite preview --port 4173 &
-
-      - name: Wait for server
-        run: npx wait-on http://localhost:4173 --timeout 30000
-
-      - name: Run E2E tests
-        working-directory: frontend
-        run: npx playwright test
+      - name: Start preview server + run tests
+        run: |
+          npx vite preview --port 4173 &
+          sleep 5
+          BASE_URL=http://localhost:4173 npx playwright test
         env:
-          BASE_URL: http://localhost:4173
           CI: true
 
       - name: Upload test results
