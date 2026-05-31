@@ -51,9 +51,14 @@ export default function DependencyGraph({ data }) {
   const allNodes = useMemo(() => tree ? flatten(tree) : [], [tree])
   const totalNodes = allNodes.length
 
-  // Default to vulnerable-only for large trees
-  const [viewMode,     setViewMode]     = useState(totalNodes > 50 ? 'vulnerable' : 'all')
+  const [viewMode,     setViewMode]     = useState('vulnerable')
   const [sevFilter,    setSevFilter]    = useState('ALL')
+
+  useEffect(() => {
+    if (allNodes.length > 100 && viewMode === 'all') {
+      setViewMode('vulnerable')
+    }
+  }, [allNodes.length])
   const [selectedNode, setSelectedNode] = useState(null)
   const [isolatedNode, setIsolatedNode] = useState(null)
   const [zoom,         setZoom]         = useState(1)
@@ -249,17 +254,33 @@ export default function DependencyGraph({ data }) {
       {/* ── Controls ── */}
       <div className="graph-controls" style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         {/* View */}
-        <div style={{ display: 'flex', gap: 3, background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 7, padding: 3 }}>
-          {[['all','◉ All'],['vulnerable','⚠ Vulnerable'],['direct','▲ Direct']].map(([id,label]) => (
-            <button key={id} onClick={() => { setViewMode(id); setSelectedNode(null) }} style={btnStyle(viewMode === id)}>{label}</button>
+        <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
+          <span style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)',
+            fontFamily:'var(--font-mono)', letterSpacing:'0.05em', minWidth:40 }}>
+            SHOW:
+          </span>
+          {[
+            ['all',        'All Packages'],
+            ['vulnerable', 'Vulnerable Only'],
+            ['direct',     'Direct Only'],
+          ].map(([id, label]) => (
+            <button key={id} onClick={() => { setViewMode(id); setSelectedNode(null) }}
+              style={btnStyle(viewMode === id)}>
+              {label}
+            </button>
           ))}
         </div>
         {/* Severity */}
-        <div style={{ display: 'flex', gap: 3, background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 7, padding: 3 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap', marginTop:6 }}>
+          <span style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)',
+            fontFamily:'var(--font-mono)', letterSpacing:'0.05em', minWidth:40 }}>
+            SEV:
+          </span>
           {['ALL','CRITICAL','HIGH','MEDIUM','LOW'].map(s => (
-            <button key={s} onClick={() => { setSevFilter(s); setSelectedNode(null) }}
+            <button key={s}
+              onClick={() => setSevFilter(s)}
               style={btnStyle(sevFilter === s, s === 'ALL' ? null : SEV_COLOR[s])}>
-              {s}
+              {s === 'ALL' ? 'All' : s.charAt(0) + s.slice(1).toLowerCase()}
             </button>
           ))}
         </div>
