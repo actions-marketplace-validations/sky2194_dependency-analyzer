@@ -382,9 +382,16 @@ export default function Landing() {
       <footer>
         <div className="lp-footer">
           <div><div className="lp-nav-logo" style={{ marginBottom: 14 }}><div className="lp-nav-logo-icon">{shield}</div>DepAnalyzer</div><p className="lp-footer-desc">Dependency intelligence and software supply chain security for modern engineering teams. Open source. No signup required.</p></div>
-          {['Product|Scanner|Knowledge Base','Databases|NVD|OSV'].map(col => {
+          {['Product|Scanner|Knowledge Base','Databases|NVD|OSV|GitHub Advisory'].map(col => {
             const [title, ...links] = col.split('|')
-            return <div key={title}><div className="lp-footer-col-title">{title}</div><div className="lp-footer-links">{links.filter(l => l).map(l => <button key={l} onClick={() => l === 'Scanner' ? navigate('/scan') : l === 'Knowledge Base' ? navigate('/learn') : l === 'NVD' ? window.open('https://nvd.nist.gov', '_blank') : l === 'OSV' ? window.open('https://osv.dev', '_blank') : null}>{l}</button>)}</div></div>
+            const linkMap = {
+              'Scanner': () => navigate('/scan'),
+              'Knowledge Base': () => navigate('/learn'),
+              'NVD': () => window.open('https://nvd.nist.gov', '_blank'),
+              'OSV': () => window.open('https://osv.dev', '_blank'),
+              'GitHub Advisory': () => window.open('https://github.com/advisories', '_blank'),
+            }
+            return <div key={title}><div className="lp-footer-col-title">{title}</div><div className="lp-footer-links">{links.filter(l => l).map(l => <button key={l} onClick={linkMap[l] || (() => {})}>{l}</button>)}</div></div>
           })}
         </div>
         <div className="lp-footer-bottom"><div>© 2026 DepAnalyzer. All rights reserved.</div><div>Powered by OSV · NVD fallback</div></div>
