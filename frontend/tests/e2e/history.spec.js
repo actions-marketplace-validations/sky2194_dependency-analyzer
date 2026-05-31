@@ -6,45 +6,55 @@ test.describe('History page', () => {
     await page.waitForLoadState('networkidle')
   })
 
-  test('history page loads', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: 'Scan History' })).toBeVisible()
+  test('page loads with Scan History heading', async ({ page }) => {
+    await expect(page.locator('h1').filter({ hasText: 'Scan History' })).toBeVisible()
   })
 
-  test('empty state shown when no history', async ({ page }) => {
-    await page.evaluate(() => localStorage.clear())
+  test('empty state shown when localStorage is empty', async ({ page }) => {
+    await page.evaluate(() => localStorage.removeItem('depanalyzer_projects'))
     await page.reload()
     await page.waitForLoadState('networkidle')
     await expect(page.locator('text=No scan history yet')).toBeVisible()
   })
 
-  test('delete does not crash page', async ({ page }) => {
-    // Inject fake scan
+  test('page does not crash on delete', async ({ page }) => {
+    // Inject a realistic scan into localStorage matching the app's data structure
     await page.evaluate(() => {
-      localStorage.setItem('depanalyzer_projects', JSON.stringify([{
-        name: 'test-app',
-        scans: [{
-          id: 'test-123',
-          project_name: 'test-app',
-          scanned_at: new Date().toISOString(),
-          summary: { total_packages: 5, critical: 1, high: 0, medium: 0, low: 0, risk_score: 45 },
-          vulnerabilities: []
-        }]
-      }]))
+      const scan = {
+        id: 'test-' + Date.now(),
+        project_name: 'test-app',
+        scanned_at: new Date().toISOString(),
+        ecosystem: 'npm',
+        summary: {
+          total_packages: 10,
+          vulnerable_packages: 2,
+          critical: 1,
+          high: 1,
+          medium: 0,
+          low: 0,
+          risk_score: 55
+        },
+        vulnerabilities: []
+      }
+      const projects = [{ name: 'test-app', scans: [scan] }]
+      localStorage.setItem('depanalyzer_projects', JSON.stringify(projects))
     })
     await page.reload()
     await page.waitForLoadState('networkidle')
 
-    // Try to find and click delete
-    const deleteBtn = page.locator('button:has-text("×"), button[aria-label*="delete" i], button[aria-label*="Delete" i]').first()
-    if (await deleteBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+    // Find and click delete button (×)
+    const deleteBtn = page.locator('button').filter({ hasText: '×' }).first()
+    if (await deleteBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await deleteBtn.click()
-      const confirm = page.locator('button:has-text("Delete")').first()
+      // Confirm if dialog appears
+      const confirm = page.locator('button').filter({ hasText: 'Delete' }).first()
       if (await confirm.isVisible({ timeout: 2000 }).catch(() => false)) {
         await confirm.click()
       }
     }
 
+    // Page must not crash
     await expect(page.locator('text=Something went wrong')).not.toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Scan History' })).toBeVisible()
+    await expect(page.locator('h1').filter({ hasText: 'Scan History' })).toBeVisible()
   })
 })

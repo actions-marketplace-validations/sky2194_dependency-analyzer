@@ -11,11 +11,13 @@ test.describe('Landing page', () => {
   })
 
   test('primary CTA navigates to scanner', async ({ page }) => {
+    // Hero CTA: class lp-btn-hero, text "Scan Free — No Signup"
     await page.locator('.lp-btn-hero').first().click()
     await expect(page).toHaveURL(/\/scan/)
   })
 
-  test('Learn the concepts navigates to KB', async ({ page }) => {
+  test('ghost CTA navigates to KB', async ({ page }) => {
+    // Ghost button: "Learn the concepts →"
     await page.locator('.lp-btn-hero-ghost').first().click()
     await expect(page).toHaveURL(/\/learn/)
   })
@@ -28,18 +30,18 @@ test.describe('Landing page', () => {
     await expect(page.locator('a[href="#how-it-works"]')).toBeVisible()
   })
 
-  test('GitHub link present', async ({ page }) => {
+  test('GitHub repo link present in hero', async ({ page }) => {
     await expect(page.locator('a[href*="github.com/sky2194"]').first()).toBeVisible()
   })
 
-  test('footer NVD link present', async ({ page }) => {
+  test('footer NVD button present', async ({ page }) => {
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-    await expect(page.locator('button:has-text("NVD")').first()).toBeVisible()
+    await expect(page.locator('button').filter({ hasText: 'NVD' }).first()).toBeVisible()
   })
 
-  test('footer OSV link present', async ({ page }) => {
+  test('footer OSV button present', async ({ page }) => {
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-    await expect(page.locator('button:has-text("OSV")').first()).toBeVisible()
+    await expect(page.locator('button').filter({ hasText: 'OSV' }).first()).toBeVisible()
   })
 
   test('CTA band scan button navigates to scanner', async ({ page }) => {
@@ -48,7 +50,7 @@ test.describe('Landing page', () => {
     await expect(page).toHaveURL(/\/scan/)
   })
 
-  test('mobile: hamburger opens menu', async ({ page, isMobile }) => {
+  test('mobile hamburger opens menu', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'Mobile only')
     await page.locator('.lp-hamburger').click()
     await expect(page.locator('.lp-mobile-menu')).toBeVisible()

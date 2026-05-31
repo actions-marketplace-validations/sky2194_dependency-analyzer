@@ -6,27 +6,33 @@ test.describe('Knowledge Base', () => {
     await page.waitForLoadState('networkidle')
   })
 
-  test('KB page loads', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /Knowledge Base/i })).toBeVisible()
+  test('page loads with Knowledge Base heading', async ({ page }) => {
+    await expect(page.locator('h1, h2').filter({ hasText: 'Knowledge Base' }).first()).toBeVisible()
   })
 
-  test('SCA section visible by default', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /Software Composition Analysis/i })).toBeVisible()
+  test('SCA section is shown by default', async ({ page }) => {
+    // Default section title contains "Software Composition Analysis"
+    await expect(page.locator('h2, h3').filter({ hasText: /Software Composition Analysis/i }).first()).toBeVisible()
   })
 
-  test('EPSS + KEV section accessible', async ({ page }) => {
-    // Click sidebar button — not the hidden select option
-    await page.locator('button:has-text("EPSS")').first().click()
-    await expect(page.getByRole('heading', { name: /EPSS/i })).toBeVisible()
+  test('clicking EPSS + KEV sidebar button shows that section', async ({ page }) => {
+    // Sidebar buttons are rendered with s.title text — exact match
+    await page.locator('.learn-sidebar button', { hasText: 'EPSS + KEV' }).click()
+    await expect(page.locator('h2, h3').filter({ hasText: /EPSS/i }).first()).toBeVisible()
   })
 
-  test('Risk Score section accessible', async ({ page }) => {
-    await page.locator('button:has-text("Risk Score")').first().click()
-    await expect(page.getByRole('heading', { name: /Risk Score/i })).toBeVisible()
+  test('clicking Risk Score Explained shows that section', async ({ page }) => {
+    await page.locator('.learn-sidebar button', { hasText: 'Risk Score Explained' }).click()
+    await expect(page.locator('h2, h3').filter({ hasText: /Risk Score/i }).first()).toBeVisible()
   })
 
-  test('Dependency Mediation section accessible', async ({ page }) => {
-    await page.locator('button:has-text("Dependency Mediation")').first().click()
-    await expect(page.getByRole('heading', { name: /Mediation/i })).toBeVisible()
+  test('clicking Dependency Mediation shows that section', async ({ page }) => {
+    await page.locator('.learn-sidebar button', { hasText: 'Dependency Mediation' }).click()
+    await expect(page.locator('h2, h3').filter({ hasText: /Mediation/i }).first()).toBeVisible()
+  })
+
+  test('clicking Transitive CVE Paths shows that section', async ({ page }) => {
+    await page.locator('.learn-sidebar button', { hasText: 'Transitive CVE Paths' }).click()
+    await expect(page.locator('h2, h3').filter({ hasText: /Transitive/i }).first()).toBeVisible()
   })
 })

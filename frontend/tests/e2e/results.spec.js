@@ -1,28 +1,40 @@
 import { test, expect } from '@playwright/test'
 
+// Runs a real scan against the production API
+// VITE_API_URL must be set in CI secrets
 async function runScan(page) {
   await page.goto('/scan')
   await page.waitForLoadState('networkidle')
-  await page.getByRole('button', { name: /Load package.json example/i }).click()
-  await page.getByRole('button', { name: /Scan.*Vulnerabilities/i }).click()
+  // Load the example package.json
+  await page.locator('button', { hasText: 'Load package.json example' }).click()
+  // Textarea should now have content
+  await expect(page.locator('textarea')).not.toBeEmpty()
+  // Click scan
+  await page.locator('button', { hasText: 'Scan & Detect Vulnerabilities' }).click()
+  // Wait for results page — real API may take up to 60s
   await page.waitForURL(/\/results/, { timeout: 60000 })
   await page.waitForLoadState('networkidle')
 }
 
 test.describe('Results page', () => {
-  test('results page loads after scan', async ({ page }) => {
+  test('scan completes and shows Security Report', async ({ page }) => {
     await runScan(page)
     await expect(page.locator('text=Security Report')).toBeVisible()
   })
 
-  test('no crash on results load', async ({ page }) => {
+  test('no crash — error boundary not shown', async ({ page }) => {
     await runScan(page)
     await expect(page.locator('text=Something went wrong')).not.toBeVisible()
   })
 
-  test('New Scan navigates back to scanner', async ({ page }) => {
+  test('risk score section is visible', async ({ page }) => {
     await runScan(page)
-    await page.getByRole('button', { name: /New Scan/i }).click()
+    await expect(page.locator('text=RISK SCORE')).toBeVisible()
+  })
+
+  test('New Scan button returns to scanner', async ({ page }) => {
+    await runScan(page)
+    await page.locator('button', { hasText: 'New Scan' }).click()
     await expect(page).toHaveURL(/\/scan/)
   })
 })
