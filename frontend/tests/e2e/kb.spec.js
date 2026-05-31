@@ -11,8 +11,7 @@ test.describe('Knowledge Base', () => {
   })
 
   test('SCA section is shown by default', async ({ page }) => {
-    // Default section title contains "Software Composition Analysis"
-    await expect(page.locator('h2, h3').filter({ hasText: /Software Composition Analysis/i }).first()).toBeVisible()
+    await expect(page.locator('h2, h3').filter({ hasText: /What is SCA/i }).first()).toBeVisible()
   })
 
   test('clicking EPSS + KEV sidebar button shows that section', async ({ page }) => {
