@@ -146,7 +146,16 @@ export default function DependencyGraph({ data }) {
     }
 
     if (sevFilter !== 'ALL') {
-      filtered = filtered.filter(n => n.depth === 0 || n.vulns.some(v => (v.severity||'').toUpperCase() === sevFilter))
+      const hasMatchingSev = allNodes.some(n =>
+        n.vulns.some(v => (v.severity||'').toUpperCase() === sevFilter)
+      )
+      if (!hasMatchingSev) {
+        filtered = allNodes.filter(n => n.depth === 0)
+      } else {
+        filtered = filtered.filter(n =>
+          n.depth === 0 || n.vulns.some(v => (v.severity||'').toUpperCase() === sevFilter)
+        )
+      }
     }
 
     const root       = filtered.find(n => n.depth === 0)
@@ -271,7 +280,7 @@ export default function DependencyGraph({ data }) {
 
       {/* ── Legend ── */}
       <div className="graph-legend" style={{ display:'flex', gap:14, marginBottom:10, fontSize:10, color:'var(--text-muted)', fontFamily:'var(--font-mono)', flexWrap:'wrap', alignItems:'center' }}>
-        {[['var(--critical)','Critical'],['var(--high)','High'],['var(--medium)','Medium'],['var(--green)','Safe']].map(([c,l]) => (
+        {[['var(--critical)','Critical'],['var(--high)','High'],['var(--medium)','Medium'],['var(--low)','Low'],['var(--text-muted)','No CVEs']].map(([c,l]) => (
           <span key={l} style={{ display:'flex', alignItems:'center', gap:5 }}>
             <span style={{ width:9, height:9, borderRadius:'50%', background:c, display:'inline-block' }} />{l}
           </span>
@@ -413,6 +422,20 @@ export default function DependencyGraph({ data }) {
           })}
         </svg>
 
+        {/* Empty state overlay when severity filter has no matching nodes */}
+        {sevFilter !== 'ALL' && all.filter(n => n.depth > 0).length === 0 && (
+          <div style={{
+            position: 'absolute', top: '50%', left: '50%',
+            transform: 'translate(-50%, -50%)',
+            textAlign: 'center', color: 'var(--text-muted)',
+            fontFamily: 'var(--font-mono)', fontSize: 12,
+            background: 'var(--bg-elevated)', border: '1px solid var(--border)',
+            borderRadius: 8, padding: '16px 24px', pointerEvents: 'none'
+          }}>
+            No {sevFilter.charAt(0) + sevFilter.slice(1).toLowerCase()} severity vulnerabilities
+            <br />in this dependency tree
+          </div>
+        )}
         {/* Zoom hint */}
         {zoom !== 1 && <div style={{ position:'absolute', bottom:10, right:14, fontSize:10, color:'var(--text-muted)', fontFamily:'var(--font-mono)', pointerEvents:'none' }}>{Math.round(zoom*100)}%</div>}
         {/* Large tree hint */}

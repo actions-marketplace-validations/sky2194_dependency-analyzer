@@ -16,6 +16,8 @@ module.exports = defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'Desktop Chrome', use: { ...devices['Desktop Chrome'] } },
+    { name: 'Mobile Chrome',  use: { ...devices['Pixel 5'] } },
+    { name: 'Mobile Safari',  use: { ...devices['iPhone 13'] } },
   ],
 })

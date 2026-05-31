@@ -186,15 +186,17 @@ test.describe('Results page', () => {
 
   test('clicking first CVE row opens detail panel — check .a-panel visible', async ({ page }) => {
     await runScan(page)
-    // Auto-select picks the first CRITICAL CVE (ejs group). Expand the second group
-    // (lodash) so clicking its CVE selects a new one, making the close button appear.
-    await page.locator('.a-pkg-group-header').nth(1).click()
+    // Close the auto-selected panel — on mobile it overlays the package list
+    await page.locator('[aria-label="Close details"]').click()
+    await page.locator('.a-pkg-group-header').first().click()
     await page.locator('.a-cve-row').first().click()
     await expect(page.locator('[aria-label="Close details"]')).toBeVisible()
   })
 
   test('severity filter works — click CRITICAL filter, check rows', async ({ page }) => {
     await runScan(page)
+    // Close the auto-selected panel — on mobile it overlays the package list
+    await page.locator('[aria-label="Close details"]').click()
     await page.locator('.a-pill', { hasText: /CRITICAL/ }).click()
     await page.locator('.a-pkg-group-header').first().click()
     await expect(page.locator('.a-cve-row').first()).toBeVisible()

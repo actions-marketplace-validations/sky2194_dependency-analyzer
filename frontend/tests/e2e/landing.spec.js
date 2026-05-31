@@ -22,11 +22,13 @@ test.describe('Landing page', () => {
     await expect(page).toHaveURL(/\/learn/)
   })
 
-  test('nav Features link visible', async ({ page }) => {
+  test('nav Features link visible', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'Desktop only — nav links are in hamburger menu on mobile')
     await expect(page.locator('a[href="#features"]')).toBeVisible()
   })
 
-  test('nav How it works link visible', async ({ page }) => {
+  test('nav How it works link visible', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'Desktop only — nav links are in hamburger menu on mobile')
     await expect(page.locator('a[href="#how-it-works"]')).toBeVisible()
   })
 
@@ -50,9 +52,15 @@ test.describe('Landing page', () => {
     await expect(page).toHaveURL(/\/scan/)
   })
 
-  test('mobile hamburger opens menu', async ({ page, isMobile }) => {
+  test('mobile: hamburger opens menu', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'Mobile only')
     await page.locator('.lp-hamburger').click()
     await expect(page.locator('.lp-mobile-menu')).toBeVisible()
+  })
+
+  test('mobile: hamburger menu links work', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'Mobile only')
+    await page.locator('.lp-hamburger').click()
+    await expect(page.locator('.lp-mobile-link').first()).toBeVisible()
   })
 })
