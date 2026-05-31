@@ -87,6 +87,10 @@ export default function FileUpload({ onAnalyze, loading, onEcosystemChange }) {
         onDrop={e => { e.preventDefault(); setDrag(false); handleFile(e.dataTransfer.files[0]) }}
         onDragOver={e => { e.preventDefault(); setDrag(true) }}
         onDragLeave={() => setDrag(false)}
+        role="button"
+        tabIndex={0}
+        onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && ref.current?.click()}
+        aria-label="Upload dependency file — click or drag and drop"
         style={{ border: `2px dashed ${drag ? 'var(--brand)' : 'var(--border)'}`, borderRadius: 'var(--radius)', padding: '16px', textAlign: 'center', cursor: 'pointer', background: drag ? 'var(--vuln-bg)' : 'var(--surface)', marginBottom: 10, transition: 'all 0.2s' }}>
         <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 13 }}>Drop file or click to browse</div>
         <div style={{ color: 'var(--muted)', fontSize: 11, marginTop: 2 }}>package.json / package-lock.json · requirements.txt · pom.xml</div>
@@ -103,7 +107,7 @@ export default function FileUpload({ onAnalyze, loading, onEcosystemChange }) {
       </div>
 
       <div style={{ fontSize: 12, color: eco.color, marginBottom: 8, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 }}>
-        {eco.lang} detected
+        {eco.lang} {content.trim() ? 'detected' : 'selected'}
         {content.trim() && detectFromContent(content) && (
           <span style={{ fontSize: 10, background: 'var(--green-dim)', color: 'var(--green)', border: '1px solid var(--fix-border)', borderRadius: 4, padding: '1px 6px', fontFamily: 'var(--font-mono)' }}>
             auto-detected
