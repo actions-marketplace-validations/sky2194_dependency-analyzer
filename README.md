@@ -137,6 +137,35 @@ Fonts: Syne (display), DM Sans (body), DM Mono (code) — loaded via Google Font
 
 **Testing**
 
+## Running Tests
+
+### E2E Tests (Playwright)
+```bash
+cd frontend
+npm run test:e2e              # headless
+npm run test:e2e:headed       # with browser visible
+npm run test:e2e:ui           # interactive UI mode
+```
+
+Tests cover 5 areas (41 tests total):
+- **Landing** — hero, CTAs, nav links, mobile hamburger
+- **Scanner** — tabs, example load, auto-detect, keyboard accessibility
+- **Results** — full scan flow, CVE table, filters, graph, export, crash guard
+- **History** — load, empty state, delete without crash
+- **Knowledge Base** — all sections, mobile picker
+
+### CI Gate
+Every PR to `main` automatically runs the full test suite via GitHub Actions.
+PRs cannot be merged if any test fails.
+Failure artifacts (screenshots, videos) are uploaded for debugging.
+
+### Backend Tests (pytest)
+```bash
+cd backend
+pytest
+pytest --coverage
+```
+
 | Tool | Version | Role |
 |------|---------|------|
 | Playwright | 1.60.0 | E2E and responsive testing |
