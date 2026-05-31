@@ -4,7 +4,7 @@ import { getAllProjects, getProjectScans, deleteProject } from '../utils/project
 
 export default function History() {
   const navigate = useNavigate()
-  const [projects] = useState(getAllProjects())
+  const [projects, setProjects] = useState(getAllProjects())
   const [expandedProject, setExpandedProject] = useState(null)
   const [confirmDelete, setConfirmDelete] = useState(null)
 
@@ -109,7 +109,7 @@ export default function History() {
                         <div style={{ flex: 1, display: 'flex', gap: 8, fontSize: 12 }}>
                           <span style={{ color: 'var(--text-secondary)' }}>{scan.summary.vulnerabilities} CVEs</span>
                           <span style={{ color: 'var(--text-muted)' }}>·</span>
-                          <span style={{ color: 'var(--text-secondary)' }}>{scan.packages} packages</span>
+                          <span style={{ color: 'var(--text-secondary)' }}>{scan.summary?.total_packages || scan.packages || 0} packages</span>
                         </div>
                         <div style={{ fontFamily: 'var(--font-mono)', fontSize: 16, fontWeight: 700, color: getRiskColor(scan.summary.risk_score) }}>
                           {scan.summary.risk_score}

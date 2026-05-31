@@ -469,7 +469,7 @@ export default function Learn() {
           style={{ width: '100%', padding: '10px 14px', marginBottom: 16, background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', color: 'var(--text)', fontSize: 14, fontFamily: 'var(--font-ui)' }}>
           {NAV.map(g => (
             <optgroup key={g.group} label={g.group}>
-              {g.items.map(s => <option key={s.id} value={s.id}>{s.icon} {s.title}</option>)}
+              {g.items.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
             </optgroup>
           ))}
         </select>
@@ -493,7 +493,7 @@ export default function Learn() {
                   fontSize: 13, fontWeight: active === s.id ? 600 : 400, transition: 'all 0.15s',
                   fontFamily: 'var(--font-ui)',
                 }}>
-                  {s.icon} {s.title}
+                  {s.title}
                 </button>
               ))}
             </div>
@@ -515,7 +515,7 @@ export default function Learn() {
         {/* Content */}
         <div ref={contentRef} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '20px 20px', minHeight: 400 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-            <span style={{ fontSize: 22 }}>{section.icon}</span>
+
             <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--text-primary)' }}>
               {section.title}
             </h2>
