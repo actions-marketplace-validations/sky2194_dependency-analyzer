@@ -3,7 +3,7 @@ const { defineConfig, devices } = require('@playwright/test')
 const BASE_URL = process.env.BASE_URL || 'http://localhost:5173'
 
 module.exports = defineConfig({
-  testDir: './frontend/tests/e2e',
+  testDir: './tests/e2e',
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
