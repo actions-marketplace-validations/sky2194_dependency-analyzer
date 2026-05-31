@@ -661,7 +661,7 @@ export default function Analytics() {
           <div className="a-panel-hdr">
             <span>CVE Details</span>
             {selectedVuln && <SevBadge sev={selectedVuln.severity} />}
-            {selectedVuln && <span onClick={() => setSelected(null)} style={{ cursor: 'pointer', color: 'var(--text-muted)', marginLeft: 'auto', fontSize: 14 }} aria-label="Close details">x</span>}
+            {selectedVuln && <button onClick={() => setSelected(null)} style={{ cursor: 'pointer', color: 'var(--text-muted)', marginLeft: 'auto', fontSize: 14, background: 'none', border: 'none', padding: '0 2px' }} aria-label="Close details">×</button>}
           </div>
           <div style={{ padding: 14 }}>
             {!selectedVuln

@@ -112,7 +112,7 @@ export default function Landing() {
             <div className="lp-mobile-menu">
               <a href="#features"     className="lp-mobile-link" onClick={() => setMenuOpen(false)}>Features</a>
               <a href="#how-it-works" className="lp-mobile-link" onClick={() => setMenuOpen(false)}>How it works</a>
-              <a href="#why"          className="lp-mobile-link" onClick={() => setMenuOpen(false)}>Why DepAnalyzer</a>
+              <a href="#problem"      className="lp-mobile-link" onClick={() => setMenuOpen(false)}>Why DepAnalyzer</a>
               <div style={{ height: 1, background: 'var(--border)', margin: '6px 0' }} />
               <button onClick={handleScan} className="lp-mobile-cta">{shield}&nbsp;&nbsp;Start Scanning — Free</button>
             </div>
@@ -145,7 +145,7 @@ export default function Landing() {
           <p className="lp-hero-sub">Upload your <code style={{fontFamily:"var(--font-mono)",fontSize:14}}>package.json</code>, <code style={{fontFamily:"var(--font-mono)",fontSize:14}}>requirements.txt</code>, or <code style={{fontFamily:"var(--font-mono)",fontSize:14}}>pom.xml</code> — get a full CVE report in seconds. Direct and transitive dependencies. Exact fix commands. Free, no signup.</p>
           <div className="lp-hero-actions">
             <button onClick={() => navigate('/scan')} className="lp-btn-hero" aria-label="Start scanning your project">{shield} Scan Free — No Signup</button>
-            <button onClick={() => navigate('/learn')} className="lp-btn-hero-ghost" aria-label="Learn how it works">How it works →</button>
+            <button onClick={() => navigate('/learn')} className="lp-btn-hero-ghost" aria-label="Learn how it works">Learn the concepts →</button>
           </div>
           {/* Social proof */}
           <div style={{ display:'flex', alignItems:'center', gap:16, marginTop:20, flexWrap:'wrap' }}>
@@ -263,7 +263,7 @@ export default function Landing() {
             <div>
               <div className="lp-section-label">Dependency Intelligence</div>
               <h2 className="lp-section-title">Not just CVEs —<br />why they exist</h2>
-              <p className="lp-section-sub" style={{ marginBottom: 28 }}>Most scanners tell you a package is vulnerable. DepAnalyzer tells you <strong>which dependency dragged it in</strong>, why that version was selected over a safe one, and the minimum bump that removes it. That's dependency mediation — and no other free tool visualizes it.</p>
+              <p className="lp-section-sub" style={{ marginBottom: 28 }}>Most scanners tell you a package is vulnerable. DepAnalyzer tells you <strong>which dependency dragged it in</strong>, why that version was selected over a safe one, and the minimum bump that removes it. That's dependency mediation — and rarely explained this clearly in a free tool.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <CheckRow title="Dependency mediation explainer" text="See exactly which parent pulled in the vulnerable version and why" />
                 <CheckRow title="Blast radius visualization" text="Node size encodes how many downstream CVEs are reachable through each package" />
@@ -317,13 +317,13 @@ export default function Landing() {
         <div style={{ textAlign: 'center' }} className="reveal">
           <div className="lp-section-label">Features</div>
           <h2 className="lp-section-title">Dependency intelligence, not just scanning</h2>
-          <p className="lp-section-sub" style={{ margin: '0 auto' }}>Purpose-built for security-conscious engineering teams who need signal, not noise.</p>
+          <p className="lp-section-sub" style={{ margin: '0 auto' }}>Purpose-built for developers and security-conscious engineers who need signal, not noise.</p>
         </div>
         <div className="lp-features-grid">
           {[
             ['Dependency Graph Intelligence','Visualize your full dependency tree with blast radius encoding — node size shows how many downstream CVEs are reachable through each package. The graph most scanners never show you.'],
             ['Transitive Risk Tracing','Traverses the full dependency tree to catch CVEs in packages you never explicitly installed — where 80%+ of real-world vulnerabilities hide.'],
-            ['Dependency Mediation Explainer','See exactly why a vulnerable version was selected — which parent pulled it in, and which version bump removes it. Unique to DepAnalyzer.'],
+            ['Dependency Mediation Explainer','See exactly why a vulnerable version was selected — which parent pulled it in, and which version bump removes it. Rarely shown this clearly — free, no signup.'],
             ['Logarithmic Risk Scoring','Weighs severity counts with diminishing returns into a transparent 0–100 risk score. Click to see the exact calculation for your scan.'],
             ['Actionable Fix Commands','Per-CVE install commands and batch fix-all commands in the correct format for each ecosystem — ready to run.'],
             ['PDF + CSV Export','Download scan results as structured reports. Share with your team or attach to security reviews.'],
@@ -337,7 +337,7 @@ export default function Landing() {
       <section className="lp-section reveal" style={{ paddingTop: 48, paddingBottom: 48 }}>
         <div style={{ textAlign:'center', marginBottom: 28 }}>
           <div className="lp-section-label">Security Transparency</div>
-          <h2 className="lp-section-title" style={{ fontSize:'clamp(22px,2.5vw,32px)' }}>Built for security teams. Transparent by design.</h2>
+          <h2 className="lp-section-title" style={{ fontSize:'clamp(22px,2.5vw,32px)' }}>Built for developers who care about security. Transparent by design.</h2>
         </div>
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))', gap:12 }}>
           {[
@@ -394,7 +394,7 @@ export default function Landing() {
             return <div key={title}><div className="lp-footer-col-title">{title}</div><div className="lp-footer-links">{links.filter(l => l).map(l => <button key={l} onClick={linkMap[l] || (() => {})}>{l}</button>)}</div></div>
           })}
         </div>
-        <div className="lp-footer-bottom"><div>© 2026 DepAnalyzer. All rights reserved.</div><div>Powered by OSV · NVD fallback</div></div>
+        <div className="lp-footer-bottom"><div>{`© ${new Date().getFullYear()} DepAnalyzer. All rights reserved.`}</div><div>Powered by OSV · NVD fallback</div></div>
       </footer>
     </div>
   )
