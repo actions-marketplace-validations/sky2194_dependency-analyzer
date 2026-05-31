@@ -174,7 +174,7 @@ test.describe('Results page', () => {
 
   test('risk score section is visible', async ({ page }) => {
     await runScan(page)
-    await expect(page.locator('text=RISK SCORE')).toBeVisible()
+    await expect(page.locator('text=RISK SCORE').first()).toBeVisible()
   })
 
   test('CVE table renders — check .a-cve-row exists', async ({ page }) => {
@@ -186,7 +186,9 @@ test.describe('Results page', () => {
 
   test('clicking first CVE row opens detail panel — check .a-panel visible', async ({ page }) => {
     await runScan(page)
-    await page.locator('.a-pkg-group-header').first().click()
+    // Auto-select picks the first CRITICAL CVE (ejs group). Expand the second group
+    // (lodash) so clicking its CVE selects a new one, making the close button appear.
+    await page.locator('.a-pkg-group-header').nth(1).click()
     await page.locator('.a-cve-row').first().click()
     await expect(page.locator('[aria-label="Close details"]')).toBeVisible()
   })
@@ -201,7 +203,7 @@ test.describe('Results page', () => {
   test('Dependency Graph tab renders — click tab, check graph canvas', async ({ page }) => {
     await runScan(page)
     await page.locator('.a-tab', { hasText: 'Dependency Graph' }).click()
-    await expect(page.locator('canvas')).toBeVisible()
+    await expect(page.locator('.graph-canvas')).toBeVisible()
   })
 
   test('Fixes tab renders — click Fixes tab, check content', async ({ page }) => {
