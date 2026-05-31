@@ -155,7 +155,7 @@ export default function Landing() {
               Open Source
             </a>
             <span style={{ color:'var(--border)', fontSize:12 }}>·</span>
-            <span style={{ fontSize:12, color:'var(--text-muted)' }}>249k+ CVEs indexed</span>
+            <span style={{ fontSize:12, color:'var(--text-muted)' }}>Backed by OSV + NVD</span>
             <span style={{ color:'var(--border)', fontSize:12 }}>·</span>
             <span style={{ fontSize:12, color:'var(--text-muted)' }}>npm · PyPI · Maven</span>
             <span style={{ color:'var(--border)', fontSize:12 }}>·</span>
@@ -207,7 +207,7 @@ export default function Landing() {
           </div>
           {/* Mock CVE rows */}
           {[
-            { sev: 'CRITICAL', cve: 'CVE-2020-28500', pkg: 'lodash@4.17.15', path: 'express → body-parser → lodash', fix: 'npm install lodash@4.17.21', cvss: '9.8' },
+            { sev: 'HIGH', cve: 'CVE-2020-28500', pkg: 'lodash@4.17.15', path: 'express → body-parser → lodash', fix: 'npm install lodash@4.17.21', cvss: '7.5' },
             { sev: 'CRITICAL', cve: 'CVE-2022-29078', pkg: 'ejs@3.1.5', path: 'express → ejs', fix: 'npm install ejs@3.1.9', cvss: '9.8' },
             { sev: 'HIGH', cve: 'CVE-2021-3749', pkg: 'axios@0.21.1', path: 'axios (direct)', fix: 'npm install axios@0.21.2', cvss: '7.5' },
             { sev: 'MEDIUM', cve: 'CVE-2021-23343', pkg: 'path-parse@1.0.6', path: 'webpack → path-parse', fix: 'npm install path-parse@1.0.7', cvss: '5.3' },
@@ -297,7 +297,7 @@ export default function Landing() {
               <div><strong>✓</strong> {DATA_SOURCE_SHORT}</div>
               <div><strong>✓</strong> Risk scoring complete</div>
               <br />
-              <div><mark>✗ CRITICAL</mark> lodash@4.17.15 <i>CVE-2020-28500 · CVSS 7.4</i></div>
+              <div><mark>✗ HIGH</mark> lodash@4.17.15 <i>CVE-2020-28500 · CVSS 7.5</i></div>
               <div><mark>✗ CRITICAL</mark> ejs@3.1.5 <i>CVE-2022-29078 · CVSS 9.8</i></div>
               <div><u>⚠ HIGH</u> axios@0.21.1 <i>CVE-2021-3749 · CVSS 7.5</i></div>
               <br />
@@ -382,7 +382,7 @@ export default function Landing() {
       <footer>
         <div className="lp-footer">
           <div><div className="lp-nav-logo" style={{ marginBottom: 14 }}><div className="lp-nav-logo-icon">{shield}</div>DepAnalyzer</div><p className="lp-footer-desc">Dependency intelligence and software supply chain security for modern engineering teams. Open source. No signup required.</p></div>
-          {['Product|Scanner|Knowledge Base','Databases|NVD|OSV|GitHub Advisory'].map(col => {
+          {['Product|Scanner|Knowledge Base|Source on GitHub','Databases|NVD|OSV|GitHub Advisory'].map(col => {
             const [title, ...links] = col.split('|')
             const linkMap = {
               'Scanner': () => navigate('/scan'),
@@ -390,6 +390,7 @@ export default function Landing() {
               'NVD': () => window.open('https://nvd.nist.gov', '_blank'),
               'OSV': () => window.open('https://osv.dev', '_blank'),
               'GitHub Advisory': () => window.open('https://github.com/advisories', '_blank'),
+              'Source on GitHub': () => window.open('https://github.com/sky2194/dependency-analyzer', '_blank'),
             }
             return <div key={title}><div className="lp-footer-col-title">{title}</div><div className="lp-footer-links">{links.filter(l => l).map(l => <button key={l} onClick={linkMap[l] || (() => {})}>{l}</button>)}</div></div>
           })}
