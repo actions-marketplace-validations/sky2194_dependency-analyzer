@@ -146,16 +146,18 @@ export default function Analytics() {
   const navigate = useNavigate()
   const [tab, setTab] = useState('vulns')
   const [sevFilter, setSevFilter] = useState('ALL')
-  const [selected, setSelected] = useState(() => {
-    // Auto-select highest severity CVE so sidebar isn't empty on first load
-    if (!snapshot?.vulnerabilities?.length) return null
+  const [selected, setSelected] = useState(null)
+  const [expanded, setExpanded] = useState(new Set())
+
+  // Auto-select highest severity CVE once snapshot loads
+  useEffect(() => {
+    if (!snapshot?.vulnerabilities?.length) return
     const SEV_ORDER = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }
     const top = [...snapshot.vulnerabilities].sort((a, b) =>
       (SEV_ORDER[a.severity] ?? 4) - (SEV_ORDER[b.severity] ?? 4)
     )[0]
-    return top?.cve_id || null
-  })
-  const [expanded, setExpanded] = useState(new Set())
+    if (top?.cve_id) setSelected(top.cve_id)
+  }, [snapshot])
   const [showExportMenu, setShowExportMenu] = useState(false)
   const [copied, setCopied] = useState(null)
   const [pkgPage, setPkgPage] = useState(1)
