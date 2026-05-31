@@ -62,6 +62,31 @@ The `SystemStatusBar` and `SystemLogs` components are always dark-themed (hardco
 
 All status fields must be wired to real data from `healthStatus` prop. No fake/simulated static entries are acceptable. Live entries (heartbeat, rate limit resets) are generated client-side on a timer — these are acceptable as they reflect real activity patterns.
 
+## Testing
+
+### Writing E2E Tests
+All tests live in `frontend/tests/e2e/`. Each file maps to a page:
+- `landing.spec.js` — Landing page
+- `scanner.spec.js` — Scanner page
+- `results.spec.js` — Results/Analytics page
+- `history.spec.js` — History page
+- `kb.spec.js` — Knowledge Base
+
+**Rules:**
+- Every new feature must have at least one E2E test
+- Every bug fix must have a regression test that would have caught it
+- Tests must pass on both Desktop Chrome and Mobile Chrome (Pixel 5)
+- Use `test.skip(!isMobile, 'Mobile only')` for mobile-specific tests
+
+**Running before submitting a PR:**
+```bash
+cd frontend && npm run test:e2e
+```
+
+### CI Gate
+GitHub Actions runs all 41 tests on every PR to `main`.
+A PR cannot be merged if any test fails.
+
 ## Database Development
 
 The scanner works without `DATABASE_URL` set — it falls back to live OSV API automatically. For DB-related changes:
