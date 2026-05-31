@@ -86,7 +86,7 @@ export default function Landing() {
         <div className="lp-nav-links">
           <a href="#features"     className="lp-nav-link">Features</a>
           <a href="#how-it-works" className="lp-nav-link">How it works</a>
-          <button onClick={handleScan} className="lp-nav-link">Scan Now</button>
+
         </div>
 
         {/* Desktop CTA */}
@@ -226,7 +226,7 @@ export default function Landing() {
           ))}
         </div>
         <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          <button onClick={() => navigate('/scan')}
             style={{ padding: '8px 20px', background: 'var(--brand)', color: 'var(--white)', border: 'none', borderRadius: 6, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
             Scan your project →
           </button>
@@ -376,7 +376,7 @@ export default function Landing() {
 
       <div className="lp-cta-band reveal">
         <div><div className="lp-cta-title">Find vulnerabilities<br />before they ship.</div><div className="lp-cta-sub">No account. No agents. Just upload your manifest and get results in seconds.</div></div>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}><button onClick={() => navigate('/scan')} className="lp-btn-hero" aria-label="Start scanning now">{shield} Scan Now — Free</button></div>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}><button onClick={() => navigate('/scan')} className="lp-btn-hero" aria-label="Start scanning now">{shield} Start Scanning Free</button></div>
       </div>
 
       <footer>
