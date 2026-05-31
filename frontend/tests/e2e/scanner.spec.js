@@ -70,4 +70,12 @@ test.describe('Scanner page', () => {
     const btn = page.locator('button', { hasText: 'Scan & Detect Vulnerabilities' })
     await expect(btn).toBeEnabled()
   })
+
+  test('mobile: scanner stacks correctly', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'Mobile only')
+    // On mobile scanner-right panel should be hidden
+    await expect(page.locator('.scanner-right')).not.toBeVisible()
+    // Scanner form should be visible
+    await expect(page.locator('textarea')).toBeVisible()
+  })
 })
