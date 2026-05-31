@@ -6,33 +6,38 @@ test.describe('History page', () => {
   })
 
   test('history page loads', async ({ page }) => {
-    await expect(page.locator('text=Scan History')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Scan History' })).toBeVisible()
   })
 
   test('empty state shown when no history', async ({ page }) => {
-    // Clear localStorage first
     await page.evaluate(() => localStorage.clear())
     await page.reload()
-    await expect(page.locator('text=No scan history')).toBeVisible()
+    await expect(page.locator('text=No scan history yet')).toBeVisible()
   })
 
   test('delete does not crash page', async ({ page }) => {
-    // Run a scan first to have history
-    await page.goto('/scan')
-    await page.click('text=Load package.json example')
-    await page.click('text=Scan & Detect Vulnerabilities')
-    await page.waitForURL(/\/results/, { timeout: 30000 })
-    await page.goto('/history')
+    // Inject a fake scan into localStorage so we have something to delete
+    await page.evaluate(() => {
+      const fakeScan = {
+        id: 'test-123',
+        project_name: 'test-app',
+        scanned_at: new Date().toISOString(),
+        summary: { total_packages: 5, critical: 1, high: 0, medium: 0, low: 0, risk_score: 45 },
+        vulnerabilities: []
+      }
+      localStorage.setItem('depanalyzer_projects', JSON.stringify([{ name: 'test-app', scans: [fakeScan] }]))
+    })
+    await page.reload()
 
-    const deleteBtn = page.locator('text=×').first()
-    if (await deleteBtn.isVisible()) {
+    const deleteBtn = page.locator('[aria-label="Delete scan"], text=×').first()
+    if (await deleteBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
       await deleteBtn.click()
-      // Confirm delete if dialog appears
-      const confirmBtn = page.locator('text=Delete')
-      if (await confirmBtn.isVisible()) await confirmBtn.click()
+      const confirmBtn = page.locator('text=Delete').first()
+      if (await confirmBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await confirmBtn.click()
+      }
     }
-    // Page must not crash
     await expect(page.locator('text=Something went wrong')).not.toBeVisible()
-    await expect(page.locator('text=Scan History')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Scan History' })).toBeVisible()
   })
 })

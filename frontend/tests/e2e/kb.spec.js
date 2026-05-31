@@ -6,25 +6,26 @@ test.describe('Knowledge Base', () => {
   })
 
   test('KB page loads', async ({ page }) => {
-    await expect(page.locator('text=Knowledge Base')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Knowledge Base' })).toBeVisible()
   })
 
   test('SCA section visible by default', async ({ page }) => {
-    await expect(page.locator('text=Software Composition Analysis')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Software Composition Analysis' })).toBeVisible()
   })
 
   test('EPSS + KEV section accessible', async ({ page }) => {
-    await page.click('text=EPSS + KEV')
+    // Click the sidebar nav link (not the hidden select option)
+    await page.locator('nav >> text=EPSS + KEV').click()
     await expect(page.locator('text=Exploit Prediction')).toBeVisible()
   })
 
   test('Risk Score section accessible', async ({ page }) => {
-    await page.click('text=Risk Score Explained')
+    await page.locator('nav >> text=Risk Score Explained').click()
     await expect(page.locator('text=logarithm')).toBeVisible()
   })
 
   test('Dependency Mediation section accessible', async ({ page }) => {
-    await page.click('text=Dependency Mediation')
+    await page.locator('nav >> text=Dependency Mediation').click()
     await expect(page.locator('text=Nearest depth')).toBeVisible()
   })
 
