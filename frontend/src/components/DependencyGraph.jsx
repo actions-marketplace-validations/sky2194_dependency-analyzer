@@ -1,7 +1,8 @@
 import { useState, useMemo, useRef, useCallback, useEffect } from 'react'
 
 const SEV_COLOR = { CRITICAL: 'var(--critical)', HIGH: 'var(--high)', MEDIUM: 'var(--medium)', LOW: 'var(--low)' }
-const SEV_FILL  = { CRITICAL: 'var(--red-dim)',  HIGH: 'var(--yellow-dim)', MEDIUM: 'var(--blue-dim)', LOW: 'var(--green-dim)' }
+const SEV_FILL  = { CRITICAL: 'rgba(255,59,92,0.25)', HIGH: 'rgba(255,140,66,0.2)', MEDIUM: 'rgba(245,200,66,0.15)', LOW: 'rgba(62,207,142,0.15)' }
+const SEV_STROKE_WIDTH = { CRITICAL: 3, HIGH: 2.5, MEDIUM: 2, LOW: 1.5 }
 
 function flatten(node, depth = 0, parent = null, out = []) {
   if (!node) return out
@@ -255,7 +256,8 @@ export default function DependencyGraph({ data }) {
       <div className="graph-controls" style={{ display: 'flex', gap: 8, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         {/* View */}
         <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-          <span style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)',
+          <span title="Filter which packages are displayed in the graph"
+            style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)',
             fontFamily:'var(--font-mono)', letterSpacing:'0.05em', minWidth:40 }}>
             SHOW:
           </span>
@@ -272,9 +274,10 @@ export default function DependencyGraph({ data }) {
         </div>
         {/* Severity */}
         <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap', marginTop:6 }}>
-          <span style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)',
+          <span title="Filter packages by their highest CVE severity level"
+            style={{ fontSize:10, fontWeight:700, color:'var(--text-muted)',
             fontFamily:'var(--font-mono)', letterSpacing:'0.05em', minWidth:40 }}>
-            SEV:
+            SEVERITY:
           </span>
           {['ALL','CRITICAL','HIGH','MEDIUM','LOW'].map(s => (
             <button key={s}
@@ -418,7 +421,7 @@ export default function DependencyGraph({ data }) {
                 {/* Selection ring */}
                 {isSel && <circle cx={n.x} cy={n.y} r={r+7} fill="none" stroke="var(--brand)" strokeWidth="2" strokeDasharray="4 3" />}
                 {/* Node */}
-                <circle cx={n.x} cy={n.y} r={r} fill={fill} stroke={isSel?'var(--brand)':col} strokeWidth={sev?2:1.5} />
+                <circle cx={n.x} cy={n.y} r={r} fill={fill} stroke={isSel?'var(--brand)':col} strokeWidth={sev ? (SEV_STROKE_WIDTH[sev.sev] || 2) : 1} />
                 {/* CVSS */}
                 {sev?.cvss && (
                   <g>
