@@ -1,19 +1,21 @@
 <div align="center">
 
-<img src="https://img.shields.io/badge/version-1.0.0-blue?style=flat-square" />
-<img src="https://img.shields.io/badge/python-3.9+-3776AB?style=flat-square&logo=python&logoColor=white" />
-<img src="https://img.shields.io/badge/react-18-61DAFB?style=flat-square&logo=react&logoColor=black" />
-<img src="https://img.shields.io/badge/flask-3.0-000000?style=flat-square&logo=flask&logoColor=white" />
+<img src="https://img.shields.io/github/stars/sky2194/dependency-analyzer?style=flat-square&logo=github&color=gold" />
+<img src="https://img.shields.io/badge/version-2.4.1-blue?style=flat-square" />
+<img src="https://img.shields.io/badge/python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white" />
+<img src="https://img.shields.io/badge/react-19-61DAFB?style=flat-square&logo=react&logoColor=black" />
+<img src="https://img.shields.io/badge/flask-3.1-000000?style=flat-square&logo=flask&logoColor=white" />
 <img src="https://img.shields.io/badge/postgresql-17-336791?style=flat-square&logo=postgresql&logoColor=white" />
 <img src="https://img.shields.io/badge/CVE_cache-249k_vulns-red?style=flat-square" />
-<img src="https://img.shields.io/badge/license-Apache%202.0-green?style=flat-square" />
+<img src="https://img.shields.io/badge/license-AGPL%20v3-brightgreen?style=flat-square" />
+<img src="https://img.shields.io/badge/E2E_tests-40_passing-success?style=flat-square&logo=playwright" />
 
 # DepAnalyzer
 
 **Open-source Software Composition Analysis (SCA) tool.**  
 Scan your project dependencies for known CVE vulnerabilities — across npm, PyPI, and Maven.
 
-[Live Demo](https://dependency-analyzer-eight.vercel.app) · [Report a Bug](https://github.com/sky2194/dependency-analyzer/issues) · [Request a Feature](https://github.com/sky2194/dependency-analyzer/issues)
+[🌐 depanalyzer.com](https://www.depanalyzer.com) · [📖 Docs](https://www.depanalyzer.com/learn) · [🐛 Report a Bug](https://github.com/sky2194/dependency-analyzer/issues) · [💡 Request a Feature](https://github.com/sky2194/dependency-analyzer/issues)
 
 </div>
 
@@ -421,7 +423,7 @@ The backend initialises the schema and starts the delta sync scheduler on every 
 ```
 dependency-analyzer/
 ├── start.sh                        # Orchestration script (start/stop/restart/logs)
-├── LICENSE                         # Apache 2.0
+├── LICENSE                         # AGPL v3
 │
 ├── frontend/
 │   ├── package.json
@@ -756,5 +758,8 @@ rm -rf frontend/node_modules
 
 ## License
 
-Apache License 2.0 — see [LICENSE](LICENSE) for details.  
-Copyright 2025 Sai Koutilya Yerabati.
+**GNU Affero General Public License v3.0 (AGPL v3)** — see [LICENSE](LICENSE) for details.
+
+Copyright 2026 Sai Koutilya Yerabati.
+
+DepAnalyzer is free to use, modify, and self-host. If you run a modified version as a network service (SaaS), you must release your source code under AGPL v3. For commercial licensing, contact koutilya99@gmail.com.
