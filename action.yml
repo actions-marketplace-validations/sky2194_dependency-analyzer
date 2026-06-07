@@ -1,4 +1,4 @@
-name: 'DepAnalyzer Security Scan'
+name: 'Dependency Analyzer Security Scan'
 description: 'Scan your dependencies for CVE vulnerabilities and post a full report to your PR — never blocks your pipeline'
 branding:
   icon: 'shield'
@@ -13,7 +13,7 @@ inputs:
     required: false
     default: 'package.json'
   api-url:
-    description: 'DepAnalyzer API base URL'
+    description: 'Dependency Analyzer API base URL'
     required: false
     default: 'https://depanalyzer.com'
   github-token:
