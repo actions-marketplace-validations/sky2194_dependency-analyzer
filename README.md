@@ -811,4 +811,4 @@ rm -rf frontend/node_modules
 
 Copyright 2026 Sai Koutilya Yerabati.
 
-DepAnalyzer is free to use, modify, and self-host. If you run a modified version as a network service (SaaS), you must release your source code under AGPL v3. For commercial licensing, contact koutilya99@gmail.com.
+DepAnalyzer is free to use, modify, and self-host. If you run a modified version as a network service (SaaS), you must release your source code under AGPL v3. For commercial licensing inquiries, [open an issue](https://github.com/sky2194/dependency-analyzer/issues).
