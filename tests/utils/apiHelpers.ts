@@ -26,24 +26,41 @@ export interface ScanResponse {
   scan_timestamp: number;
 }
 
+// Real packages with known CVEs — ensures tests find actual vulnerabilities on both local and production
 export const MOCK_DEPENDENCIES = {
   npm: `{
+  "name": "test-app",
+  "version": "1.0.0",
   "dependencies": {
+    "lodash": "4.17.11",
     "express": "4.17.1",
-    "lodash": "4.17.4",
-    "axios": "0.21.1"
+    "axios": "0.21.1",
+    "node-fetch": "2.6.0"
   }
 }`,
-  python: `requests==2.25.1
-flask==1.1.2
-jinja2==2.11.3`,
-  maven: `<dependencies>
-  <dependency>
-    <groupId>org.springframework</groupId>
-    <artifactId>spring-core</artifactId>
-    <version>5.3.8</version>
-  </dependency>
-</dependencies>`,
+  python: `Django==3.2.0
+requests==2.27.0
+Pillow==9.0.0
+Flask==2.0.1
+SQLAlchemy==1.4.0`,
+  maven: `<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.example</groupId>
+  <artifactId>test-app</artifactId>
+  <version>1.0.0</version>
+  <dependencies>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-collections</groupId>
+      <artifactId>commons-collections</artifactId>
+      <version>3.2.1</version>
+    </dependency>
+  </dependencies>
+</project>`,
 };
 
 export async function performScan(
