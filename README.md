@@ -186,9 +186,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: sky2194/dependency-analyzer@v1
+```
+
+No configuration needed — the Action auto-detects your manifest (`package.json`, `requirements.txt`, or `pom.xml`) from the workspace. Override only if you have a non-standard path:
+
+```yaml
+      - uses: sky2194/dependency-analyzer@v1
         with:
-          manifest-file: package.json   # or requirements.txt / pom.xml
-          api-url: https://depanalyzer.com
+          manifest-file: path/to/requirements.txt
 ```
 
 The Action scans your dependencies, posts a PR comment with the full report (including a CISA KEV alert if any actively-exploited CVEs are found), and links directly to the visual report in the app. It never fails the build.
