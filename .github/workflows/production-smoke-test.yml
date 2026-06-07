@@ -58,12 +58,12 @@ jobs:
         working-directory: tests
         run: npx playwright install chromium --with-deps
 
-      - name: Run E2E tests against production
+      - name: Run production smoke tests
         working-directory: tests
         env:
           BASE_URL: https://www.depanalyzer.com
           CI: true
-        run: npx playwright test --project=chromium
+        run: npx playwright test tests/production_smoke.spec.ts --project=chromium
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
