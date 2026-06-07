@@ -9,6 +9,7 @@
 <img src="https://img.shields.io/badge/CVE_cache-249k_vulns-red?style=flat-square" />
 <img src="https://img.shields.io/badge/license-AGPL%20v3-brightgreen?style=flat-square" />
 <img src="https://img.shields.io/badge/E2E_tests-40_passing-success?style=flat-square&logo=playwright" />
+<a href="https://github.com/marketplace/actions/depanalyzer-security-scan"><img src="https://img.shields.io/badge/GitHub%20Marketplace-DepAnalyzer-blue?style=flat-square&logo=github" /></a>
 
 # DepAnalyzer
 
