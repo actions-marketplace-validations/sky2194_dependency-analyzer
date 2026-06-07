@@ -147,3 +147,72 @@ def test_analyze_returns_scan_timestamp():
     res = requests.post(f"{BASE}/api/analyze", json=NPM_PAYLOAD, timeout=60)
     if res.status_code == 200:
         assert 'scan_timestamp' in res.json()
+
+# ── EPSS / KEV fields ─────────────────────────────────────────────────────────
+
+@skip_if_offline
+def test_analyze_vulnerabilities_have_epss_fields():
+    res = requests.post(f"{BASE}/api/analyze", json=MAVEN_PAYLOAD, timeout=60)
+    assert res.status_code == 200
+    vulns = res.json().get('vulnerabilities', [])
+    for v in vulns:
+        assert 'epss_score' in v, f"Missing epss_score on {v.get('cve_id')}"
+        assert 'epss_percentile' in v, f"Missing epss_percentile on {v.get('cve_id')}"
+        assert 'in_kev' in v, f"Missing in_kev on {v.get('cve_id')}"
+
+@skip_if_offline
+def test_analyze_epss_score_is_float_or_none():
+    res = requests.post(f"{BASE}/api/analyze", json=MAVEN_PAYLOAD, timeout=60)
+    assert res.status_code == 200
+    for v in res.json().get('vulnerabilities', []):
+        score = v.get('epss_score')
+        assert score is None or isinstance(score, float), f"epss_score should be float or None, got {type(score)}"
+
+@skip_if_offline
+def test_analyze_in_kev_is_bool():
+    res = requests.post(f"{BASE}/api/analyze", json=MAVEN_PAYLOAD, timeout=60)
+    assert res.status_code == 200
+    for v in res.json().get('vulnerabilities', []):
+        assert isinstance(v.get('in_kev'), bool), f"in_kev should be bool, got {type(v.get('in_kev'))}"
+
+# ── Scan snapshots (GET /api/scans/<id>) ──────────────────────────────────────
+
+@skip_if_offline
+def test_get_scan_invalid_uuid_returns_400():
+    res = requests.get(f"{BASE}/api/scans/not-a-valid-uuid", timeout=5)
+    assert res.status_code == 400
+    assert 'error' in res.json()
+
+@skip_if_offline
+def test_get_scan_nonexistent_id_returns_404():
+    res = requests.get(f"{BASE}/api/scans/00000000-0000-0000-0000-000000000000", timeout=5)
+    assert res.status_code == 404
+    assert 'error' in res.json()
+
+@skip_if_offline
+def test_get_scan_roundtrip():
+    scan_res = requests.post(f"{BASE}/api/analyze", json=NPM_PAYLOAD, timeout=60)
+    assert scan_res.status_code == 200
+    data = scan_res.json()
+    tx_id = data.get('transaction_id')
+    assert tx_id, "analyze response missing transaction_id"
+
+    fetch_res = requests.get(f"{BASE}/api/scans/{tx_id}", timeout=10)
+    assert fetch_res.status_code == 200
+    fetched = fetch_res.json()
+    assert fetched['ecosystem'] == data['ecosystem']
+    assert fetched['project_name'] == data['project_name']
+    assert fetched['transaction_id'] == tx_id
+
+@skip_if_offline
+def test_get_scan_result_has_graph_and_dependency_tree():
+    scan_res = requests.post(f"{BASE}/api/analyze", json=NPM_PAYLOAD, timeout=60)
+    assert scan_res.status_code == 200
+    tx_id = scan_res.json().get('transaction_id')
+    assert tx_id
+
+    fetch_res = requests.get(f"{BASE}/api/scans/{tx_id}", timeout=10)
+    assert fetch_res.status_code == 200
+    fetched = fetch_res.json()
+    assert 'graph' in fetched, "Snapshot missing graph"
+    assert 'dependency_tree' in fetched, "Snapshot missing dependency_tree"
