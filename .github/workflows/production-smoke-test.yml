@@ -30,10 +30,10 @@ jobs:
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
           name: api-test-results
-          path: .pytest_cache/
+          path: tests/backend/
           retention-days: 7
 
   e2e-tests:
