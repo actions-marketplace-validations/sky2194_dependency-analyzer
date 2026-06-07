@@ -698,13 +698,23 @@ Referrer-Policy: strict-origin-when-cross-origin
 
 ## Screenshots
 
-| Page | Preview |
-|------|---------|
-| Landing | *(placeholder)* |
-| Scanner / Dashboard | *(placeholder)* |
-| Scan Results / Analytics | *(placeholder)* |
-| Dependency Graph | *(placeholder)* |
-| Scan History | *(placeholder)* |
+**Landing**
+![Landing page](docs/screenshots/landing.png)
+
+**Scanner — npm, PyPI, Maven tabs with live example loader**
+![Scanner](docs/screenshots/scanner.png)
+
+**Scan Results — npm (lodash 4.17.11, axios 0.21.1 · Risk 68/100 · 73 CVEs)**
+![npm scan results](docs/screenshots/results_npm.png)
+
+**Scan Results — Maven (log4j 1.2.17, commons-collections 3.2.1 · Risk 46/100 · 8 CVEs · EPSS 71%)**
+![Maven scan results with EPSS](docs/screenshots/results_maven.png)
+
+**Scan Results — PyPI (Django 3.2, requests 2.27, Pillow 9.0 · Risk 24/100 · 9 CVEs)**
+![PyPI scan results](docs/screenshots/results_pypi.png)
+
+**Dependency Graph — interactive SVG with severity filtering**
+![Dependency graph](docs/screenshots/graph.png)
 
 ---
 
@@ -748,7 +758,7 @@ if git diff HEAD@{1} HEAD --name-only | grep -q "requirements.txt"; then
   source backend/venv/bin/activate && pip install -r backend/requirements.txt -q
 fi
 if git diff HEAD@{1} HEAD --name-only | grep -q "backend/db.py"; then
-  cd backend && python3 -c "from db import init_schema; init_schema()" && cd ..
+  backend/venv/bin/python3 -c "from db import init_schema; init_schema()"
 fi
 systemctl restart dependency-analyzer
 echo "✅ Deploy complete"
