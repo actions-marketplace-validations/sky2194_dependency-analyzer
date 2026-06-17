@@ -42,7 +42,7 @@ def _fetch_deps(name, version):
         cached = get_resolver_cache(f"npm:{key}")
         if cached is not None:
             with _cache_lock:
-                _cache[key] = {'deps': cached, 'ts': time.time()}
+                _cache[key] = {'data': cached, 'ts': time.time()}
             return cached
     except Exception:
         pass

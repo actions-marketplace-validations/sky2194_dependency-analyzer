@@ -42,8 +42,16 @@ def _fetch_deps(name, version):
                 continue
             dep_name = match.group(1)
             ver_str = match.group(2) or ''
-            ver_match = re.search(r'[\d\.]+', ver_str)
-            deps[dep_name] = ver_match.group(0) if ver_match else 'latest'
+            # Prefer a lower bound (>=x or >x) so we scan a version that
+            # actually satisfies the constraint. Without this, constraints
+            # starting with an upper bound like (<1.27,>=1.21.1) would have
+            # the first number extracted as 1.27 — an invalid upper limit.
+            lb_match = re.search(r'>=?\s*([\d][^,\s;]*)', ver_str)
+            if lb_match:
+                deps[dep_name] = lb_match.group(1).strip()
+            else:
+                any_match = re.search(r'[\d\.]+', ver_str)
+                deps[dep_name] = any_match.group(0) if any_match else 'latest'
         with _cache_lock:
             _cache[key] = deps
             # Evict oldest entries if cache exceeds max size

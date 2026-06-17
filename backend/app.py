@@ -7,6 +7,7 @@ import sys
 import uuid
 import logging
 import copy
+import json
 import time
 
 # Ensure backend directory is in Python path for local imports
@@ -581,20 +582,20 @@ def scan_package_deep():
         elif risk_score >= 1:  risk_label = 'Low'
         else:                  risk_label = 'Secure'
 
-        # Build grouped_packages to satisfy frontend contract
+        # Build grouped_packages to satisfy frontend contract.
+        # group_vulns_by_package returns a list of group dicts, not a dict.
         grouped_vulns = group_vulns_by_package(vulnerabilities)
-        grouped_packages = []
-        for pkg_name_key, pkg_vulns in grouped_vulns.items():
-            sevs = [v.get('severity', 'LOW') for v in pkg_vulns]
-            highest = next((s for s in ['CRITICAL','HIGH','MEDIUM','LOW'] if s in sevs), 'LOW')
-            grouped_packages.append({
-                'package': pkg_name_key,
-                'version': pkg_vulns[0].get('installed_version', ''),
+        grouped_packages = [
+            {
+                'package': g['package'],
+                'version': g['version'],
                 'is_direct': True,
-                'vulnerabilities': pkg_vulns,
-                'highestSeverity': highest,
-                'recommended_fix': next((v.get('fix_version') for v in pkg_vulns if v.get('fix_version')), None),
-            })
+                'vulnerabilities': g['cves'],
+                'highestSeverity': g['highest_severity'],
+                'recommended_fix': g['recommended_fix'],
+            }
+            for g in grouped_vulns
+        ]
 
         # Build fixes list
         fixes = []

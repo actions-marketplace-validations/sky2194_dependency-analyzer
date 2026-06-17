@@ -183,16 +183,13 @@ def purge_expired_scan_snapshots():
         log.warning(f"Scan snapshot purge error: {e}")
 
 def last_sync_time(source: str):
-    """Return ISO timestamp of last successful sync for a source, or None."""
-    try:
-        with get_conn() as conn:
-            with get_cursor(conn) as cur:
-                cur.execute(
-                    "SELECT synced_at FROM sync_log WHERE source=%s AND status='ok' ORDER BY synced_at DESC LIMIT 1",
-                    (source,)
-                )
-                row = cur.fetchone()
-                return row["synced_at"].isoformat() if row else None
-    except Exception as e:
-        log.warning(f"last_sync_time error: {e}")
-        return None
+    """Return ISO timestamp of last successful sync for a source, or None.
+    Raises on DB connection failure so callers can detect real DB outages."""
+    with get_conn() as conn:
+        with get_cursor(conn) as cur:
+            cur.execute(
+                "SELECT synced_at FROM sync_log WHERE source=%s AND status='ok' ORDER BY synced_at DESC LIMIT 1",
+                (source,)
+            )
+            row = cur.fetchone()
+            return row["synced_at"].isoformat() if row else None

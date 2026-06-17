@@ -36,14 +36,20 @@ def _fetch_deps(group, artifact, version):
         if res.status_code != 200:
             return {}
         root = ET.fromstring(res.content)
+        # Maven POMs declare xmlns="http://maven.apache.org/POM/4.0.0".
+        # ElementTree represents every tag as {http://...}tagname, so plain
+        # .iter('dependency') matches nothing. Use the explicit namespace.
+        # Falls back to unnamespaced tags for legacy POMs via the _ns helper.
+        _pom_ns = 'http://maven.apache.org/POM/4.0.0'
+        _ns = lambda tag: f'{{{_pom_ns}}}{tag}' if root.tag.startswith(f'{{{_pom_ns}}}') else tag
         deps = {}
-        for dep in root.iter('dependency'):
-            scope = dep.findtext('scope') or 'compile'
+        for dep in root.iter(_ns('dependency')):
+            scope = dep.findtext(_ns('scope')) or 'compile'
             if scope in ('test', 'provided', 'system'):
                 continue
-            g = dep.findtext('groupId') or ''
-            a = dep.findtext('artifactId') or ''
-            v = dep.findtext('version') or 'unknown'
+            g = dep.findtext(_ns('groupId')) or ''
+            a = dep.findtext(_ns('artifactId')) or ''
+            v = dep.findtext(_ns('version')) or 'unknown'
             if '${' in v:
                 v = 'unknown'
             deps[f"{g}:{a}"] = {'group': g, 'artifact': a, 'version': v}
