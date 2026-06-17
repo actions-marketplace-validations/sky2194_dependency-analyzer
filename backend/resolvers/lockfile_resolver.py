@@ -3,7 +3,7 @@ Lock file resolver — no registry calls needed.
 All versions are already resolved in the lock file.
 """
 
-def resolve(direct_deps):
+def resolve(direct_deps, max_depth=2):
     """Build graph from lock file — fast, no HTTP calls.
 
     Lock files don't expose explicit parent→child mapping in a simple form,

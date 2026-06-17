@@ -7,10 +7,38 @@ on:
     branches: [main]
 
 jobs:
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        working-directory: backend
+        run: pip install -r requirements.txt
+      - name: Run pytest
+        working-directory: backend
+        run: python -m pytest tests/ -v --tb=short
+        env:
+          TESTING: "true"
+          INTERNAL_TOKEN: "test-token"
+          DATABASE_URL: ""
+      - name: Upload results on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: pytest-results
+          path: backend/
+          retention-days: 7
+
   test:
     name: Playwright E2E
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: backend-tests
 
     defaults:
       run:
